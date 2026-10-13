@@ -67,6 +67,32 @@ export interface SiteCustomization {
     defaultKeywords: string;
     ogImage: string;
   };
+  adsense: AdSenseConfig;
+}
+
+export interface AdSenseSlotConfig {
+  id: string;
+  name: string;
+  position: 'home' | 'article' | 'sidebar' | 'mobile';
+  enabled: boolean;
+  format: 'leaderboard' | 'rectangle' | 'skyscraper' | 'fluid' | 'responsive';
+  adSlot: string;
+  label: string;
+}
+
+export interface AdSenseConfig {
+  enabled: boolean;
+  publisherId: string;
+  autoAdsEnabled: boolean;
+  testMode: boolean;
+  slots: Record<string, AdSenseSlotConfig>;
+  revenueStats: {
+    estimatedToday: number;
+    estimatedMonth: number;
+    impressionsToday: number;
+    clicksToday: number;
+    rpm: number;
+  };
 }
 
 export interface ContentStoreState {
@@ -136,6 +162,111 @@ export const DEFAULT_CUSTOMIZATION: SiteCustomization = {
     defaultKeywords: 'IA, Tech, Design, Marketing, Web3, Architecture Numérique, Innovation',
     ogImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=85',
   },
+  adsense: {
+    enabled: true,
+    publisherId: 'ca-pub-9842187654321098',
+    autoAdsEnabled: true,
+    testMode: true,
+    revenueStats: {
+      estimatedToday: 42.80,
+      estimatedMonth: 1284.50,
+      impressionsToday: 28450,
+      clicksToday: 736,
+      rpm: 3.82,
+    },
+    slots: {
+      home_after_hero: {
+        id: 'home_after_hero',
+        name: 'Accueil — Après le Hero (Bannière Leaderboard)',
+        position: 'home',
+        enabled: true,
+        format: 'leaderboard',
+        adSlot: '1092837461',
+        label: 'Emplacement Leaderboard 728x90 / Fluide',
+      },
+      home_between_categories: {
+        id: 'home_between_categories',
+        name: 'Accueil — Entre Catégories & Articles',
+        position: 'home',
+        enabled: true,
+        format: 'responsive',
+        adSlot: '2093847512',
+        label: 'Encart In-Feed Responsive',
+      },
+      home_between_articles: {
+        id: 'home_between_articles',
+        name: 'Accueil — Entre Articles Récents',
+        position: 'home',
+        enabled: false,
+        format: 'responsive',
+        adSlot: '3049586721',
+        label: 'Grille In-Feed Éditoriale',
+      },
+      home_sidebar: {
+        id: 'home_sidebar',
+        name: 'Accueil — Sidebar Latérale',
+        position: 'sidebar',
+        enabled: true,
+        format: 'rectangle',
+        adSlot: '4059687123',
+        label: 'Pavé MPU 300x250',
+      },
+      article_after_intro: {
+        id: 'article_after_intro',
+        name: 'Article — Après l’Introduction (Chapeau)',
+        position: 'article',
+        enabled: true,
+        format: 'responsive',
+        adSlot: '5069784312',
+        label: 'Encart Chapeau Article',
+      },
+      article_in_content: {
+        id: 'article_in_content',
+        name: 'Article — Milieu de Contenu Éditorial',
+        position: 'article',
+        enabled: true,
+        format: 'responsive',
+        adSlot: '6078912345',
+        label: 'Format In-Article Fluide',
+      },
+      article_before_conclusion: {
+        id: 'article_before_conclusion',
+        name: 'Article — Avant la Conclusion',
+        position: 'article',
+        enabled: false,
+        format: 'responsive',
+        adSlot: '7089123456',
+        label: 'Encart Fin de Lecture',
+      },
+      article_sidebar: {
+        id: 'article_sidebar',
+        name: 'Article — Sidebar Sticky Déroulante',
+        position: 'sidebar',
+        enabled: true,
+        format: 'skyscraper',
+        adSlot: '8091234567',
+        label: 'Grand Skyscraper / Demi-page 300x600',
+      },
+      article_footer: {
+        id: 'article_footer',
+        name: 'Article — Pied d’Article & Commentaires',
+        position: 'article',
+        enabled: true,
+        format: 'leaderboard',
+        adSlot: '9012345678',
+        label: 'Bannière Leaderboard Inférieure',
+      },
+      mobile_sticky: {
+        id: 'mobile_sticky',
+        name: 'Mobile — Bannière Ancrée Bas d’Écran',
+        position: 'mobile',
+        enabled: true,
+        format: 'responsive',
+        adSlot: '9923456781',
+        label: 'Format Mobile Adaptatif 320x50',
+      },
+    },
+  },
 };
 
 export const INITIAL_STORE_STATE: ContentStoreState = {
@@ -173,7 +304,11 @@ export function getContentStore(): ContentStoreState {
     }
     const parsed = JSON.parse(raw) as ContentStoreState;
     // Rétrocompatibilité : s'assurer que les sections indispensables existent
-    if (!parsed.customization) parsed.customization = DEFAULT_CUSTOMIZATION;
+    if (!parsed.customization) {
+      parsed.customization = DEFAULT_CUSTOMIZATION;
+    } else if (!parsed.customization.adsense) {
+      parsed.customization.adsense = DEFAULT_CUSTOMIZATION.adsense;
+    }
     if (!parsed.articles || parsed.articles.length === 0) parsed.articles = defaultArticles;
     if (!parsed.categories || parsed.categories.length === 0) parsed.categories = defaultCategories;
     if (!parsed.users || parsed.users.length === 0) parsed.users = defaultUsers;

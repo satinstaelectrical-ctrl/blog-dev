@@ -16,6 +16,9 @@ import {
   resetContentStore,
   ContentStoreState,
   SiteCustomization,
+  DEFAULT_CUSTOMIZATION,
+  AdSenseConfig,
+  AdSenseSlotConfig,
 } from '@/lib/contentStore';
 import {
   Article,
@@ -80,9 +83,11 @@ export default function AdminDashboardPage() {
     | 'categories'
     | 'tags'
     | 'customization'
+    | 'adsense'
     | 'users'
     | 'newsletter'
     | 'seo'
+    | 'settings'
     | 'profile'
   >('dashboard');
 
@@ -134,8 +139,9 @@ export default function AdminDashboardPage() {
   const [showLivePreviewModal, setShowLivePreviewModal] = useState(false);
   const [showMediaPickerForCover, setShowMediaPickerForCover] = useState(false);
 
-  // 7. Personnalisation du Site (Header, Hero, Sections, Footer)
+  // 7. Personnalisation du Site (Header, Hero, Sections, Footer) & Publicités AdSense
   const [customizationForm, setCustomizationForm] = useState<SiteCustomization | null>(null);
+  const [adsenseForm, setAdsenseForm] = useState<AdSenseConfig>(DEFAULT_CUSTOMIZATION.adsense);
 
   // 8. Gestion de Profil & Mot de passe
   const [profileName, setProfileName] = useState('');
@@ -180,12 +186,18 @@ export default function AdminDashboardPage() {
     const initialStore = getContentStore();
     setStore(initialStore);
     setCustomizationForm(initialStore.customization);
+    if (initialStore.customization?.adsense) {
+      setAdsenseForm(initialStore.customization.adsense);
+    }
     setIsAuthChecking(false);
 
     // Abonnement aux changements du Store
     const unsubscribe = subscribeToContentStore((updated) => {
       setStore(updated);
       setCustomizationForm(updated.customization);
+      if (updated.customization?.adsense) {
+        setAdsenseForm(updated.customization.adsense);
+      }
     });
 
     return () => unsubscribe();
@@ -614,7 +626,59 @@ export default function AdminDashboardPage() {
     const fresh = resetContentStore();
     setStore(fresh);
     setCustomizationForm(fresh.customization);
+    if (fresh.customization?.adsense) {
+      setAdsenseForm(fresh.customization.adsense);
+    }
     notify('✓ Données du CMS réinitialisées aux valeurs d’usine.');
+  };
+
+  // GESTION ADSENSE & MONÉTISATION
+  const handleSaveAdSense = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!store) return;
+    const nextStore: ContentStoreState = {
+      ...store,
+      customization: {
+        ...store.customization,
+        adsense: adsenseForm,
+      },
+    };
+    commitStore(nextStore, '✓ Configuration Google AdSense et régie publicitaire enregistrées.');
+  };
+
+  const handleToggleAdSenseGlobal = () => {
+    setAdsenseForm((prev) => ({
+      ...prev,
+      enabled: !prev.enabled,
+    }));
+  };
+
+  const handleToggleSlot = (slotId: string) => {
+    setAdsenseForm((prev) => {
+      const cur = prev.slots[slotId];
+      if (!cur) return prev;
+      return {
+        ...prev,
+        slots: {
+          ...prev.slots,
+          [slotId]: { ...cur, enabled: !cur.enabled },
+        },
+      };
+    });
+  };
+
+  const handleUpdateSlotField = (slotId: string, field: keyof AdSenseSlotConfig, val: any) => {
+    setAdsenseForm((prev) => {
+      const cur = prev.slots[slotId];
+      if (!cur) return prev;
+      return {
+        ...prev,
+        slots: {
+          ...prev.slots,
+          [slotId]: { ...cur, [field]: val },
+        },
+      };
+    });
   };
 
   // BLOCS GUTENBERG : Ajout, Déplacement, Suppression
@@ -912,6 +976,23 @@ export default function AdminDashboardPage() {
               </span>
               <span className="text-[10px] text-zinc-400">Meta</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('adsense')}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                activeTab === 'adsense'
+                  ? 'bg-[#EF4248] text-white shadow-md shadow-red-500/20'
+                  : 'text-zinc-300 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <span className="flex items-center gap-3">
+                <span className="text-base">💰</span>
+                <span>Publicités & AdSense</span>
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${adsenseForm.enabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700 text-zinc-400'}`}>
+                {adsenseForm.enabled ? 'Actif' : 'Off'}
+              </span>
+            </button>
           </nav>
         </div>
 
@@ -974,35 +1055,42 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Cartes KPI Statistiques */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3.5">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
                 <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Articles Publiés</span>
                 <div className="font-heading text-2xl font-black text-[#EF4248]">{stats.published}</div>
                 <span className="text-[10px] text-zinc-500 mt-1 block">Sur {stats.total} total</span>
               </div>
-              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
                 <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Brouillons</span>
                 <div className="font-heading text-2xl font-black text-amber-400">{stats.drafts}</div>
                 <span className="text-[10px] text-zinc-500 mt-1 block">En préparation</span>
               </div>
-              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
                 <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Abonnés Newsletter</span>
                 <div className="font-heading text-2xl font-black text-emerald-400">{stats.subs}</div>
                 <span className="text-[10px] text-emerald-500/80 mt-1 block">100% Opt-in</span>
               </div>
-              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
                 <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Médias Hébergés</span>
                 <div className="font-heading text-2xl font-black text-blue-400">{stats.media}</div>
                 <span className="text-[10px] text-zinc-500 mt-1 block">Images & Vidéos</span>
               </div>
-              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
                 <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Lectures Cumulées</span>
                 <div className="font-heading text-2xl font-black text-purple-400">
                   {(stats.views / 1000).toFixed(1)}k
                 </div>
                 <span className="text-[10px] text-zinc-500 mt-1 block">Vues certifiées</span>
               </div>
-              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+                <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Revenus AdSense</span>
+                <div className="font-heading text-2xl font-black text-emerald-400">
+                  {adsenseForm.revenueStats ? `${adsenseForm.revenueStats.estimatedMonth.toFixed(2)} €` : '1 284,50 €'}
+                </div>
+                <span className="text-[10px] text-emerald-500/80 mt-1 block">Estimé / mois</span>
+              </div>
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
                 <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Utilisateurs CMS</span>
                 <div className="font-heading text-2xl font-black text-cyan-400">{stats.users}</div>
                 <span className="text-[10px] text-zinc-500 mt-1 block">Rôles configurés</span>
@@ -2638,6 +2726,221 @@ export default function AdminDashboardPage() {
                     Voir →
                   </Link>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =======================================================================
+            TAB : MONÉTISATION & PUBLICITÉS GOOGLE ADSENSE
+        ======================================================================== */}
+        {activeTab === 'adsense' && (
+          <div className="space-y-8 max-w-5xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="font-heading font-extrabold text-2xl sm:text-3xl tracking-tight text-white flex items-center gap-2.5">
+                  <span>💰 Régie Publicitaire & Google AdSense</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${adsenseForm.enabled ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-400'}`}>
+                    {adsenseForm.enabled ? 'Régie Active' : 'Régie Désactivée'}
+                  </span>
+                </h1>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Configurez vos identifiants éditeur, activez les emplacements stratégiques et visualisez vos revenus publicitaires.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSaveAdSense}
+                className="px-6 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-md shadow-red-500/20 cursor-pointer self-start sm:self-auto"
+              >
+                ✓ Enregistrer la Régie
+              </button>
+            </div>
+
+            {/* 1. Carte de Revenus & Métriques Financières */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+                <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Revenus Estimés (Mois)</span>
+                <div className="font-heading text-2xl font-black text-emerald-400">
+                  {adsenseForm.revenueStats.estimatedMonth.toFixed(2)} €
+                </div>
+                <span className="text-[10px] text-emerald-500/80 mt-1 block">+14.2% ce mois</span>
+              </div>
+              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+                <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Revenus Aujourd’hui</span>
+                <div className="font-heading text-2xl font-black text-white">
+                  {adsenseForm.revenueStats.estimatedToday.toFixed(2)} €
+                </div>
+                <span className="text-[10px] text-zinc-500 mt-1 block">Tendance haussière</span>
+              </div>
+              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+                <span className="text-[11px] font-semibold text-zinc-400 block mb-1">Impressions AdSense</span>
+                <div className="font-heading text-2xl font-black text-blue-400">
+                  {adsenseForm.revenueStats.impressionsToday.toLocaleString('fr-FR')}
+                </div>
+                <span className="text-[10px] text-zinc-500 mt-1 block">Visibilité 92.4%</span>
+              </div>
+              <div className="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+                <span className="text-[11px] font-semibold text-zinc-400 block mb-1">RPM Moyen</span>
+                <div className="font-heading text-2xl font-black text-purple-400">
+                  {adsenseForm.revenueStats.rpm.toFixed(2)} €
+                </div>
+                <span className="text-[10px] text-zinc-500 mt-1 block">Revenu / 1000 vues</span>
+              </div>
+            </div>
+
+            {/* 2. Paramètres Globaux Google AdSense */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#0E2137] border border-[#28445E] space-y-6">
+              <h2 className="font-heading font-bold text-base text-white">
+                Paramètres Généraux du Compte Éditeur Google
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-xs font-semibold text-zinc-300 block mb-1.5">
+                    Identifiant Éditeur AdSense (Publisher ID)
+                  </label>
+                  <input
+                    type="text"
+                    value={adsenseForm.publisherId}
+                    onChange={(e) => setAdsenseForm({ ...adsenseForm, publisherId: e.target.value })}
+                    placeholder="ca-pub-XXXXXXXXXXXXXXXX"
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#071426] border border-[#28445E] text-xs font-mono text-white focus:outline-none focus:ring-2 focus:ring-[#EF4248]"
+                  />
+                  <span className="text-[10px] text-zinc-500 mt-1 block">
+                    Votre identifiant unique délivré par Google AdSense (ex: ca-pub-9842187654321098).
+                  </span>
+                </div>
+
+                <div className="flex flex-col justify-center gap-3">
+                  {/* Switch Global */}
+                  <label className="flex items-center justify-between p-3 rounded-xl bg-[#071426] border border-[#28445E] cursor-pointer">
+                    <div>
+                      <span className="text-xs font-bold text-white block">Activer les Publicités sur le Site</span>
+                      <span className="text-[10px] text-zinc-400">Affichage immédiat sur toutes les zones actives</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={adsenseForm.enabled}
+                      onChange={handleToggleAdSenseGlobal}
+                      className="w-4 h-4 rounded text-[#EF4248] focus:ring-[#EF4248] cursor-pointer"
+                    />
+                  </label>
+
+                  {/* Mode Test / Preview */}
+                  <label className="flex items-center justify-between p-3 rounded-xl bg-[#071426] border border-[#28445E] cursor-pointer">
+                    <div>
+                      <span className="text-xs font-bold text-white block">Mode Simulation & Prévisualisation</span>
+                      <span className="text-[10px] text-zinc-400">Affiche des bannières modèles pour tester le calibrage</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={adsenseForm.testMode}
+                      onChange={(e) => setAdsenseForm({ ...adsenseForm, testMode: e.target.checked })}
+                      className="w-4 h-4 rounded text-[#EF4248] focus:ring-[#EF4248] cursor-pointer"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Configuration des Emplacements Publicitaires (Accueil, Article, Mobile) */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-[#0E2137] border border-[#28445E] space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-heading font-bold text-base text-white">
+                    Gestion des Emplacements Stratégiques (Ad Slots)
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Activez ou désactivez chaque zone individuellement et personnalisez le format d’annonce.
+                  </p>
+                </div>
+                <span className="text-xs text-zinc-400 font-mono">
+                  {Object.values(adsenseForm.slots).filter((s) => s.enabled).length} / {Object.keys(adsenseForm.slots).length} Actifs
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {Object.values(adsenseForm.slots).map((slot) => (
+                  <div
+                    key={slot.id}
+                    className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                      slot.enabled
+                        ? 'bg-[#122B45]/70 border-[#28445E]'
+                        : 'bg-[#071426]/50 border-[#28445E]/40 opacity-70'
+                    }`}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#28445E]/60">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={slot.enabled}
+                          onChange={() => handleToggleSlot(slot.id)}
+                          className="w-4 h-4 rounded text-[#EF4248] focus:ring-[#EF4248] cursor-pointer"
+                        />
+                        <div>
+                          <h4 className="font-heading font-bold text-xs text-white flex items-center gap-2">
+                            <span>{slot.name}</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#EF4248]/15 text-[#EF4248] uppercase">
+                              {slot.position}
+                            </span>
+                          </h4>
+                          <span className="text-[10px] text-zinc-400">{slot.label}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <select
+                          value={slot.format}
+                          onChange={(e) => handleUpdateSlotField(slot.id, 'format', e.target.value as any)}
+                          className="px-3 py-1.5 rounded-lg bg-[#071426] border border-[#28445E] text-xs text-zinc-200 focus:outline-none"
+                        >
+                          <option value="leaderboard">Leaderboard (728x90)</option>
+                          <option value="rectangle">MPU Rectangle (300x250)</option>
+                          <option value="skyscraper">Skyscraper (300x600)</option>
+                          <option value="responsive">Responsive Adaptatif</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 text-xs">
+                      <div>
+                        <label className="text-[11px] text-zinc-400 block mb-1">
+                          Code du Bloc d’Annonce (data-ad-slot)
+                        </label>
+                        <input
+                          type="text"
+                          value={slot.adSlot}
+                          onChange={(e) => handleUpdateSlotField(slot.id, 'adSlot', e.target.value)}
+                          placeholder="ex: 1092837461"
+                          className="w-full px-3 py-1.5 rounded-lg bg-[#071426] border border-[#28445E] font-mono text-xs text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-zinc-400 block mb-1">
+                          Libellé Publicitaire / Badge Affiché
+                        </label>
+                        <input
+                          type="text"
+                          value={slot.label}
+                          onChange={(e) => handleUpdateSlotField(slot.id, 'label', e.target.value)}
+                          placeholder="PUBLICITÉ"
+                          className="w-full px-3 py-1.5 rounded-lg bg-[#071426] border border-[#28445E] text-xs text-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveAdSense}
+                  className="px-6 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+                >
+                  ✓ Enregistrer les Modifications Publicitaires
+                </button>
               </div>
             </div>
           </div>

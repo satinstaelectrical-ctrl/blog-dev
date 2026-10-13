@@ -15,6 +15,7 @@ import { CategoryBadge } from '@/components/ui/Badge';
 import { EditorialSidebar } from '@/components/sidebar/EditorialSidebar';
 import { ArticleCardGrid } from '@/components/cards/ArticleCardGrid';
 import { NewsletterBanner } from '@/components/newsletter/NewsletterBanner';
+import { AdSenseBanner } from '@/components/ads/AdSenseBanner';
 import {
   ClockIcon,
   TwitterIcon,
@@ -263,6 +264,9 @@ export default function ArticleSinglePage() {
                   Les signaux numériques ont cessé d'être de simples relevés de clics ou des empreintes résiduelles. Aujourd’hui, ils incarnent le système nerveux central des écosystèmes connectés. Dans un monde saturé de stimuli, la valeur ne réside plus dans le volume de données collectées, mais dans la finesse d’extraction des variations imperceptibles.
                 </p>
 
+                {/* BANNIÈRE ADSENSE — APRÈS INTRODUCTION */}
+                <AdSenseBanner slotId="article_after_intro" className="my-8" />
+
                 {/* Inline Image matching Ontario */}
                 <figure className="my-10">
                   <div className="rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 shadow-sm">
@@ -302,6 +306,9 @@ export default function ArticleSinglePage() {
                     — {article.author.name}, {article.author.role}
                   </cite>
                 </blockquote>
+
+                {/* BANNIÈRE ADSENSE — MILIEU DE CONTENU */}
+                <AdSenseBanner slotId="article_in_content" className="my-8" />
 
                 <p>
                   L’impact ne se limite pas à la finance ou à la technologie de pointe : il redéfinit en profondeur notre rapport au travail, à la production de contenu et à l’attention humaine.
@@ -388,6 +395,9 @@ export default function ArticleSinglePage() {
                   </Link>
                 ))}
               </div>
+
+              {/* BANNIÈRE ADSENSE — PIED D'ARTICLE */}
+              <AdSenseBanner slotId="article_footer" className="my-8" />
 
               {/* Author Bio Box */}
               <div className="my-10 p-6 md:p-8 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
@@ -519,7 +529,7 @@ export default function ArticleSinglePage() {
           </div>
 
           {/* Right Sidebar Column (4 cols) */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 flex flex-col gap-8">
             <EditorialSidebar
               author={article.author}
               featuredArticles={featuredArticles}
@@ -527,6 +537,7 @@ export default function ArticleSinglePage() {
               recentArticles={recentArticles}
               tags={allTags}
             />
+            <AdSenseBanner slotId="article_sidebar" />
           </div>
         </div>
       </section>

@@ -4,6 +4,7 @@ export async function GET() {
   const content = `User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /admin/*
 
 Sitemap: ${SITE_CONFIG.url}/sitemap.xml
 `;

@@ -150,6 +150,16 @@ export function Header() {
               {/* Sélecteur Mode Sombre Bleu Nuit */}
               <ThemeToggle />
 
+              {/* Espace Lecteur — SÉPARÉ SANS POPUP */}
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-xs font-semibold transition-colors"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                <span>👤</span>
+                <span>Lecteur</span>
+              </Link>
+
               {/* Badge d'accès direct au Dashboard si Administrateur Connecté */}
               {adminSession ? (
                 <Link
@@ -162,10 +172,10 @@ export function Header() {
               ) : (
                 <Link
                   href="/admin/login"
-                  title="Espace Administrateur"
-                  className="hidden xl:inline-flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-zinc-500 hover:text-[#EF4248] text-[11px] font-semibold transition-colors"
+                  title="Espace Administrateur CMS"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#EF4248]/10 hover:bg-[#EF4248] text-[#EF4248] hover:text-white border border-[#EF4248]/30 text-xs font-bold transition-all cursor-pointer"
                 >
-                  <span>🔒 CMS</span>
+                  <span>🔒 CMS Admin</span>
                 </Link>
               )}
 
@@ -233,11 +243,26 @@ export function Header() {
                 >
                   Contact
                 </Link>
-                <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-2 px-3 text-center rounded-xl border text-xs font-semibold hover:border-[#EF4248]/40"
+                    style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+                  >
+                    👤 Mon Espace Lecteur
+                  </Link>
+                  <Link
+                    href="/admin/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full py-2 px-3 text-center rounded-xl bg-[#071426] text-white text-xs font-bold hover:bg-[#0E2137]"
+                  >
+                    🔐 Console Administrateur CMS
+                  </Link>
                   <a
                     href="#newsletter-section"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full py-2.5 text-center rounded-full bg-[#EF4248] text-white text-xs font-bold"
+                    className="w-full py-2.5 text-center rounded-full bg-[#EF4248] text-white text-xs font-bold mt-1"
                   >
                     S'abonner à la Newsletter
                   </a>

@@ -447,6 +447,7 @@ function handleHash() {
     else if (route === 'article') renderArticle(container, param);
     else if (route === 'about') renderAbout(container);
     else if (route === 'contact') renderContact(container);
+    else if (route === 'login') renderReaderPage(container);
     else renderHome(container);
   }
 }
@@ -472,7 +473,7 @@ function initShortcuts() {
     }
     if (e.key === 'Escape') {
       closeSearchModal();
-      closeReaderModal();
+      if (typeof closeReaderModal === 'function') closeReaderModal();
       const mobileMenu = document.getElementById('mobile-menu');
       if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
         toggleMobileMenu();
@@ -547,57 +548,142 @@ function handleSearch(query) {
 }
 
 // ESPACE COMPTE LECTEUR
-function openReaderModal() {
-  const modal = document.getElementById('reader-modal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    updateReaderModalState();
+// ==========================================================================
+// ESPACE LECTEUR DÉDIÉ — SÉPARÉ SANS POPUP (/login)
+// ==========================================================================
+function renderReaderPage(container) {
+  const saved = localStorage.getItem('ontario_reader_user');
+  let readerData = null;
+  if (saved) {
+    try { readerData = JSON.parse(saved); } catch (e) {}
   }
+
+  if (readerData) {
+    const favArticles = ARTICLES.filter(a => (readerData.favorites || []).includes(a.slug));
+    container.innerHTML = `
+      <div class="container-ontario pt-28 sm:pt-32 pb-24 max-w-4xl mx-auto">
+        <div class="rounded-3xl border p-6 sm:p-10 shadow-lg" style="background-color: var(--surface); border-color: var(--border-color);">
+          <div class="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 pb-8 border-b" style="border-color: var(--border-color);">
+            <div class="flex items-center gap-4 text-center sm:text-left">
+              <img src="${readerData.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'}" class="w-16 h-16 rounded-full object-cover ring-4 ring-[#EF4248]/20">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h1 class="text-xl sm:text-2xl font-bold font-heading" style="color: var(--text-primary);">${readerData.name}</h1>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EF4248]/10 text-[#EF4248] uppercase">Lecteur Vérifié</span>
+                </div>
+                <p class="text-xs mt-0.5" style="color: var(--text-secondary);">${readerData.email}</p>
+              </div>
+            </div>
+            <button onclick="handleReaderLogoutApp()" class="px-4 py-2 rounded-full border text-xs font-semibold hover:bg-red-500/10 hover:text-red-500 transition-all cursor-pointer" style="border-color: var(--border-color); color: var(--text-secondary);">
+              Se Déconnecter
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
+            <div class="lg:col-span-7">
+              <h2 class="font-heading font-bold text-base mb-4 flex items-center gap-2" style="color: var(--text-primary);">
+                <span>📑 Mes Articles Enregistrés (${favArticles.length})</span>
+              </h2>
+              ${favArticles.length === 0 ? `
+                <div class="p-8 rounded-2xl border text-center text-xs" style="border-color: var(--border-color); color: var(--text-muted);">
+                  <p class="text-2xl mb-2">🔖</p>
+                  <p class="font-semibold">Aucun article enregistré pour le moment.</p>
+                </div>
+              ` : `
+                <div class="flex flex-col gap-3">
+                  ${favArticles.map(art => `
+                    <div class="flex items-center gap-4 p-3 rounded-2xl border" style="background-color: var(--surface-soft); border-color: var(--border-color);">
+                      <img src="${art.coverImage}" onerror="onImgError(this)" class="w-14 h-14 rounded-xl object-cover flex-shrink-0">
+                      <div class="flex-1 min-w-0">
+                        <span class="text-[10px] font-bold text-[#EF4248] uppercase">${art.categoryBadge || 'ARTICLE'}</span>
+                        <h4 onclick="navigateArticle('${art.slug}')" class="font-bold text-xs truncate cursor-pointer hover:text-[#EF4248]" style="color: var(--text-primary);">${art.title}</h4>
+                        <span class="text-[10px] text-zinc-400">${art.readingTime} min de lecture</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+
+            <div class="lg:col-span-5 flex flex-col gap-6">
+              <div class="p-6 rounded-2xl border" style="background-color: var(--surface-soft); border-color: var(--border-color);">
+                <h3 class="font-heading font-bold text-sm mb-2" style="color: var(--text-primary);">✉️ Préférences Newsletter</h3>
+                <p class="text-xs mb-4" style="color: var(--text-secondary);">Statut actuel : <b class="text-emerald-500">Abonné Actif (Hebdomadaire)</b></p>
+                <div class="p-4 rounded-xl bg-gradient-to-br from-[#071426] to-[#0E2137] text-white">
+                  <span class="text-xs font-bold text-[#EF4248] uppercase">👑 Équipe Rédactionnelle</span>
+                  <h4 class="font-bold text-sm mt-1">Espace Administrateur CMS</h4>
+                  <p class="text-[11px] text-zinc-300 mb-3">Accédez à la console WordPress pour gérer articles et publicités.</p>
+                  <button onclick="navigate('admin')" class="px-4 py-2 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-md">
+                    Accéder au CMS Administrateur →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Formulaire de connexion lecteur autonome
+  container.innerHTML = `
+    <div class="container-ontario pt-28 sm:pt-32 pb-24 flex justify-center">
+      <div class="max-w-md w-full rounded-3xl border p-8 sm:p-10 shadow-xl" style="background-color: var(--surface); border-color: var(--border-color);">
+        <div class="text-center mb-8">
+          <span class="font-heading font-black text-2xl tracking-tighter" style="color: var(--text-primary);">
+            ONTARIO<span class="text-[#EF4248]">.</span>
+          </span>
+          <h1 class="font-heading font-bold text-xl mt-2" style="color: var(--text-primary);">
+            Espace Lecteur Privilégié
+          </h1>
+          <p class="text-xs mt-1" style="color: var(--text-secondary);">
+            Sauvegardez vos lectures et participez aux échanges éditoriaux
+          </p>
+        </div>
+
+        <form onsubmit="handleReaderLoginSubmitApp(event)" class="flex flex-col gap-4">
+          <div>
+            <label class="text-xs font-semibold mb-1.5 block" style="color: var(--text-primary);">Adresse Email</label>
+            <input type="email" id="reader-input-email" required placeholder="lecteur@ontario.com" value="lecteur@ontario.com" class="w-full px-4 py-3 rounded-xl border text-sm" style="background-color: var(--surface-soft); border-color: var(--border-color); color: var(--text-primary);">
+          </div>
+          <div>
+            <label class="text-xs font-semibold mb-1.5 block" style="color: var(--text-primary);">Mot de Passe</label>
+            <input type="password" id="reader-input-pass" required placeholder="••••••••••••" value="lecteur2026" class="w-full px-4 py-3 rounded-xl border text-sm" style="background-color: var(--surface-soft); border-color: var(--border-color); color: var(--text-primary);">
+          </div>
+          <button type="submit" class="w-full py-3.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-sm shadow-md transition-all mt-2 cursor-pointer">
+            Accéder à mon Espace Lecteur
+          </button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t text-center text-xs space-y-2" style="border-color: var(--border-color);">
+          <p style="color: var(--text-muted);">Vous êtes membre de l'équipe éditoriale ou administrateur ?</p>
+          <button onclick="navigate('admin')" class="text-[#EF4248] hover:underline font-bold inline-flex items-center gap-1">
+            <span>🔐 Connexion Administrateur CMS (/admin) →</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
-function closeReaderModal() {
-  const modal = document.getElementById('reader-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-}
-
-function updateReaderModalState() {
-  const authView = document.getElementById('reader-auth-view');
-  const profileView = document.getElementById('reader-profile-view');
-  const userBadge = document.getElementById('user-badge');
-
-  if (currentUser) {
-    if (authView) authView.classList.add('hidden');
-    if (profileView) profileView.classList.remove('hidden');
-    const nameEl = document.getElementById('reader-profile-name');
-    const emailEl = document.getElementById('reader-profile-email');
-    if (nameEl) nameEl.textContent = currentUser.name;
-    if (emailEl) emailEl.textContent = currentUser.email;
-    if (userBadge) userBadge.textContent = currentUser.name.split(' ')[0];
-  } else {
-    if (authView) authView.classList.remove('hidden');
-    if (profileView) profileView.classList.add('hidden');
-    if (userBadge) userBadge.textContent = 'Connexion';
-  }
-}
-
-function handleReaderLogin(e) {
+function handleReaderLoginSubmitApp(e) {
   e.preventDefault();
-  const email = document.getElementById('reader-email').value;
-  currentUser = {
+  const email = (document.getElementById('reader-input-email')?.value || 'lecteur@ontario.com').trim();
+  const readerObj = {
+    name: email.split('@')[0].toUpperCase(),
     email,
-    role: 'reader',
-    name: email.split('@')[0].toUpperCase()
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+    favorites: ['next-gen-marketing-innovative-strategies', 'advanced-techniques-abstract-digital-design'],
+    newsletterSubscribed: true
   };
-  updateReaderModalState();
+  localStorage.setItem('ontario_reader_user', JSON.stringify(readerObj));
+  renderReaderPage(document.getElementById('app-container'));
 }
 
-function handleReaderLogout() {
-  currentUser = null;
-  updateReaderModalState();
+function handleReaderLogoutApp() {
+  localStorage.removeItem('ontario_reader_user');
+  renderReaderPage(document.getElementById('app-container'));
 }
 
 // GESTION NEWSLETTER

@@ -8,6 +8,7 @@ import { ArticleCardHorizontal } from '@/components/cards/ArticleCardHorizontal'
 import { CategoryCard } from '@/components/cards/CategoryCard';
 import { EditorialSidebar } from '@/components/sidebar/EditorialSidebar';
 import { NewsletterBanner } from '@/components/newsletter/NewsletterBanner';
+import { AdSenseBanner } from '@/components/ads/AdSenseBanner';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -141,6 +142,11 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* BANNIÈRE ADSENSE — SOUS LE HERO */}
+      <div className="container-media my-6 sm:my-8">
+        <AdSenseBanner slotId="home_after_hero" />
+      </div>
+
       {/* 3. RUBRIQUES PASTELS ÉPURÉES "BLOG CATEGORIES" (Capture 4 Theme Ontario) */}
       {sections.showCategories && (
         <section className="container-media mt-14 md:mt-18">
@@ -164,9 +170,14 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* BANNIÈRE ADSENSE — ENTRE CATÉGORIES ET ARTICLES */}
+      <div className="container-media my-6 sm:my-8">
+        <AdSenseBanner slotId="home_between_categories" />
+      </div>
+
       {/* 4. GRILLE ÉDITORIALE "FRESH OFF THE PRESS" — 6 CARTES EN 3x2 (Capture 5 Theme Ontario) */}
       {sections.showFreshArticles && (
-        <section className="container-media mt-16 md:mt-22">
+        <section className="container-media mt-14 md:mt-20">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl md:text-3xl font-extrabold font-heading" style={{ color: 'var(--text-primary)' }}>
               Fresh off the Press
@@ -184,9 +195,14 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* BANNIÈRE ADSENSE — ENTRE ARTICLES RÉCENTS & FRESH */}
+      <div className="container-media my-6 sm:my-8">
+        <AdSenseBanner slotId="home_between_articles" />
+      </div>
+
       {/* 5. SECTION "RECENT ARTICLES" (70%) + SIDEBAR (30%) (Capture 2 & 3 Theme Ontario) */}
       {sections.showRecentArticles && (
-        <section className="container-media mt-16 md:mt-24">
+        <section className="container-media mt-14 md:mt-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
             {/* Colonne Principale 70% : Flux Horizontal */}
             <div className="lg:col-span-8">
@@ -230,13 +246,14 @@ export default function HomePage() {
             </div>
 
             {/* Barre Latérale 30% : Widgets Modulaires & Sponsor */}
-            <aside className="lg:col-span-4">
+            <aside className="lg:col-span-4 flex flex-col gap-8">
               <EditorialSidebar
                 featuredArticles={sidebarFeatured}
                 recentArticles={freshArticles.slice(0, 3)}
                 categories={store?.categories || []}
                 tags={store?.tags.map((t) => t.name) || []}
               />
+              <AdSenseBanner slotId="home_sidebar" />
             </aside>
           </div>
         </section>
