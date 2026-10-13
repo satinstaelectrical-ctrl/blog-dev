@@ -709,117 +709,30 @@ function renderHome(container) {
       </section>
 
       <!-- 4. SECTION "FRESH OFF THE PRESS" (GRILLE ÉDITORIALE ASYMÉTRIQUE IMAGE A) -->
+      <!-- 4. SECTION "FRESH OFF THE PRESS" (GRILLE ÉDITORIALE 3x2 CONFORME CAPTURE 5) -->
       <section class="container-ontario mt-16 sm:mt-22">
         <h2 class="font-heading text-2xl sm:text-3xl font-bold tracking-tight mb-8" style="color: var(--text-primary);">
           Fresh off the Press
         </h2>
 
-        <!-- RANGÉE 1 ASYMÉTRIQUE : 1 LARGE (GAUCHE) + 2 ÉTROITS (DROITE) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 mb-8">
-          <!-- Article 1 : Format Large Panoramique (span 6) -->
-          <div class="lg:col-span-6 group cursor-pointer" onclick="navigateArticle('${freshArticles[0].slug}')">
-            <div class="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-4 shadow-sm">
-              <img src="${freshArticles[0].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              ${renderArticleBadge(freshArticles[0])}
-              <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
-                ⏱️ ${freshArticles[0].readingTime} MIN
-              </span>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          ${freshArticles.slice(0, 6).map(art => `
+            <div class="group cursor-pointer flex flex-col" onclick="navigateArticle('${art.slug}')">
+              <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
+                <img src="${art.coverImage}" onerror="onImgError(this)" alt="${art.title}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                ${renderArticleBadge(art)}
+                <span class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[10px] font-semibold tracking-wide">
+                  ⏱️ ${art.readingTime} MIN
+                </span>
+              </div>
+              <h3 class="font-heading font-bold text-base sm:text-lg tracking-tight mb-2 group-hover:text-[#EF4248] transition-colors leading-snug line-clamp-2" style="color: var(--text-primary);">
+                ${art.title}
+              </h3>
+              <p class="text-xs mt-auto pt-1" style="color: var(--text-muted);">
+                Steve Jones on ${art.publishedAt}
+              </p>
             </div>
-            <h3 class="font-heading font-bold text-lg sm:text-xl tracking-tight mb-2 group-hover:text-[#EF4248] transition-colors leading-snug" style="color: var(--text-primary);">
-              ${freshArticles[0].title}
-            </h3>
-            <p class="text-xs" style="color: var(--text-muted);">
-              Steve Jones on ${freshArticles[0].publishedAt}
-            </p>
-          </div>
-
-          <!-- Article 2 : Format Standard Étroit (span 3) -->
-          <div class="lg:col-span-3 group cursor-pointer" onclick="navigateArticle('${freshArticles[1].slug}')">
-            <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
-              <img src="${freshArticles[1].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              ${renderArticleBadge(freshArticles[1])}
-              <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
-                ⏱️ ${freshArticles[1].readingTime} MIN
-              </span>
-            </div>
-            <h3 class="font-heading font-bold text-base sm:text-lg tracking-tight mb-2 group-hover:text-[#EF4248] transition-colors leading-snug" style="color: var(--text-primary);">
-              ${freshArticles[1].title}
-            </h3>
-            <p class="text-xs" style="color: var(--text-muted);">
-              Steve Jones on ${freshArticles[1].publishedAt}
-            </p>
-          </div>
-
-          <!-- Article 3 : Format Standard Étroit (span 3) -->
-          <div class="lg:col-span-3 group cursor-pointer" onclick="navigateArticle('${freshArticles[2].slug}')">
-            <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
-              <img src="${freshArticles[2].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              ${renderArticleBadge(freshArticles[2])}
-              <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
-                ⏱️ ${freshArticles[2].readingTime} MIN
-              </span>
-            </div>
-            <h3 class="font-heading font-bold text-base sm:text-lg tracking-tight mb-2 group-hover:text-[#EF4248] transition-colors leading-snug" style="color: var(--text-primary);">
-              ${freshArticles[2].title}
-            </h3>
-            <p class="text-xs" style="color: var(--text-muted);">
-              Steve Jones on ${freshArticles[2].publishedAt}
-            </p>
-          </div>
-        </div>
-
-        <!-- RANGÉE 2 ASYMÉTRIQUE : 2 ÉTROITS (GAUCHE) + 1 LARGE (DROITE) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-          <!-- Article 4 : Format Standard Étroit (span 3) -->
-          <div class="lg:col-span-3 group cursor-pointer" onclick="navigateArticle('${freshArticles[3].slug}')">
-            <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
-              <img src="${freshArticles[3].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              ${renderArticleBadge(freshArticles[3])}
-              <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
-                ⏱️ ${freshArticles[3].readingTime} MIN
-              </span>
-            </div>
-            <h3 class="font-heading font-bold text-base sm:text-lg tracking-tight mb-2 group-hover:text-[#EF4248] transition-colors leading-snug" style="color: var(--text-primary);">
-              ${freshArticles[3].title}
-            </h3>
-            <p class="text-xs" style="color: var(--text-muted);">
-              Kate Johnson on ${freshArticles[3].publishedAt}
-            </p>
-          </div>
-
-          <!-- Article 5 : Format Standard Étroit (span 3) -->
-          <div class="lg:col-span-3 group cursor-pointer" onclick="navigateArticle('${freshArticles[4].slug}')">
-            <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
-              <img src="${freshArticles[4].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              ${renderArticleBadge(freshArticles[4])}
-              <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
-                ⏱️ ${freshArticles[4].readingTime} MIN
-              </span>
-            </div>
-            <h3 class="font-heading font-bold text-base sm:text-lg tracking-tight mb-2 group-hover:text-[#EF4248] transition-colors leading-snug" style="color: var(--text-primary);">
-              ${freshArticles[4].title}
-            </h3>
-            <p class="text-xs" style="color: var(--text-muted);">
-              Steve Jones on ${freshArticles[4].publishedAt}
-            </p>
-          </div>
-
-          <!-- Article 6 : Format Large Panoramique (span 6) -->
-          <div class="lg:col-span-6 group cursor-pointer" onclick="navigateArticle('${freshArticles[5].slug}')">
-            <div class="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-4 shadow-sm">
-              <img src="${freshArticles[5].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              ${renderArticleBadge(freshArticles[5])}
-              <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
-                ⏱️ ${freshArticles[5].readingTime} MIN
-              </span>
-            </div>
-            <h3 class="font-heading font-bold text-lg sm:text-xl tracking-tight mb-2 group-hover:text-[#EF4248] transition-colors leading-snug" style="color: var(--text-primary);">
-              ${freshArticles[5].title}
-            </h3>
-            <p class="text-xs" style="color: var(--text-muted);">
-              Steve Jones on ${freshArticles[5].publishedAt}
-            </p>
-          </div>
+          `).join('')}
         </div>
       </section>
 
@@ -934,6 +847,25 @@ function renderHome(container) {
                   </button>
                 `).join('')}
               </div>
+            </div>
+
+            <!-- WIDGET 4 : ENCART PARTENAIRE SPONSORISÉ (RÉGIE INTERNE) -->
+            <div class="p-6 rounded-3xl border relative overflow-hidden" style="background-color: var(--surface-soft); border-color: var(--border-color);">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[#EF4248]">PARTENAIRE OFFICIEL</span>
+                <span class="text-[9px] text-zinc-400">SPONSORISÉ</span>
+              </div>
+              <div class="rounded-2xl overflow-hidden mb-3 aspect-[16/9] relative">
+                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80" onerror="onImgError(this)" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent"></div>
+                <div class="absolute bottom-2.5 left-3 right-3 text-white">
+                  <div class="font-heading font-bold text-xs">Apex Cloud GPU Instances</div>
+                  <div class="text-[10px] text-zinc-300">GPU H100 pour l'IA générative</div>
+                </div>
+              </div>
+              <a href="https://aws.amazon.com" target="_blank" rel="sponsored noopener noreferrer" class="block w-full text-center py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-sm">
+                Découvrir l'offre exclusive →
+              </a>
             </div>
 
           </div>

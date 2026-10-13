@@ -1,0 +1,62 @@
+import { Advertisement } from '@/types';
+
+export const ADVERTISEMENTS: Advertisement[] = [
+  {
+    id: 'ad-sidebar-1',
+    title: 'Apex Cloud Neural Engine — L’Inférence IA Sans Latence',
+    type: 'sponsor',
+    position: 'sidebar',
+    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    description: 'Bénéficiez de 500 € de crédits offerts sur vos clusters GPU dédiés haute performance.',
+    targetUrl: 'https://example.com/sponsor-apex-cloud',
+    sponsorName: 'Apex Cloud Systems',
+    sponsorLogo: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=80&q=80',
+    badgeLabel: 'SPONSOR OFFICIEL',
+    callToAction: 'Activer l’offre d’essai →',
+    startDate: '2026-01-01',
+    endDate: '2026-12-31',
+    isActive: true,
+    viewsCount: 14820,
+    clicksCount: 840,
+    priority: 10,
+  },
+  {
+    id: 'ad-banner-header',
+    title: 'Sommet International du Design Génératif 2026 — Paris & Live',
+    type: 'banner',
+    position: 'between_sections',
+    imageUrl: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1600&q=80',
+    description: '3 jours de conférences exclusives avec les pionniers mondiaux de l’architecture volumétrique.',
+    targetUrl: 'https://example.com/conference-design',
+    sponsorName: 'World Design Forum',
+    badgeLabel: 'ÉVÉNEMENT PARTENAIRE',
+    callToAction: 'Réserver un pass VIP',
+    startDate: '2026-03-01',
+    endDate: '2026-06-30',
+    isActive: true,
+    viewsCount: 22100,
+    clicksCount: 1350,
+    priority: 8,
+  },
+  {
+    id: 'ad-card-stream',
+    title: 'Station Studio Modulaire X1 — Châssis Titane & NPU Dédié',
+    type: 'card',
+    position: 'in_article',
+    imageUrl: 'https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&fit=crop&w=800&q=80',
+    description: 'Conçue pour les créateurs exigeants : zéro ventilateur audible sous forte charge.',
+    targetUrl: 'https://example.com/studio-pro-hardware',
+    sponsorName: 'Hardware Lab Pro',
+    badgeLabel: 'SÉLECTION RÉDACTION',
+    callToAction: 'Voir le banc d’essai',
+    startDate: '2026-02-15',
+    isActive: true,
+    viewsCount: 8900,
+    clicksCount: 520,
+    priority: 7,
+  },
+];
+
+export function getActiveAdsByPosition(position: Advertisement['position']): Advertisement[] {
+  return ADVERTISEMENTS.filter((ad) => ad.isActive && ad.position === position);
+}

@@ -167,6 +167,37 @@ export function EditorialSidebar({
           ))}
         </div>
       </div>
+
+      {/* 5. Internal Sponsor Ad Widget (Régie Publicitaire Interne) */}
+      <div className="p-6 rounded-3xl border shadow-xs overflow-hidden relative" style={{ backgroundColor: 'var(--surface-soft)', borderColor: 'var(--border-color)' }}>
+        <div className="flex items-center justify-between mb-3.5 pb-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#EF4248]">
+            SPONSORISÉ
+          </span>
+          <span className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500">PARTENAIRE OFFICIEL</span>
+        </div>
+        <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden mb-3.5 group">
+          <img
+            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80"
+            alt="Apex Cloud Neural Engine"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-end p-3.5">
+            <span className="text-white text-xs font-bold leading-snug">Apex Cloud Neural Engine — Inférence IA Locale</span>
+          </div>
+        </div>
+        <p className="text-xs leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
+          Clusters GPU haute performance dédiés à l'inférence neuronale et au rendu WebGPU sans latence.
+        </p>
+        <a
+          href="https://example.com"
+          target="_blank"
+          rel="sponsored noopener noreferrer"
+          className="inline-flex items-center justify-center w-full py-2.5 px-4 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-xs"
+        >
+          Découvrir l'offre partenaire →
+        </a>
+      </div>
     </aside>
   );
 }
