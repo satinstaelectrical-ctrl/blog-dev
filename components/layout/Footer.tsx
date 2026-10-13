@@ -104,10 +104,10 @@ export function Footer() {
               <p className="font-semibold text-xs">0400 2345 254</p>
               <div className="pt-3">
                 <Link
-                  href="/admin"
-                  className="text-xs font-medium text-zinc-400 hover:text-[#EF4248] transition-colors"
+                  href="/admin/login"
+                  className="text-xs font-semibold text-zinc-400 hover:text-[#EF4248] transition-colors inline-flex items-center gap-1.5"
                 >
-                  Espace Éditeur Privé (/admin)
+                  <span>🔒 Espace Administrateur CMS (/admin)</span>
                 </Link>
               </div>
             </div>

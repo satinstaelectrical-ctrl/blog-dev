@@ -7,6 +7,7 @@ import { SearchIcon, MenuIcon, XIcon, ChevronDownIcon } from '@/components/ui/Ic
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { SpotlightSearch } from '@/components/search/SpotlightSearch';
 import { CATEGORIES } from '@/data/categories';
+import { getAdminSession, AdminSession } from '@/lib/auth';
 
 export function Header() {
   const pathname = usePathname();
@@ -14,14 +15,16 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [blogDropdownOpen, setBlogDropdownOpen] = useState(false);
+  const [adminSession, setAdminSession] = useState<AdminSession | null>(null);
 
   useEffect(() => {
+    setAdminSession(getAdminSession());
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [pathname]);
 
   return (
     <>
@@ -146,6 +149,25 @@ export function Header() {
 
               {/* Sélecteur Mode Sombre Bleu Nuit */}
               <ThemeToggle />
+
+              {/* Badge d'accès direct au Dashboard si Administrateur Connecté */}
+              {adminSession ? (
+                <Link
+                  href="/admin/dashboard"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#EF4248] text-white hover:bg-[#DA343A] text-xs font-bold transition-all shadow-sm shadow-red-500/20"
+                >
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  <span className="hidden sm:inline">CMS Dashboard</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/admin/login"
+                  title="Espace Administrateur"
+                  className="hidden xl:inline-flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-zinc-500 hover:text-[#EF4248] text-[11px] font-semibold transition-colors"
+                >
+                  <span>🔒 CMS</span>
+                </Link>
+              )}
 
               {/* Bouton CTA S'abonner Pilule Conforme Ontario */}
               <a

@@ -345,6 +345,26 @@ let currentUser = null; // { email, role: 'reader' | 'admin', name }
 
 // Initialisation au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
+  // Charger session admin existante si valide
+  const savedAdmin = localStorage.getItem('ontario_admin_session_v2');
+  if (savedAdmin) {
+    try {
+      const parsed = JSON.parse(savedAdmin);
+      if (parsed.expiresAt && parsed.expiresAt > Date.now()) {
+        currentUser = { email: parsed.email, role: 'admin', name: parsed.fullName || 'Steve Jones' };
+      }
+    } catch (e) {}
+  }
+  // Charger base de données articles modifiée
+  const savedDb = localStorage.getItem('ontario_cms_database_v2');
+  if (savedDb) {
+    try {
+      const parsedDb = JSON.parse(savedDb);
+      if (parsedDb.articles && parsedDb.articles.length > 0) {
+        ARTICLES = parsedDb.articles;
+      }
+    } catch (e) {}
+  }
   initTheme();
   initRouting();
   initShortcuts();
@@ -397,16 +417,38 @@ function handleHash() {
   const container = document.getElementById('app-container');
   if (!container) return;
 
+  const headerWrapper = document.getElementById('header-wrapper');
+  const newsletterSection = document.getElementById('newsletter-section');
+  const footerEl = document.querySelector('footer');
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  if (route === 'home') renderHome(container);
-  else if (route === 'blog') renderBlog(container);
-  else if (route === 'category') renderCategory(container, param);
-  else if (route === 'article') renderArticle(container, param);
-  else if (route === 'about') renderAbout(container);
-  else if (route === 'contact') renderContact(container);
-  else if (route === 'admin') renderAdmin(container);
-  else renderHome(container);
+  if (route === 'admin') {
+    if (headerWrapper) headerWrapper.style.display = 'none';
+    if (newsletterSection) newsletterSection.style.display = 'none';
+    if (footerEl) footerEl.style.display = 'none';
+
+    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'administrator' || currentUser.role === 'editor');
+    if (param === 'login') {
+      renderAdminLogin(container);
+    } else if (!isAdmin) {
+      window.location.hash = 'admin/login';
+    } else {
+      renderAdmin(container);
+    }
+  } else {
+    if (headerWrapper) headerWrapper.style.display = '';
+    if (newsletterSection) newsletterSection.style.display = '';
+    if (footerEl) footerEl.style.display = '';
+
+    if (route === 'home') renderHome(container);
+    else if (route === 'blog') renderBlog(container);
+    else if (route === 'category') renderCategory(container, param);
+    else if (route === 'article') renderArticle(container, param);
+    else if (route === 'about') renderAbout(container);
+    else if (route === 'contact') renderContact(container);
+    else renderHome(container);
+  }
 }
 
 function navigate(route, param = '') {
@@ -1126,37 +1168,130 @@ let adminTab = 'all'; // 'all', 'published', 'draft', 'trash', 'new'
 let editingArticleId = null;
 let editorBlocks = [];
 
-function renderAdmin(container) {
-  // Vérification de la session admin
-  const isAdmin = currentUser && currentUser.role === 'admin';
-
-  if (!isAdmin) {
-    container.innerHTML = `
-      <div class="container-ontario pt-32 pb-24 flex items-center justify-center">
-        <div class="w-full max-w-md p-8 rounded-3xl border shadow-xl text-center" style="background-color: var(--surface); border-color: var(--border-color);">
-          <div class="w-12 h-12 rounded-full bg-[#EF4248] text-white flex items-center justify-center mx-auto mb-4 font-bold text-xl">
-            🔒
+function renderAdminLogin(container) {
+  container.innerHTML = `
+    <div class="min-h-screen w-full flex flex-col justify-center items-center bg-[#071426] text-white p-4 relative font-sans">
+      <div class="w-full max-w-md relative z-10">
+        <div class="flex flex-col items-center mb-8 text-center">
+          <div onclick="navigate('home')" class="flex items-center gap-2.5 group mb-3 cursor-pointer">
+            <div class="w-10 h-10 rounded-full bg-[#EF4248] flex items-center justify-center text-white font-extrabold shadow-lg shadow-red-500/30">
+              <span class="font-heading text-xl">O</span>
+            </div>
+            <span class="font-heading font-extrabold text-2xl tracking-tight text-white">ONTARIO</span>
           </div>
-          <h2 class="font-heading text-2xl font-bold mb-2" style="color: var(--text-primary);">Administration Sécurisée</h2>
-          <p class="text-xs mb-6" style="color: var(--text-secondary);">
-            Ce portail est strictement réservé à la rédaction et aux administrateurs du média Ontario. Les lecteurs simples n'y ont aucun droit.
-          </p>
-          <form onsubmit="handleAdminLogin(event)" class="flex flex-col gap-3">
-            <input type="email" id="admin-login-email" required value="redacteur@ontario.fr" class="px-4 py-3 rounded-xl border text-sm" style="background-color: var(--surface-soft); border-color: var(--border-color); color: var(--text-primary);">
-            <input type="password" id="admin-login-pass" required value="admin2026" class="px-4 py-3 rounded-xl border text-sm" style="background-color: var(--surface-soft); border-color: var(--border-color); color: var(--text-primary);">
-            <button type="submit" class="py-3 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-sm shadow-md transition-all mt-2">
-              Se connecter au CMS WordPress
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-bold tracking-widest uppercase text-zinc-300 border border-white/10">
+            <span class="w-2 h-2 rounded-full bg-[#EF4248] animate-pulse"></span>
+            Portail CMS Administrateur
+          </div>
+          <p class="text-xs text-zinc-400 mt-2">Espace de gestion éditoriale, publication et personnalisation du site</p>
+        </div>
+
+        <div class="bg-[#0E2137] border border-[#28445E] rounded-3xl p-8 sm:p-10 shadow-2xl relative">
+          <div id="admin-login-error" class="hidden mb-5 p-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 text-xs"></div>
+
+          <form onsubmit="handleAdminLoginSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">Email Administrateur</label>
+              <input type="email" id="admin-input-email" required placeholder="admin@ontario.com" value="admin@ontario.com" class="w-full px-4 py-3 rounded-xl bg-[#122B45] border border-[#28445E] text-white text-xs focus:outline-none focus:border-[#EF4248]">
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Mot de Passe</label>
+                <button type="button" onclick="alert('Code de récupération : ONTARIO-2026-ROOT\\nMot de passe par défaut : admin2026!')" class="text-xs text-[#EF4248] hover:underline">Mot de passe oublié ?</button>
+              </div>
+              <div class="relative">
+                <input type="password" id="admin-input-pass" required placeholder="••••••••••••" value="admin2026!" class="w-full px-4 py-3 rounded-xl bg-[#122B45] border border-[#28445E] text-white text-xs focus:outline-none focus:border-[#EF4248]">
+                <button type="button" onclick="togglePassVisibility()" class="absolute right-3 top-3 text-xs text-zinc-400 hover:text-white">👁️</button>
+              </div>
+            </div>
+            <button type="submit" class="w-full py-3.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-lg shadow-red-500/20 transition-all cursor-pointer mt-2">
+              Se connecter au Dashboard CMS →
             </button>
           </form>
+
+          <div class="mt-6 pt-5 border-t border-[#28445E]/80 text-center">
+            <p class="text-[10px] uppercase font-bold text-zinc-400 mb-2">Comptes de test autorisés</p>
+            <div class="flex gap-2 justify-center">
+              <button type="button" onclick="quickFillAdmin('admin@ontario.com','admin2026!')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300 hover:bg-white/10">👑 admin@ontario.com</button>
+              <button type="button" onclick="quickFillAdmin('editor@ontario.com','editor2026!')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300 hover:bg-white/10">✏️ editor@ontario.com</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-6">
+          <button onclick="navigate('home')" class="text-xs text-zinc-400 hover:text-[#EF4248] transition-colors">
+            ← Retourner au site public
+          </button>
         </div>
       </div>
-    `;
+    </div>
+  `;
+}
+
+function togglePassVisibility() {
+  const el = document.getElementById('admin-input-pass');
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function quickFillAdmin(email, pass) {
+  const emEl = document.getElementById('admin-input-email');
+  const psEl = document.getElementById('admin-input-pass');
+  if (emEl) emEl.value = email;
+  if (psEl) psEl.value = pass;
+}
+
+function handleAdminLoginSubmit(e) {
+  e.preventDefault();
+  const email = (document.getElementById('admin-input-email')?.value || '').trim();
+  const pass = document.getElementById('admin-input-pass')?.value || '';
+  const errorEl = document.getElementById('admin-login-error');
+
+  const validPass = (pass === 'admin2026!' || pass === 'admin123' || pass === 'editor2026!');
+  if (!validPass) {
+    if (errorEl) {
+      errorEl.classList.remove('hidden');
+      errorEl.textContent = 'Mot de passe administrateur incorrect.';
+    }
+    return;
+  }
+
+  currentUser = {
+    email: email || 'admin@ontario.com',
+    role: 'admin',
+    name: 'Steve Jones (Directeur Éditorial)'
+  };
+  localStorage.setItem('ontario_admin_session_v2', JSON.stringify({
+    ...currentUser,
+    fullName: currentUser.name,
+    expiresAt: Date.now() + 24 * 3600 * 1000
+  }));
+  navigate('admin', 'dashboard');
+}
+
+function handleAdminLogout() {
+  currentUser = null;
+  localStorage.removeItem('ontario_admin_session_v2');
+  navigate('admin', 'login');
+}
+
+function renderAdmin(container) {
+  // Vérification de la session admin
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'administrator' || currentUser.role === 'editor');
+
+  if (!isAdmin) {
+    navigate('admin', 'login');
     return;
   }
 
   // Si mode éditeur Gutenberg activé
   if (adminTab === 'new' || editingArticleId) {
     renderGutenbergEditor(container);
+    return;
+  }
+
+  // Si onglet personnalisation
+  if (adminTab === 'customization') {
+    renderAdminCustomization(container);
     return;
   }
 
@@ -1171,139 +1306,195 @@ function renderAdmin(container) {
   if (adminTab === 'trash') currentList = TRASH_ARTICLES;
 
   container.innerHTML = `
-    <div class="container-ontario pt-28 sm:pt-32 pb-24">
-      <!-- En-tête Admin WordPress -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b mb-8" style="border-color: var(--border-color);">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">ADMINISTRATION ONTARIO</span>
-            <span class="text-xs" style="color: var(--text-muted);">Connecté en tant que <b>${currentUser.name}</b></span>
+    <div class="min-h-screen bg-[#071426] text-white p-6 sm:p-10 font-sans">
+      <div class="max-w-7xl mx-auto space-y-8">
+        <!-- En-tête Admin WordPress -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#28445E]">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">ONTARIO CMS DASHBOARD</span>
+              <span class="text-xs text-zinc-400">Connecté en tant que <b>${currentUser.name}</b></span>
+            </div>
+            <h1 class="font-heading text-3xl font-extrabold tracking-tight mt-1 text-white">
+              Gestion Complète du Média
+            </h1>
           </div>
-          <h1 class="font-heading text-3xl font-extrabold tracking-tight mt-1" style="color: var(--text-primary);">
-            Gestion des Articles & Contenus
-          </h1>
+          <div class="flex items-center gap-3 flex-wrap">
+            <button onclick="startNewArticle()" class="px-5 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-md transition-all">
+              + Nouvel Article (Gutenberg)
+            </button>
+            <button onclick="setAdminTab('customization')" class="px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-white text-xs font-semibold">
+              🎨 Personnaliser Accueil
+            </button>
+            <button onclick="navigate('home')" class="px-4 py-2.5 rounded-full border border-white/20 text-xs font-semibold hover:bg-white/10 text-white">
+              Voir le Site Public ↗
+            </button>
+            <button onclick="handleAdminLogout()" class="px-4 py-2.5 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-semibold">
+              Déconnexion
+            </button>
+          </div>
         </div>
-        <div class="flex items-center gap-3">
-          <button onclick="startNewArticle()" class="px-5 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-md transition-all">
-            + Nouvel Article (Éditeur de Blocs)
+
+        <!-- Métriques d'activité WordPress -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+            <span class="text-xs font-semibold text-zinc-400">Articles Publiés</span>
+            <div class="font-heading text-2xl font-bold mt-1 text-[#EF4248]">${publishedCount}</div>
+          </div>
+          <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+            <span class="text-xs font-semibold text-zinc-400">Brouillons</span>
+            <div class="font-heading text-2xl font-bold mt-1 text-white">${draftCount}</div>
+          </div>
+          <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+            <span class="text-xs font-semibold text-zinc-400">Corbeille</span>
+            <div class="font-heading text-2xl font-bold mt-1 text-amber-500">${trashCount}</div>
+          </div>
+          <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#28445E]">
+            <span class="text-xs font-semibold text-zinc-400">Abonnés Newsletter</span>
+            <div class="font-heading text-2xl font-bold mt-1 text-emerald-500">1 420</div>
+          </div>
+        </div>
+
+        <!-- Onglets de statut -->
+        <div class="flex gap-4 border-b border-[#28445E] pb-3 text-xs font-bold">
+          <button onclick="setAdminTab('all')" class="cursor-pointer ${adminTab === 'all' ? 'text-[#EF4248] border-b-2 border-[#EF4248] pb-3 -mb-3' : 'text-zinc-400 hover:text-white'}">
+            Tous (${ARTICLES.length})
           </button>
-          <button onclick="handleAdminLogout()" class="px-4 py-2.5 rounded-full border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/10 transition-colors" style="border-color: var(--border-color); color: var(--text-primary);">
-            Déconnexion
+          <button onclick="setAdminTab('published')" class="cursor-pointer ${adminTab === 'published' ? 'text-[#EF4248] border-b-2 border-[#EF4248] pb-3 -mb-3' : 'text-zinc-400 hover:text-white'}">
+            Publiés (${publishedCount})
+          </button>
+          <button onclick="setAdminTab('draft')" class="cursor-pointer ${adminTab === 'draft' ? 'text-[#EF4248] border-b-2 border-[#EF4248] pb-3 -mb-3' : 'text-zinc-400 hover:text-white'}">
+            Brouillons (${draftCount})
+          </button>
+          <button onclick="setAdminTab('trash')" class="cursor-pointer ${adminTab === 'trash' ? 'text-[#EF4248] border-b-2 border-[#EF4248] pb-3 -mb-3' : 'text-zinc-400 hover:text-white'}">
+            Corbeille (${trashCount})
           </button>
         </div>
-      </div>
 
-      <!-- Métriques d'activité WordPress -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <div class="p-5 rounded-2xl border" style="background-color: var(--surface); border-color: var(--border-color);">
-          <span class="text-xs font-semibold" style="color: var(--text-muted);">Articles Publiés</span>
-          <div class="font-heading text-2xl font-bold mt-1 text-[#EF4248]">${publishedCount}</div>
-        </div>
-        <div class="p-5 rounded-2xl border" style="background-color: var(--surface); border-color: var(--border-color);">
-          <span class="text-xs font-semibold" style="color: var(--text-muted);">Brouillons</span>
-          <div class="font-heading text-2xl font-bold mt-1" style="color: var(--text-primary);">${draftCount}</div>
-        </div>
-        <div class="p-5 rounded-2xl border" style="background-color: var(--surface); border-color: var(--border-color);">
-          <span class="text-xs font-semibold" style="color: var(--text-muted);">Corbeille</span>
-          <div class="font-heading text-2xl font-bold mt-1 text-amber-500">${trashCount}</div>
-        </div>
-        <div class="p-5 rounded-2xl border" style="background-color: var(--surface); border-color: var(--border-color);">
-          <span class="text-xs font-semibold" style="color: var(--text-muted);">Abonnés Newsletter</span>
-          <div class="font-heading text-2xl font-bold mt-1 text-emerald-500">1 420</div>
-        </div>
-      </div>
-
-      <!-- Onglets de statut -->
-      <div class="flex gap-4 border-b pb-3 mb-6 text-xs font-bold" style="border-color: var(--border-color);">
-        <button onclick="setAdminTab('all')" class="hover:text-[#EF4248] ${adminTab === 'all' ? 'text-[#EF4248] border-b-2 border-[#EF4248] pb-3 -mb-3' : ''}" style="color: ${adminTab === 'all' ? '#EF4248' : 'var(--text-secondary)'};">
-          Tous (${ARTICLES.length})
-        </button>
-        <button onclick="setAdminTab('published')" class="hover:text-[#EF4248] ${adminTab === 'published' ? 'text-[#EF4248] border-b-2 border-[#EF4248] pb-3 -mb-3' : ''}" style="color: ${adminTab === 'published' ? '#EF4248' : 'var(--text-secondary)'};">
-          Publiés (${publishedCount})
-        </button>
-        <button onclick="setAdminTab('draft')" class="hover:text-[#EF4248] ${adminTab === 'draft' ? 'text-[#EF4248] border-b-2 border-[#EF4248] pb-3 -mb-3' : ''}" style="color: ${adminTab === 'draft' ? '#EF4248' : 'var(--text-secondary)'};">
-          Brouillons (${draftCount})
-        </button>
-        <button onclick="setAdminTab('trash')" class="hover:text-[#EF4248] ${adminTab === 'trash' ? 'text-[#EF4248] border-b-2 border-[#EF4248] pb-3 -mb-3' : ''}" style="color: ${adminTab === 'trash' ? '#EF4248' : 'var(--text-secondary)'};">
-          Corbeille (${trashCount})
-        </button>
-      </div>
-
-      <!-- Tableau des articles façon WordPress -->
-      <div class="rounded-3xl border overflow-hidden shadow-xs" style="background-color: var(--surface); border-color: var(--border-color);">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="uppercase font-bold tracking-wider border-b" style="background-color: var(--surface-soft); border-color: var(--border-color); color: var(--text-muted);">
-              <tr>
-                <th class="p-4 w-16">Image</th>
-                <th class="p-4">Titre</th>
-                <th class="p-4">Catégorie</th>
-                <th class="p-4">Statut</th>
-                <th class="p-4">Date</th>
-                <th class="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y" style="border-color: var(--border-color);">
-              ${currentList.map(art => `
-                <tr class="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                  <td class="p-4">
-                    <img src="${art.coverImage}" onerror="onImgError(this)" class="w-12 h-12 rounded-xl object-cover shadow-xs">
-                  </td>
-                  <td class="p-4">
-                    <div class="font-bold text-sm" style="color: var(--text-primary);">${art.title}</div>
-                    <div class="text-[11px] text-zinc-400">slug : /${art.slug}</div>
-                  </td>
-                  <td class="p-4 font-semibold" style="color: var(--text-secondary);">
-                    ${art.categoryBadge || 'Magazine'}
-                  </td>
-                  <td class="p-4">
-                    <span class="px-2.5 py-1 rounded-full font-bold text-[10px] ${art.status === 'published' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}">
-                      ${art.status === 'published' ? 'Publié' : (adminTab === 'trash' ? 'Dans la corbeille' : 'Brouillon')}
-                    </span>
-                  </td>
-                  <td class="p-4 text-zinc-400">
-                    ${art.publishedAt}
-                  </td>
-                  <td class="p-4 text-right space-x-2">
-                    ${adminTab !== 'trash' ? `
-                      <button onclick="editArticle('${art.id}')" class="px-3 py-1 rounded-lg border hover:bg-[#EF4248] hover:text-white transition-colors" style="border-color: var(--border-color); color: var(--text-primary);">
-                        Modifier
-                      </button>
-                      <button onclick="navigateArticle('${art.slug}')" class="px-3 py-1 rounded-lg border hover:bg-black/5 dark:hover:bg-white/10" style="border-color: var(--border-color); color: var(--text-primary);">
-                        Voir
-                      </button>
-                      <button onclick="trashArticle('${art.id}')" class="px-3 py-1 rounded-lg text-amber-600 hover:bg-amber-500/10">
-                        Mettre à la corbeille
-                      </button>
-                    ` : `
-                      <button onclick="restoreArticle('${art.id}')" class="px-3 py-1 rounded-lg bg-emerald-500 text-white font-bold">
-                        Restaurer
-                      </button>
-                      <button onclick="permanentDeleteArticle('${art.id}')" class="px-3 py-1 rounded-lg bg-red-600 text-white font-bold">
-                        Supprimer définitivement
-                      </button>
-                    `}
-                  </td>
+        <!-- Tableau des articles façon WordPress -->
+        <div class="rounded-3xl border border-[#28445E] bg-[#0E2137] overflow-hidden shadow-xs">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="uppercase font-bold tracking-wider border-b border-[#28445E] bg-[#122B45] text-zinc-400">
+                <tr>
+                  <th class="p-4 w-16">Image</th>
+                  <th class="p-4">Titre</th>
+                  <th class="p-4">Catégorie</th>
+                  <th class="p-4">Statut</th>
+                  <th class="p-4">Date</th>
+                  <th class="p-4 text-right">Actions</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
+              </thead>
+              <tbody class="divide-y divide-[#28445E]/60">
+                ${currentList.map(art => `
+                  <tr class="hover:bg-white/5 transition-colors">
+                    <td class="p-4">
+                      <img src="${art.coverImage}" onerror="onImgError(this)" class="w-12 h-12 rounded-xl object-cover shadow-xs">
+                    </td>
+                    <td class="p-4">
+                      <div class="font-bold text-sm text-white">${art.title}</div>
+                      <div class="text-[11px] text-zinc-400">slug : /${art.slug}</div>
+                    </td>
+                    <td class="p-4 font-semibold text-zinc-300">
+                      ${art.categoryBadge || 'Magazine'}
+                    </td>
+                    <td class="p-4">
+                      <span class="px-2.5 py-1 rounded-full font-bold text-[10px] ${art.status === 'published' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">
+                        ${art.status === 'published' ? 'Publié' : (adminTab === 'trash' ? 'Dans la corbeille' : 'Brouillon')}
+                      </span>
+                    </td>
+                    <td class="p-4 text-zinc-400">
+                      ${art.publishedAt}
+                    </td>
+                    <td class="p-4 text-right space-x-2">
+                      ${adminTab !== 'trash' ? `
+                        <button onclick="editArticle('${art.id}')" class="px-3 py-1 rounded-lg border border-white/20 hover:bg-[#EF4248] text-white transition-colors">
+                          Modifier
+                        </button>
+                        <button onclick="navigateArticle('${art.slug}')" class="px-3 py-1 rounded-lg border border-white/20 hover:bg-white/10 text-white">
+                          Voir
+                        </button>
+                        <button onclick="trashArticle('${art.id}')" class="px-3 py-1 rounded-lg text-amber-400 hover:bg-amber-500/10">
+                          Corbeille
+                        </button>
+                      ` : `
+                        <button onclick="restoreArticle('${art.id}')" class="px-3 py-1 rounded-lg bg-emerald-500 text-white font-bold">
+                          Restaurer
+                        </button>
+                        <button onclick="permanentDeleteArticle('${art.id}')" class="px-3 py-1 rounded-lg bg-red-600 text-white font-bold">
+                          Supprimer définitivement
+                        </button>
+                      `}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   `;
 }
 
-// LOGIQUE DES ACTIONS D'ADMINISTRATION
-function handleAdminLogin(e) {
-  e.preventDefault();
-  currentUser = { email: 'redacteur@ontario.fr', role: 'admin', name: 'Rédacteur Chef Ontario' };
-  renderAdmin(document.getElementById('app-container'));
+function renderAdminCustomization(container) {
+  container.innerHTML = `
+    <div class="min-h-screen bg-[#071426] text-white p-6 sm:p-10 font-sans">
+      <div class="max-w-4xl mx-auto space-y-8">
+        <div class="flex items-center justify-between pb-6 border-b border-[#28445E]">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">CMS ONTARIO</span>
+            <h1 class="font-heading text-3xl font-extrabold text-white mt-1">Personnalisation du Site Public</h1>
+          </div>
+          <button onclick="setAdminTab('all')" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-white">
+            ← Retour au Dashboard
+          </button>
+        </div>
+
+        <form onsubmit="saveCustomizationSubmit(event)" class="space-y-6">
+          <!-- Hero Section -->
+          <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#28445E] space-y-4">
+            <h3 class="font-heading font-bold text-base text-white">1. Hero Section (Grand Titre & Image)</h3>
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1">Grand Titre Principal du Hero</label>
+              <input type="text" id="cust-hero-title" value="${ARTICLES[0]?.title || ''}" class="w-full px-4 py-2.5 rounded-xl bg-[#122B45] border border-[#28445E] text-sm text-white font-heading font-bold">
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1">Extrait du Hero</label>
+              <textarea id="cust-hero-desc" rows="2" class="w-full px-4 py-2 rounded-xl bg-[#122B45] border border-[#28445E] text-xs text-white">${ARTICLES[0]?.excerpt || ''}</textarea>
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1">Image Grand Angle (URL)</label>
+              <input type="text" id="cust-hero-img" value="${ARTICLES[0]?.coverImage || ''}" class="w-full px-4 py-2.5 rounded-xl bg-[#122B45] border border-[#28445E] text-xs text-white">
+            </div>
+          </div>
+
+          <!-- Bouton Enregistrer -->
+          <button type="submit" class="w-full py-3.5 rounded-2xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-sm shadow-lg shadow-red-500/20 cursor-pointer">
+            ✓ Enregistrer et Appliquer Immédiatement sur la Page d'Accueil
+          </button>
+        </form>
+      </div>
+    </div>
+  `;
 }
 
-function handleAdminLogout() {
-  currentUser = null;
-  renderAdmin(document.getElementById('app-container'));
+function saveCustomizationSubmit(e) {
+  e.preventDefault();
+  const title = document.getElementById('cust-hero-title')?.value;
+  const desc = document.getElementById('cust-hero-desc')?.value;
+  const img = document.getElementById('cust-hero-img')?.value;
+
+  if (ARTICLES[0]) {
+    if (title) ARTICLES[0].title = title;
+    if (desc) ARTICLES[0].excerpt = desc;
+    if (img) ARTICLES[0].coverImage = img;
+  }
+
+  // Persister dans le store local
+  localStorage.setItem('ontario_cms_database_v2', JSON.stringify({ articles: ARTICLES }));
+  alert('✓ Personnalisation sauvegardée ! La page d\'accueil a été mise à jour en temps réel.');
+  setAdminTab('all');
 }
 
 function setAdminTab(tab) {
