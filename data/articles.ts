@@ -2,10 +2,10 @@ import { Article } from '@/types';
 import { CATEGORIES } from './categories';
 import { AUTHORS } from './authors';
 
-const catAI = CATEGORIES.find((c) => c.slug === 'intelligence-artificielle')!;
-const catTech = CATEGORIES.find((c) => c.slug === 'technologie')!;
+const catAI = CATEGORIES.find((c) => c.slug === 'ai' || c.slug === 'intelligence-artificielle')!;
+const catTech = CATEGORIES.find((c) => c.slug === 'technology' || c.slug === 'technologie')!;
 const catLifestyle = CATEGORIES.find((c) => c.slug === 'lifestyle')!;
-const catCulture = CATEGORIES.find((c) => c.slug === 'culture')!;
+const catCulture = CATEGORIES.find((c) => c.slug === 'culture' || c.slug === 'digital')!;
 const catSociete = CATEGORIES.find((c) => c.slug === 'societe')!;
 const catGuides = CATEGORIES.find((c) => c.slug === 'guides')!;
 const catComparatifs = CATEGORIES.find((c) => c.slug === 'comparatifs')!;

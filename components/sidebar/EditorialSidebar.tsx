@@ -48,7 +48,7 @@ export function EditorialSidebar({
                 </Link>
               </h4>
               <p className="text-[11px] text-zinc-300">
-                Steve Jones on {formatCompactDateFr(featured.publishedAt)}
+                {featured.author.name} on {formatCompactDateFr(featured.publishedAt)}
               </p>
             </div>
           </div>
@@ -61,8 +61,8 @@ export function EditorialSidebar({
                   key={idx}
                   onClick={() => setSliderIndex(idx)}
                   aria-label={`Slide ${idx + 1}`}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx === sliderIndex ? 'bg-[#EF4248]' : 'bg-zinc-300 dark:bg-zinc-700'
+                  className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+                    idx === sliderIndex ? 'bg-[#EF4248] scale-125' : 'bg-zinc-300 dark:bg-zinc-700 hover:bg-zinc-400'
                   }`}
                 />
               ))}
@@ -136,7 +136,7 @@ export function EditorialSidebar({
         </div>
 
         <div className="flex flex-col gap-4">
-          {recentArticles.slice(0, 4).map((art) => (
+          {recentArticles.slice(0, 3).map((art) => (
             <ArticleCardMini key={art.id} article={art} />
           ))}
         </div>

@@ -44,10 +44,23 @@ export function ArticleCardHorizontal({ article }: { article: Article }) {
           {article.excerpt}
         </p>
 
-        <div>
+        <div className="flex items-center justify-between mt-auto pt-2">
+          {article.category && (
+            <Link
+              href={`/category/${article.category.slug}`}
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-opacity hover:opacity-80"
+              style={{
+                backgroundColor: article.category.badgeBg || 'var(--surface-soft)',
+                color: article.category.badgeText || 'var(--text-primary)',
+              }}
+            >
+              {article.category.name}
+            </Link>
+          )}
+
           <Link
             href={`/article/${article.slug}`}
-            className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#EF4248] group-hover:underline"
+            className="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#EF4248] group-hover:underline ml-auto"
           >
             MORE →
           </Link>

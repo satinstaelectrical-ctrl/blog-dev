@@ -3,25 +3,71 @@ import { Category } from '@/types';
 export const CATEGORIES: Category[] = [
   {
     id: 'cat-ai',
-    name: 'Intelligence Artificielle',
-    slug: 'intelligence-artificielle',
+    name: 'AI',
+    slug: 'ai',
     description: 'Modèles génératifs, agents autonomes, éthique algorithmique et outils nouvelle génération.',
     accentColor: '#8B5CF6',
-    badgeBg: '#F5F3FF',
-    badgeText: '#6D28D9',
+    badgeBg: '#F0ECFA',
+    badgeText: '#5844A8',
     icon: 'Cpu',
     count: 24,
   },
   {
-    id: 'cat-tech',
-    name: 'Technologie',
-    slug: 'technologie',
-    description: 'Innovations matérielles, architectures logicielles, écosystèmes mobiles et informatique quantique.',
+    id: 'cat-crypto',
+    name: 'Crypto',
+    slug: 'crypto',
+    description: 'Protocoles décentralisés, Web3, finance programmatique et smart contracts.',
+    accentColor: '#10B981',
+    badgeBg: '#ECF8F4',
+    badgeText: '#217960',
+    icon: 'Coins',
+    count: 18,
+  },
+  {
+    id: 'cat-digital',
+    name: 'Digital',
+    slug: 'digital',
+    description: 'Design interactif, UI/UX, architectures spatiales et synthèse visuelle WebGPU.',
     accentColor: '#3B82F6',
-    badgeBg: '#EFF6FF',
-    badgeText: '#1D4ED8',
+    badgeBg: '#EBF0FA',
+    badgeText: '#2563A0',
+    icon: 'Layers',
+    count: 32,
+  },
+  {
+    id: 'cat-startups',
+    name: 'Startups',
+    slug: 'startups',
+    description: 'Entrepreneuriat technologique, modèles économiques émergents et levées de fonds.',
+    accentColor: '#EC4899',
+    badgeBg: '#FCEEF4',
+    badgeText: '#9E3258',
+    icon: 'Rocket',
+    count: 15,
+  },
+  {
+    id: 'cat-tech',
+    name: 'Technology',
+    slug: 'technology',
+    description: 'Innovations matérielles, micro-architectures, robotique avancée et ordinateurs quantiques.',
+    accentColor: '#0EA5E9',
+    badgeBg: '#13283E',
+    badgeText: '#FFFFFF',
     icon: 'Laptop',
-    count: 38,
+    count: 41,
+    isDark: true,
+    image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    id: 'cat-trends',
+    name: 'Trends',
+    slug: 'trends',
+    description: 'Veille prospective, signaux faibles des marchés et prospective 2030.',
+    accentColor: '#F97316',
+    badgeBg: '#FFF2EB',
+    badgeText: '#A65522',
+    icon: 'TrendingUp',
+    count: 29,
   },
   {
     id: 'cat-lifestyle',
@@ -81,5 +127,8 @@ export const CATEGORIES: Category[] = [
 ];
 
 export function getCategoryBySlug(slug: string): Category | undefined {
+  const norm = slug.toLowerCase();
+  if (norm === 'intelligence-artificielle') return CATEGORIES.find((c) => c.slug === 'ai');
+  if (norm === 'technologie') return CATEGORIES.find((c) => c.slug === 'technology');
   return CATEGORIES.find((c) => c.slug === slug);
 }

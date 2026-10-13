@@ -27,6 +27,8 @@ export interface Category {
   badgeText: string;
   icon?: string;
   count?: number;
+  image?: string;
+  isDark?: boolean;
 }
 
 export interface ProductReview {

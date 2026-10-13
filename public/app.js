@@ -27,14 +27,14 @@ function renderArticleBadge(article) {
 }
 
 
-// 1. RUBRIQUES PASTELS OFFICIELLES DU THÈME ONTARIO (Image A)
+// 1. RUBRIQUES PASTELS OFFICIELLES DU THÈME ONTARIO (Image A & Capture 4)
 const CATEGORIES = [
-  { id: 'cat-all', name: 'Tous', slug: 'tous', bgLight: '#FCEEF5', textLight: '#A03060', bgDark: '#2D1B28', textDark: '#F472B6', count: 48 },
-  { id: 'cat-crypto', name: 'Crypto & Web3', slug: 'crypto', bgLight: '#EAF8F4', textLight: '#217960', bgDark: '#12302A', textDark: '#6EE7B7', count: 18 },
-  { id: 'cat-bizrad', name: 'Business & Stratégie', slug: 'business', bgLight: '#EEEAFE', textLight: '#5844A8', bgDark: '#1C193B', textDark: '#A5B4FC', count: 29 },
-  { id: 'cat-lifestyle', name: 'Lifestyle & Design', slug: 'lifestyle', bgLight: '#FDEEF3', textLight: '#9E3258', bgDark: '#351624', textDark: '#F0ABFC', count: 22 },
-  { id: 'cat-tech', name: 'Technologie & IA', slug: 'intelligence-artificielle', bgLight: '#E7F3FE', textLight: '#2563A0', bgDark: '#13283E', textDark: '#7DD3FC', count: 42 },
-  { id: 'cat-trends', name: 'Tendances 2026', slug: 'trends', bgLight: '#FEEFE6', textLight: '#A65522', bgDark: '#3A1E14', textDark: '#FDBA74', count: 19 },
+  { id: 'cat-ai', name: 'AI', slug: 'ai', bgLight: '#F0ECFA', textLight: '#5844A8', bgDark: '#1C193B', textDark: '#A5B4FC', count: 24 },
+  { id: 'cat-crypto', name: 'Crypto', slug: 'crypto', bgLight: '#ECF8F4', textLight: '#217960', bgDark: '#12302A', textDark: '#6EE7B7', count: 18 },
+  { id: 'cat-digital', name: 'Digital', slug: 'digital', bgLight: '#EBF0FA', textLight: '#2563A0', bgDark: '#13283E', textDark: '#7DD3FC', count: 32 },
+  { id: 'cat-startups', name: 'Startups', slug: 'startups', bgLight: '#FCEEF4', textLight: '#9E3258', bgDark: '#351624', textDark: '#F0ABFC', count: 15 },
+  { id: 'cat-tech', name: 'Technology', slug: 'technology', bgLight: '#13283E', textLight: '#FFFFFF', bgDark: '#13283E', textDark: '#FFFFFF', isDark: true, image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80', count: 41 },
+  { id: 'cat-trends', name: 'Trends', slug: 'trends', bgLight: '#FFF2EB', textLight: '#A65522', bgDark: '#3A1E14', textDark: '#FDBA74', count: 29 },
 ];
 
 // 2. AUTEURS ÉDITORIAUX OFFICIELS
@@ -573,20 +573,44 @@ function handleNewsletter(e) {
 }
 
 // ==========================================================================
-// 5. RENDERER DE LA PAGE D'ACCUEIL — 100% FIDÈLE À ONTARIO (IMAGE A)
+// 5. RENDERER DE LA PAGE D'ACCUEIL — 100% FIDÈLE À ONTARIO (IMAGE A & CAPTURES 1-5)
 // ==========================================================================
+let heroSliderIndex = 0;
+
+function getHeroSliderArticles() {
+  const heroes = ARTICLES.filter(a => a.isHero || a.isFeatured);
+  return heroes.length > 0 ? heroes : [ARTICLES[0]];
+}
+
+window.prevHeroSlide = function(e) {
+  if (e) e.stopPropagation();
+  const heroes = getHeroSliderArticles();
+  heroSliderIndex = (heroSliderIndex === 0) ? heroes.length - 1 : heroSliderIndex - 1;
+  const container = document.getElementById('main-content');
+  if (container) renderHome(container);
+};
+
+window.nextHeroSlide = function(e) {
+  if (e) e.stopPropagation();
+  const heroes = getHeroSliderArticles();
+  heroSliderIndex = (heroSliderIndex === heroes.length - 1) ? 0 : heroSliderIndex + 1;
+  const container = document.getElementById('main-content');
+  if (container) renderHome(container);
+};
+
 function renderHome(container) {
-  const heroArticle = ARTICLES.find(a => a.isHero) || ARTICLES[0];
+  const heroArticles = getHeroSliderArticles();
+  const heroArticle = heroArticles[heroSliderIndex] || heroArticles[0];
   const authorHero = AUTHORS.find(a => a.slug === heroArticle.authorSlug) || AUTHORS[0];
-  const freshArticles = ARTICLES.filter(a => !a.isHero).slice(0, 6);
-  const recentArticles = ARTICLES.filter(a => !a.isHero).slice(6, 9);
+  const freshArticles = ARTICLES.filter(a => a.id !== heroArticle.id).slice(0, 6);
+  const recentArticles = ARTICLES.filter(a => a.id !== heroArticle.id).slice(6, 12);
   const sidebarFeatured = ARTICLES.find(a => a.id === 'art-sidebar-featured') || ARTICLES[1];
 
   container.innerHTML = `
     <div class="w-full">
       <!-- 1. HERO IMMERSIF PLEINE LARGEUR (100VW FULL-BLEED) CONFORME IMAGE A -->
       <section class="relative w-full h-[580px] sm:h-[660px] lg:h-[720px] overflow-hidden bg-[#071426]">
-        <img src="${heroArticle.coverImage}" onerror="onImgError(this)" alt="${heroArticle.title}" class="w-full h-full object-cover object-center filter brightness-95">
+        <img src="${heroArticle.coverImage}" onerror="onImgError(this)" alt="${heroArticle.title}" class="w-full h-full object-cover object-center filter brightness-95 transition-all duration-700 ease-out hover:scale-105">
         
         <!-- Superposition sombre dégradée sur la gauche pour lisibilité parfaite -->
         <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent"></div>
@@ -622,13 +646,14 @@ function renderHome(container) {
               </p>
 
               <!-- Flèches de navigation Slider Hero -->
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 flex-wrap">
                 <button onclick="navigateArticle('${heroArticle.slug}')" class="px-6 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-md">
                   Lire l'article complet →
                 </button>
                 <div class="flex items-center gap-2">
-                  <button class="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md hover:bg-white/30 text-white flex items-center justify-center transition-all">‹</button>
-                  <button class="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md hover:bg-white/30 text-white flex items-center justify-center transition-all">›</button>
+                  <button onclick="prevHeroSlide(event)" aria-label="Article précédent" class="w-9 h-9 rounded-full border border-white/40 bg-black/30 backdrop-blur-md hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">‹</button>
+                  <button onclick="nextHeroSlide(event)" aria-label="Article suivant" class="w-9 h-9 rounded-full border border-white/40 bg-black/30 backdrop-blur-md hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">›</button>
+                  <span class="text-[11px] font-mono font-medium text-zinc-300 ml-1">0${heroSliderIndex + 1} / 0${heroArticles.length}</span>
                 </div>
               </div>
             </div>
@@ -658,20 +683,26 @@ function renderHome(container) {
         </div>
       </section>
 
-      <!-- 3. RUBRIQUES PASTELS ÉPURÉES "BLOG CATEGORIES" CONFORME IMAGE A -->
+      <!-- 3. RUBRIQUES PASTELS ÉPURÉES "BLOG CATEGORIES" CONFORME IMAGE A & CAPTURE 4 -->
       <section class="container-ontario mt-14 sm:mt-18">
         <h2 class="font-heading text-2xl sm:text-3xl font-bold tracking-tight mb-6" style="color: var(--text-primary);">
           Blog Categories
         </h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           ${CATEGORIES.map(cat => `
-            <div onclick="navigateCategory('${cat.slug}')" class="h-28 sm:h-32 rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md border border-transparent" style="background-color: ${isDarkMode ? cat.bgDark : cat.bgLight};">
-              <h3 class="font-heading font-bold text-sm tracking-tight mb-1" style="color: ${isDarkMode ? cat.textDark : cat.textLight};">
-                ${cat.name}
-              </h3>
-              <span class="text-[11px] font-medium" style="color: var(--text-muted);">
-                ${cat.count} articles
-              </span>
+            <div onclick="navigateCategory('${cat.slug}')" class="group relative h-28 sm:h-32 rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg border overflow-hidden ${cat.isDark ? 'border-white/10 text-white' : 'border-black/5 dark:border-white/5'}" style="background-color: ${cat.isDark ? '#13283E' : (isDarkMode ? cat.bgDark : cat.bgLight)};">
+              ${cat.isDark && cat.image ? `
+                <img src="${cat.image}" alt="${cat.name}" class="absolute inset-0 w-full h-full object-cover object-center opacity-30 mix-blend-luminosity group-hover:scale-110 group-hover:opacity-40 transition-all duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#13283E] via-[#13283E]/75 to-transparent"></div>
+              ` : ''}
+              <div class="relative z-10 flex flex-col items-center justify-center">
+                <h3 class="font-heading font-bold text-sm tracking-tight mb-1 group-hover:scale-105 transition-transform" style="color: ${cat.isDark ? '#FFFFFF' : (isDarkMode ? cat.textDark : cat.textLight)};">
+                  ${cat.name}
+                </h3>
+                <span class="text-[11px] font-medium" style="color: ${cat.isDark ? '#D1D5DB' : 'var(--text-muted)'};">
+                  ${cat.count} articles
+                </span>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -824,7 +855,10 @@ function renderHome(container) {
                     <p class="text-xs sm:text-sm leading-relaxed mb-4 line-clamp-2" style="color: var(--text-secondary);">
                       ${art.excerpt}
                     </p>
-                    <div>
+                    <div class="flex items-center justify-between mt-auto pt-2">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style="background-color: var(--surface-soft); color: var(--text-primary);">
+                        ${art.categoryBadge || 'NEWS'}
+                      </span>
                       <span class="inline-flex items-center text-xs font-bold uppercase tracking-wider text-[#EF4248] group-hover:underline">
                         MORE →
                       </span>

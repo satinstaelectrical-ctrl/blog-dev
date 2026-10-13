@@ -20,13 +20,23 @@ export function ArticleCardFeatured({ articles }: { articles: Article[] }) {
     setCurrentIndex((prev) => (prev === articles.length - 1 ? 0 : prev + 1));
   };
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') handlePrev();
+      if (e.key === 'ArrowRight') handleNext();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [articles.length]);
+
   return (
     <div className="hero-fullbleed relative w-full h-[580px] sm:h-[660px] lg:h-[720px] overflow-hidden bg-[#071426] text-white">
       {/* Photographie immersive 100vw */}
       <img
+        key={current.id}
         src={current.coverImage}
         alt={current.title}
-        className="w-full h-full object-cover object-center filter brightness-95 transition-transform duration-700 ease-out hover:scale-105"
+        className="w-full h-full object-cover object-center filter brightness-95 transition-all duration-700 ease-out hover:scale-105"
       />
 
       {/* Dégradés cinématiques gauche et bas */}
@@ -72,7 +82,7 @@ export function ArticleCardFeatured({ articles }: { articles: Article[] }) {
             </p>
 
             {/* Actions Slider */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <Link
                 href={`/article/${current.slug}`}
                 className="px-6 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-md"
@@ -85,17 +95,20 @@ export function ArticleCardFeatured({ articles }: { articles: Article[] }) {
                   <button
                     onClick={handlePrev}
                     aria-label="Article précédent"
-                    className="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer"
+                    className="w-9 h-9 rounded-full border border-white/40 bg-black/30 backdrop-blur-md hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer"
                   >
                     <ChevronLeftIcon size={16} />
                   </button>
                   <button
                     onClick={handleNext}
                     aria-label="Article suivant"
-                    className="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md hover:bg-white/30 text-white flex items-center justify-center transition-all cursor-pointer"
+                    className="w-9 h-9 rounded-full border border-white/40 bg-black/30 backdrop-blur-md hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer"
                   >
                     <ChevronRightIcon size={16} />
                   </button>
+                  <span className="text-[11px] font-mono font-medium text-zinc-300 ml-1">
+                    0{currentIndex + 1} / 0{articles.length}
+                  </span>
                 </div>
               )}
             </div>
