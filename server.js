@@ -14,6 +14,7 @@ const MIME_TYPES = {
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
   '.xml': 'application/xml; charset=utf-8',
+  '.xsl': 'text/xml; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
 };
 

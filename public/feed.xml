@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ONTARIO — Magazine Éditorial &amp; Prospective Numérique</title>
+    <link>https://ontariowp.com</link>
+    <description>Magazine de référence dédié à l'intelligence artificielle, aux ruptures technologiques, au design et aux modèles émergents.</description>
+    <language>fr-fr</language>
+    <lastBuildDate>Wed, 14 Oct 2026 00:00:00 GMT</lastBuildDate>
+    <atom:link href="https://ontariowp.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title><![CDATA[Next Gen Marketing : Stratégies Innovantes & Ruptures Numériques]]></title>
+      <link>https://ontariowp.com/article/next-gen-marketing-innovative-strategies</link>
+      <guid>https://ontariowp.com/article/next-gen-marketing-innovative-strategies</guid>
+      <pubDate>Thu, 26 Mar 2026 08:00:00 GMT</pubDate>
+      <description><![CDATA[Dans un écosystème où l’attention est devenue la denrée la plus disputée, les modèles algorithmiques génératifs et les expériences immersives redéfinissent la relation entre marques et communautés.]]></description>
+      <author>Steve Jones</author>
+      <category>Intelligence Artificielle</category>
+    </item>
+    <item>
+      <title><![CDATA[Maîtriser les Terrains Inconnus : Les Leçons des Pionniers de l’IA]]></title>
+      <link>https://ontariowp.com/article/commanding-unknown-terrain-lessons-bold-pioneers</link>
+      <guid>https://ontariowp.com/article/commanding-unknown-terrain-lessons-bold-pioneers</guid>
+      <pubDate>Thu, 26 Mar 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[L’exploration des nouveaux paradigmes algorithmiques exige une audace comparable à celle des premières traversées océaniques.]]></description>
+      <author>Steve Jones</author>
+      <category>Intelligence Artificielle</category>
+    </item>
+  </channel>
+</rss>
