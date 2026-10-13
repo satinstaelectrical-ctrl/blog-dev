@@ -17,7 +17,7 @@ export function ArticleCardFeatured({ articles }: { articles: Article[] }) {
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev === current.length - 1 ? 0 : prev + 1));
+    setCurrentIndex((prev) => (prev === articles.length - 1 ? 0 : prev + 1));
   };
 
   return (
