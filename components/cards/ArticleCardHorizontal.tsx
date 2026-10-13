@@ -2,6 +2,7 @@ import React from 'react';
 import { Article } from '@/types';
 import Link from 'next/link';
 import { ClockIcon } from '@/components/ui/Icons';
+import { ArticleAutoBadge } from '@/components/ui/Badge';
 import { formatCompactDateFr } from '@/lib/utils';
 
 export function ArticleCardHorizontal({ article }: { article: Article }) {
@@ -17,6 +18,10 @@ export function ArticleCardHorizontal({ article }: { article: Article }) {
             loading="lazy"
           />
         </Link>
+        {/* Top-left Badge */}
+        <div className="absolute top-2.5 left-2.5">
+          <ArticleAutoBadge article={article} />
+        </div>
         <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md text-[10px] font-semibold text-white">
           <ClockIcon size={11} />
           <span>{article.readingTime} MIN</span>

@@ -63,9 +63,13 @@ export interface Article {
   readingTime: number; // in minutes
   publishedAt: string;
   updatedAt?: string;
+  status?: 'draft' | 'scheduled' | 'published' | 'trash';
   isFeatured?: boolean;
+  isHero?: boolean;
+  isExclusive?: boolean;
   isEditorChoice?: boolean;
   isTrending?: boolean;
+  contentBlocks?: any[];
   format: ArticleFormat;
   galleryImages?: string[];
   videoUrl?: string;

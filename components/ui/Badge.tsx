@@ -69,3 +69,61 @@ export function PillBadge({
     </span>
   );
 }
+
+export function ArticleAutoBadge({
+  article,
+  className = '',
+}: {
+  article: {
+    publishedAt: string;
+    isExclusive?: boolean;
+    views?: number;
+    likes?: number;
+  };
+  className?: string;
+}) {
+  // 1. Badge Exclusivité activé manuellement par l'administrateur
+  if (article.isExclusive) {
+    return (
+      <span
+        className={`px-2.5 py-1 rounded-full bg-[#EF4248] text-[10px] font-extrabold tracking-wider text-white uppercase shadow-xs ${className}`}
+      >
+        EXCLUSIF
+      </span>
+    );
+  }
+
+  // 2. Badge Nouveau automatique (publié il y a moins de 7 jours)
+  const publishedDate = new Date(article.publishedAt).getTime();
+  const diffDays = (Date.now() - publishedDate) / (1000 * 60 * 60 * 24);
+  if (!isNaN(diffDays) && diffDays >= 0 && diffDays <= 7) {
+    return (
+      <span
+        className={`px-2.5 py-1 rounded-full bg-emerald-600 text-[10px] font-extrabold tracking-wider text-white uppercase shadow-xs ${className}`}
+      >
+        NOUVEAU
+      </span>
+    );
+  }
+
+  // 3. Badge Populaire automatique (vues > 10 000 ou interactions > 500)
+  if ((article.views && article.views > 10000) || (article.likes && article.likes > 500)) {
+    return (
+      <span
+        className={`px-2.5 py-1 rounded-full bg-purple-600 text-[10px] font-extrabold tracking-wider text-white uppercase shadow-xs ${className}`}
+      >
+        POPULAIRE
+      </span>
+    );
+  }
+
+  // 4. Badge RECENT standard officiel Ontario
+  return (
+    <span
+      className={`px-2.5 py-1 rounded-full bg-[#17191D] text-[10px] font-extrabold tracking-wider text-white uppercase shadow-xs ${className}`}
+    >
+      RECENT
+    </span>
+  );
+}
+

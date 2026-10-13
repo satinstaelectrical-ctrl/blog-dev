@@ -13,6 +13,20 @@ function onImgError(img) {
   }
 }
 
+function renderArticleBadge(article) {
+  if (article.isExclusive) {
+    return `<span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#EF4248] text-white text-[10px] font-extrabold uppercase tracking-wider shadow-xs">EXCLUSIF</span>`;
+  }
+  if (article.views && article.views > 15000) {
+    return `<span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-purple-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-xs">POPULAIRE</span>`;
+  }
+  if (article.isNew || (article.publishedAt && article.publishedAt.includes('26 Mars 2026'))) {
+    return `<span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-xs">NOUVEAU</span>`;
+  }
+  return `<span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#17191D] text-white text-[10px] font-extrabold uppercase tracking-wider shadow-xs">RECENT</span>`;
+}
+
+
 // 1. RUBRIQUES PASTELS OFFICIELLES DU THÈME ONTARIO (Image A)
 const CATEGORIES = [
   { id: 'cat-all', name: 'Tous', slug: 'tous', bgLight: '#FCEEF5', textLight: '#A03060', bgDark: '#2D1B28', textDark: '#F472B6', count: 48 },
@@ -675,9 +689,7 @@ function renderHome(container) {
           <div class="lg:col-span-6 group cursor-pointer" onclick="navigateArticle('${freshArticles[0].slug}')">
             <div class="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-4 shadow-sm">
               <img src="${freshArticles[0].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#17191D] text-white text-[10px] font-extrabold uppercase tracking-wider">
-                RECENT
-              </span>
+              ${renderArticleBadge(freshArticles[0])}
               <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
                 ⏱️ ${freshArticles[0].readingTime} MIN
               </span>
@@ -694,9 +706,7 @@ function renderHome(container) {
           <div class="lg:col-span-3 group cursor-pointer" onclick="navigateArticle('${freshArticles[1].slug}')">
             <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
               <img src="${freshArticles[1].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#17191D] text-white text-[10px] font-extrabold uppercase tracking-wider">
-                RECENT
-              </span>
+              ${renderArticleBadge(freshArticles[1])}
               <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
                 ⏱️ ${freshArticles[1].readingTime} MIN
               </span>
@@ -713,9 +723,7 @@ function renderHome(container) {
           <div class="lg:col-span-3 group cursor-pointer" onclick="navigateArticle('${freshArticles[2].slug}')">
             <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
               <img src="${freshArticles[2].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#17191D] text-white text-[10px] font-extrabold uppercase tracking-wider">
-                RECENT
-              </span>
+              ${renderArticleBadge(freshArticles[2])}
               <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
                 ⏱️ ${freshArticles[2].readingTime} MIN
               </span>
@@ -735,9 +743,7 @@ function renderHome(container) {
           <div class="lg:col-span-3 group cursor-pointer" onclick="navigateArticle('${freshArticles[3].slug}')">
             <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
               <img src="${freshArticles[3].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#17191D] text-white text-[10px] font-extrabold uppercase tracking-wider">
-                RECENT
-              </span>
+              ${renderArticleBadge(freshArticles[3])}
               <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
                 ⏱️ ${freshArticles[3].readingTime} MIN
               </span>
@@ -754,9 +760,7 @@ function renderHome(container) {
           <div class="lg:col-span-3 group cursor-pointer" onclick="navigateArticle('${freshArticles[4].slug}')">
             <div class="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 shadow-sm">
               <img src="${freshArticles[4].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#17191D] text-white text-[10px] font-extrabold uppercase tracking-wider">
-                RECENT
-              </span>
+              ${renderArticleBadge(freshArticles[4])}
               <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
                 ⏱️ ${freshArticles[4].readingTime} MIN
               </span>
@@ -773,9 +777,7 @@ function renderHome(container) {
           <div class="lg:col-span-6 group cursor-pointer" onclick="navigateArticle('${freshArticles[5].slug}')">
             <div class="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-4 shadow-sm">
               <img src="${freshArticles[5].coverImage}" onerror="onImgError(this)" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-              <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#17191D] text-white text-[10px] font-extrabold uppercase tracking-wider">
-                RECENT
-              </span>
+              ${renderArticleBadge(freshArticles[5])}
               <span class="absolute bottom-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-semibold">
                 ⏱️ ${freshArticles[5].readingTime} MIN
               </span>

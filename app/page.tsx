@@ -124,17 +124,17 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 mb-8">
           {freshArticles[0] && (
             <div className="lg:col-span-6">
-              <ArticleCardGrid article={freshArticles[0]} badgeLabel="RECENT" isWide={true} />
+              <ArticleCardGrid article={freshArticles[0]} isWide={true} />
             </div>
           )}
           {freshArticles[1] && (
             <div className="lg:col-span-3">
-              <ArticleCardGrid article={freshArticles[1]} badgeLabel="RECENT" isWide={false} />
+              <ArticleCardGrid article={freshArticles[1]} isWide={false} />
             </div>
           )}
           {freshArticles[2] && (
             <div className="lg:col-span-3">
-              <ArticleCardGrid article={freshArticles[2]} badgeLabel="RECENT" isWide={false} />
+              <ArticleCardGrid article={freshArticles[2]} isWide={false} />
             </div>
           )}
         </div>
@@ -143,17 +143,17 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
           {freshArticles[3] && (
             <div className="lg:col-span-3">
-              <ArticleCardGrid article={freshArticles[3]} badgeLabel="RECENT" isWide={false} />
+              <ArticleCardGrid article={freshArticles[3]} isWide={false} />
             </div>
           )}
           {freshArticles[4] && (
             <div className="lg:col-span-3">
-              <ArticleCardGrid article={freshArticles[4]} badgeLabel="RECENT" isWide={false} />
+              <ArticleCardGrid article={freshArticles[4]} isWide={false} />
             </div>
           )}
           {freshArticles[5] && (
             <div className="lg:col-span-6">
-              <ArticleCardGrid article={freshArticles[5]} badgeLabel="RECENT" isWide={true} />
+              <ArticleCardGrid article={freshArticles[5]} isWide={true} />
             </div>
           )}
         </div>

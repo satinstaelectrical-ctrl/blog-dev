@@ -1,7 +1,7 @@
 import React from 'react';
 import { Article } from '@/types';
 import Link from 'next/link';
-import { CategoryBadge } from '@/components/ui/Badge';
+import { ArticleAutoBadge, CategoryBadge } from '@/components/ui/Badge';
 import { ClockIcon, ShareIcon } from '@/components/ui/Icons';
 import { formatCompactDateFr } from '@/lib/utils';
 
@@ -14,7 +14,7 @@ interface ArticleCardGridProps {
 
 export function ArticleCardGrid({
   article,
-  badgeLabel = 'RECENT',
+  badgeLabel,
   showExcerpt = false,
   isWide = false,
 }: ArticleCardGridProps) {
@@ -31,14 +31,16 @@ export function ArticleCardGrid({
           />
         </Link>
 
-        {/* Top-left Badge RECENT */}
-        {badgeLabel && (
-          <div className="absolute top-3 left-3">
+        {/* Top-left Badge Automatique ou Personnalisé */}
+        <div className="absolute top-3 left-3">
+          {badgeLabel ? (
             <span className="px-2.5 py-1 rounded-full bg-[#17191D] text-[10px] font-extrabold tracking-wider text-white uppercase shadow-xs">
               {badgeLabel}
             </span>
-          </div>
-        )}
+          ) : (
+            <ArticleAutoBadge article={article} />
+          )}
+        </div>
 
         {/* Bottom-right reading time */}
         <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-[11px] font-semibold text-white/90">
