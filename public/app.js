@@ -2318,7 +2318,31 @@ function setAdminNav(tab) {
     startNewArticle();
     return;
   }
-  renderAdmin(document.getElementById('app-container'));
+  const targetHash = (tab === 'dashboard' ? 'admin' : 'admin/' + tab);
+  if (window.location.hash.replace('#', '') !== targetHash) {
+    window.location.hash = targetHash;
+  } else {
+    renderAdmin(document.getElementById('app-container'));
+  }
+}
+
+async function bulkTrashArticles() {
+  if (!adminSelectedArticles || !adminSelectedArticles.length) {
+    showToast('Aucun article sélectionné.', 'info');
+    return;
+  }
+  if (!confirm(`Déplacer les ${adminSelectedArticles.length} article(s) sélectionné(s) vers la corbeille ?`)) return;
+  try {
+    for (const id of adminSelectedArticles) {
+      await fetch('/api/articles/' + id, { method: 'DELETE' });
+    }
+    showToast(`${adminSelectedArticles.length} article(s) déplacé(s) vers la corbeille.`);
+    adminSelectedArticles = [];
+    await loadServerData();
+    renderAdmin(document.getElementById('app-container'));
+  } catch (e) {
+    showToast('Erreur lors de la mise en corbeille groupée', 'error');
+  }
 }
 
 function toggleAdminSidebar() {
@@ -2452,6 +2476,8 @@ async function restoreArticle(id) {
     showToast('Erreur serveur lors de la restauration', 'error');
   }
 }
+
+const forceDeleteArticle = (id) => permanentDeleteArticle(id);
 
 async function permanentDeleteArticle(id) {
   if (confirm('ATTENTION : Voulez-vous supprimer définitivement cet article du serveur ? Cette action est irréversible.')) {
@@ -2871,19 +2897,22 @@ function cancelEditor() {
 
 // Capture de l'état actuel de l'éditeur sans perdre le texte en cours
 function captureEditorInputs() {
-  const t = document.getElementById('editor-title');
+  const t = document.getElementById('editorArticleTitle') || document.getElementById('editor-title');
   if (t) currentEditorState.title = t.value;
-  const ex = document.getElementById('editor-excerpt');
+  const ex = document.getElementById('editorArticleExcerpt') || document.getElementById('editor-excerpt');
   if (ex) currentEditorState.excerpt = ex.value;
-  const cov = document.getElementById('editor-cover');
-  if (cov) currentEditorState.coverImage = cov.value;
+  const cov = document.getElementById('editorArticleImage') || document.getElementById('editor-cover');
+  if (cov) {
+    currentEditorState.coverImage = cov.value;
+    currentEditorState.image = cov.value;
+  }
   const alt = document.getElementById('editor-image-alt');
   if (alt) currentEditorState.imageAlt = alt.value;
   const cap = document.getElementById('editor-image-caption');
   if (cap) currentEditorState.imageCaption = cap.value;
   const fp = document.getElementById('editor-focal-point');
   if (fp) currentEditorState.focalPoint = fp.value;
-  const cat = document.getElementById('editor-cat');
+  const cat = document.getElementById('editorArticleCategory') || document.getElementById('editor-cat');
   if (cat) currentEditorState.categorySlug = cat.value;
   const aut = document.getElementById('editor-author');
   if (aut) currentEditorState.authorSlug = aut.value;
@@ -2895,6 +2924,8 @@ function captureEditorInputs() {
   if (st) currentEditorState.seoTitle = st.value;
   const sd = document.getElementById('editor-seo-desc');
   if (sd) currentEditorState.seoDesc = sd.value;
+  const stat = document.getElementById('editorArticleStatus');
+  if (stat) currentEditorState.status = stat.value;
 }
 
 function addBlock(type) {
@@ -2950,7 +2981,10 @@ function deleteBlock(idx) {
 }
 
 function updateBlockText(idx, val) {
-  if (editorBlocks[idx]) editorBlocks[idx].text = val;
+  if (editorBlocks[idx]) {
+    editorBlocks[idx].text = val;
+    editorBlocks[idx].content = val;
+  }
 }
 
 function updateBlockField(idx, field, val) {
@@ -3029,7 +3063,8 @@ async function saveArticleWithStatus(targetStatus) {
     frenchTitle: title,
     slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
     excerpt,
-    coverImage: currentEditorState.coverImage || '/images/hero_ontario_orange.jpg',
+    image: currentEditorState.coverImage || currentEditorState.image || '/images/hero_ontario_orange.jpg',
+    coverImage: currentEditorState.coverImage || currentEditorState.image || '/images/hero_ontario_orange.jpg',
     imageAlt: currentEditorState.imageAlt || title,
     imageCaption: currentEditorState.imageCaption || '',
     focalPoint: currentEditorState.focalPoint || 'center center',
@@ -4240,6 +4275,25 @@ function renderTabAnalytics() {
   `;
 }
 
+async function saveGeneralSettings() {
+  const name = document.getElementById('generalSettingSiteName')?.value || 'ONTARIO';
+  const email = document.getElementById('generalSettingContactEmail')?.value || 'contact@ontariowp.com';
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ siteName: name, contactEmail: email })
+    });
+    if (res.ok) {
+      showToast('✓ Réglages généraux enregistrés sur le serveur !', 'success');
+    } else {
+      showToast('Erreur lors de la sauvegarde des réglages', 'error');
+    }
+  } catch (e) {
+    showToast('Erreur serveur lors de la sauvegarde', 'error');
+  }
+}
+
 function renderTabSettings() {
   return `
     <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-5">
@@ -4247,13 +4301,13 @@ function renderTabSettings() {
       <div class="space-y-4 text-xs max-w-xl">
         <div>
           <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Nom du Média</label>
-          <input type="text" value="ONTARIO" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
+          <input type="text" id="generalSettingSiteName" value="ONTARIO" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
         </div>
         <div>
           <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">E-mail de Contact Officiel</label>
-          <input type="email" value="contact@ontariowp.com" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
+          <input type="email" id="generalSettingContactEmail" value="contact@ontariowp.com" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
         </div>
-        <button onclick="showToast('✓ Réglages sauvegardés sur le serveur !', 'success')" class="px-5 py-2.5 rounded-xl bg-[#EF4248] text-white font-bold">
+        <button onclick="saveGeneralSettings()" class="px-5 py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold transition-all shadow-md shadow-red-500/20">
           Enregistrer les modifications
         </button>
       </div>
@@ -4368,7 +4422,7 @@ function renderGutenbergEditor(container) {
                       if (block.type === 'heading') {
                         return `
                           <input type="text" 
-                                 value="${block.content || ''}" 
+                                 value="${block.content || block.text || ''}" 
                                  oninput="updateBlockText(${idx}, this.value)"
                                  placeholder="Sous-titre H2..." 
                                  class="w-full font-heading font-bold text-xl text-zinc-900 dark:text-white bg-transparent border-0 focus:outline-none">
@@ -4379,7 +4433,7 @@ function renderGutenbergEditor(container) {
                             <textarea oninput="updateBlockText(${idx}, this.value)"
                                       placeholder="Citation marquante..." 
                                       rows="2"
-                                      class="w-full italic font-heading text-lg text-zinc-800 dark:text-zinc-100 bg-transparent border-0 focus:outline-none resize-none">${block.content || ''}</textarea>
+                                      class="w-full italic font-heading text-lg text-zinc-800 dark:text-zinc-100 bg-transparent border-0 focus:outline-none resize-none">${block.content || block.text || ''}</textarea>
                             <input type="text" 
                                    value="${block.author || ''}" 
                                    oninput="updateBlockField(${idx}, 'author', this.value)"

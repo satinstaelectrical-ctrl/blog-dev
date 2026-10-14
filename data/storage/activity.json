@@ -1,5 +1,75 @@
 [
   {
+    "id": "act-1792018731817-ksoz",
+    "type": "article",
+    "action": "Suppression définitive de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\"",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T22:58:51.817Z"
+  },
+  {
+    "id": "act-1792018731804-ktda",
+    "type": "article",
+    "action": "Restauration de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\" (Statut: brouillon)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T22:58:51.804Z"
+  },
+  {
+    "id": "act-1792018731792-hpzc",
+    "type": "article",
+    "action": "Mise à la corbeille de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\"",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T22:58:51.792Z"
+  },
+  {
+    "id": "act-1792018731780-tws3",
+    "type": "article",
+    "action": "Mise à jour de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\" (Statut: published)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T22:58:51.780Z"
+  },
+  {
+    "id": "act-1792018731759-qp7m",
+    "type": "article",
+    "action": "Création de l'article : \"Article Test Validation Droits Administrateur\" (Statut: draft)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T22:58:51.759Z"
+  },
+  {
+    "id": "act-1792018731737-o8vb",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Directeur de Rédaction (admin)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T22:58:51.737Z"
+  },
+  {
+    "id": "act-1792018731707-k0w8",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Lecteur Membre (reader)",
+    "user": "Lecteur Membre",
+    "timestamp": "2026-10-14T22:58:51.707Z"
+  },
+  {
+    "id": "act-1792004278584-2mif",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Directeur de Rédaction (admin)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T18:57:58.584Z"
+  },
+  {
+    "id": "act-1792004277470-d693",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Directeur de Rédaction (admin)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T18:57:57.470Z"
+  },
+  {
+    "id": "act-1792004270270-4k56",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Directeur de Rédaction (admin)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T18:57:50.270Z"
+  },
+  {
     "id": "act-1791999921018-2cuw",
     "type": "article",
     "action": "Suppression définitive de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\"",

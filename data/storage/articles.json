@@ -64,7 +64,8 @@
         "type": "paragraph",
         "text": "Ce banc d’essai démontre que la fluidité matérielle conditionne directement l’agilité des équipes créatives face aux exigences de publication multi-formats."
       }
-    ]
+    ],
+    "image": "/images/hero_ontario_orange.jpg"
   },
   {
     "id": "art-hero-2",
@@ -107,7 +108,8 @@
         "type": "paragraph",
         "text": "Les algorithmes de rendu temps réel brisent les contraintes des timelines linéaires pour créer des compositions vivantes qui réagissent au regard."
       }
-    ]
+    ],
+    "image": "/images/hero_ontario_cyber.jpg"
   },
   {
     "id": "art-hero-3",
@@ -150,7 +152,8 @@
         "type": "paragraph",
         "text": "La disparition des angles droits au profit de surfaces gauches calculées par ordinateur marque l’avènement d’un nouvel humanisme spatial."
       }
-    ]
+    ],
+    "image": "/images/hero_ontario_arch.jpg"
   },
   {
     "id": "art-hero-4",
@@ -158,7 +161,7 @@
     "frenchTitle": "Structures Transparentes dans l’Architecture Numérique",
     "slug": "transparent-structures-in-digital-architecture",
     "excerpt": "A deep dive into transparent lightweight materials, structural envelopes, and algorithmic daylight distribution for next-generation urban developments.",
-    "coverImage": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=2000&q=90",
+    "coverImage": "/images/hero_ontario_structure.jpg",
     "imageAlt": "Structures architecturales transparentes et géométrie spatiale",
     "imageCaption": "Photographie éditoriale — Structures Transparentes & Urbanisme",
     "focalPoint": "center center",
@@ -184,7 +187,8 @@
         "type": "paragraph",
         "text": "A deep dive into transparent lightweight materials, structural envelopes, and algorithmic daylight distribution for next-generation urban developments."
       }
-    ]
+    ],
+    "image": "/images/hero_ontario_structure.jpg"
   },
   {
     "id": "art-hero-5",
@@ -192,7 +196,7 @@
     "frenchTitle": "Packaging Coloré dans le Branding Crypto Contemporain",
     "slug": "colorful-packaging-in-contemporary-crypto-branding",
     "excerpt": "Reinventing cryptographic identity through vibrant gradients, tactile packaging design, and accessible consumer touchpoints.",
-    "coverImage": "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=2000&q=90",
+    "coverImage": "/images/hero_ontario_packaging.jpg",
     "imageAlt": "Design contemporain de packaging et identité visuelle colorée",
     "imageCaption": "Photographie éditoriale — Branding Crypto & Design Tactile",
     "focalPoint": "center center",
@@ -218,7 +222,8 @@
         "type": "paragraph",
         "text": "Reinventing cryptographic identity through vibrant gradients, tactile packaging design, and accessible consumer touchpoints."
       }
-    ]
+    ],
+    "image": "/images/hero_ontario_packaging.jpg"
   },
   {
     "id": "art-fresh-1",
@@ -226,7 +231,7 @@
     "frenchTitle": "Maîtriser les Terrains Inconnus : Les Leçons des Pionniers de l’IA",
     "slug": "commanding-unknown-terrain-lessons-bold-pioneers",
     "excerpt": "L’exploration des nouveaux paradigmes algorithmiques exige une audace comparable à celle des premières traversées océaniques. Retour sur les initiatives qui osent défier le consensus.",
-    "coverImage": "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1200&q=85",
+    "coverImage": "/images/hero_ontario_structure.jpg",
     "categorySlug": "intelligence-artificielle",
     "categoryBadge": "RECENT",
     "authorSlug": "steve-jones",
@@ -248,7 +253,8 @@
         "type": "paragraph",
         "text": "Lorsque les frontières du savoir conventionnel s’estompent, seuls les esprits audacieux osent cartographier le vide."
       }
-    ]
+    ],
+    "image": "/images/hero_ontario_structure.jpg"
   },
   {
     "id": "art-fresh-2",
@@ -278,7 +284,8 @@
         "type": "paragraph",
         "text": "Derrière les flux d’ordres automatisés se dessine une géographie secrète des flux de capitaux mondiaux."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=85"
   },
   {
     "id": "art-fresh-3",
@@ -308,7 +315,8 @@
         "type": "paragraph",
         "text": "Prendre de la hauteur face aux stimulations visuelles quotidiennes est une nécessité ergonomique."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=800&q=85"
   },
   {
     "id": "art-fresh-4",
@@ -338,7 +346,8 @@
         "type": "paragraph",
         "text": "L’objet physique n’est plus seulement un outil : il devient l’incarnation sensorielle d’une vision du futur."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=800&q=85"
   },
   {
     "id": "art-fresh-5",
@@ -368,7 +377,8 @@
         "type": "paragraph",
         "text": "La relation entre l’utilisateur et son modèle de raisonnement personnalisé dépasse le simple dialogue machine."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=85"
   },
   {
     "id": "art-fresh-6",
@@ -398,7 +408,8 @@
         "type": "paragraph",
         "text": "L’automatisation raisonnée permet de réaffecter le capital humain vers la stratégie et l’invention pure."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=1200&q=85"
   },
   {
     "id": "art-recent-1",
@@ -427,7 +438,8 @@
         "type": "paragraph",
         "text": "La course effrénée aux impressions au détriment de la résonance profonde produit des rendements décroissants."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=85"
   },
   {
     "id": "art-recent-2",
@@ -456,7 +468,8 @@
         "type": "paragraph",
         "text": "Réaligner l’ensemble de la chaîne de valeur sur une promesse claire est le secret des marques durables."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1546776310-eef45dd6d63c?auto=format&fit=crop&w=800&q=85"
   },
   {
     "id": "art-recent-3",
@@ -485,7 +498,8 @@
         "type": "paragraph",
         "text": "L’expérience client vécue est le seul véritable marketing qui laisse une empreinte durable."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=85"
   },
   {
     "id": "art-sidebar-featured",
@@ -514,6 +528,7 @@
         "type": "paragraph",
         "text": "La transition vers les environnements immersifs marque la fin du modèle classique du document textuel."
       }
-    ]
+    ],
+    "image": "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&q=85"
   }
 ]
