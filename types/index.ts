@@ -61,6 +61,9 @@ export interface Article {
   content: string; // Rich markdown / HTML formatted content
   coverImage: string;
   coverCaption?: string;
+  imageAlt?: string;
+  focalPoint?: string;
+  scheduledAt?: string;
   category: Category;
   author: Author;
   tags: string[];

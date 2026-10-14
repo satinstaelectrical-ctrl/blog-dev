@@ -17,12 +17,14 @@
   --accent: #ef4248;
   --accent-hover: #da343a;
 
-  /* Rayons & Métriques */
+  /* Rayons & Métriques — Calibré sur les repères 1376px */
+  --site-max: 1376px;
+  --site-gutter: 24px;
+  --container-width: 1376px;
   --radius-sm: 8px;
   --radius-card: 14px;
   --radius-panel: 18px;
   --radius-pill: 9999px;
-  --container-width: 1440px;
   --sidebar-width: 340px;
   --layout-gap: 36px;
 
@@ -39,6 +41,12 @@
   --pastel-technology-text: #2563A0;
   --pastel-trends: #FEEFE6;
   --pastel-trends-text: #A65522;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --site-gutter: 16px;
+  }
 }
 
 [data-theme="dark"],
@@ -121,44 +129,16 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   background: var(--accent);
 }
 
-/* Conteneur Éditorial Ontario — Largeurs & Proportions Haute Définition */
+/* Conteneur Partagé Officiel Ontario — Aligné sur les repères x=216 et x=1592 (1376px) */
+.site-container,
+.container-ontario,
 .container-media {
-  width: 100%;
-  max-width: var(--container-width);
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-@media (min-width: 640px) {
-  .container-media {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container-media {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
-
-@media (min-width: 1536px) {
-  .container-media {
-    max-width: 1540px;
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
-  }
-}
-
-@media (min-width: 1920px) {
-  .container-media {
-    max-width: 1680px;
-    padding-left: 3rem;
-    padding-right: 3rem;
-  }
+  width: min(var(--site-max), calc(100% - 2 * var(--site-gutter)));
+  margin-inline: auto;
+  min-width: 0;
+  box-sizing: border-box;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 /* Hero Full-bleed */

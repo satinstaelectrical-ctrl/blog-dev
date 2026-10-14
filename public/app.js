@@ -78,6 +78,9 @@ let ARTICLES = [
     slug: 'next-gen-marketing-innovative-strategies',
     excerpt: 'Dans un écosystème où l’attention est devenue la denrée la plus disputée, les modèles algorithmiques génératifs et les expériences immersives redéfinissent la relation entre marques et communautés.',
     coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=2000&q=90',
+    imageAlt: 'Architecture créative Next Gen Marketing et design spatial',
+    imageCaption: 'Photographie éditoriale — Créativité générative et spatial design',
+    focalPoint: 'center center',
     categorySlug: 'intelligence-artificielle',
     categoryBadge: 'TECH / AI',
     authorSlug: 'steve-jones',
@@ -736,55 +739,102 @@ function renderHome(container) {
 
   container.innerHTML = `
     <div class="w-full">
-      <!-- 1. HERO IMMERSIF PLEINE LARGEUR (100VW FULL-BLEED) CONFORME IMAGE A -->
-      <section class="relative w-full h-[580px] sm:h-[660px] lg:h-[720px] overflow-hidden bg-[#071426]">
-        <img src="${heroArticle.coverImage}" onerror="onImgError(this)" alt="${heroArticle.title}" class="w-full h-full object-cover object-center filter brightness-95 transition-all duration-700 ease-out hover:scale-105">
-        
-        <!-- Superposition sombre dégradée sur la gauche pour lisibilité parfaite -->
-        <div class="absolute inset-0 bg-gradient-to-r from-black/85 via-black/45 to-transparent"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-[#071426]/90 via-transparent to-transparent"></div>
+      <!-- 1. HERO ÉDITORIAL 2-COLONNES ONTARIO — TEXTE MAJEUR À GAUCHE & VRAIE IMAGE ÉDITORIALE DANS FRAME 4:3 À DROITE -->
+      <section class="relative w-full bg-[#071426] text-white pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 overflow-hidden">
+        <!-- Fond décoratif subtil et atténué bleu nuit (ne parasite pas la lecture) -->
+        <div class="absolute inset-0 pointer-events-none opacity-40">
+          <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-900/20 blur-3xl"></div>
+          <div class="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full bg-purple-900/15 blur-3xl"></div>
+          <div class="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-[#EF4248]/5 blur-3xl"></div>
+        </div>
 
-        <!-- Contenu textuel aligné sur la grille éditoriale -->
-        <div class="absolute inset-0 flex items-center">
-          <div class="container-ontario w-full pt-16 sm:pt-20">
-            <div class="max-w-2xl text-white">
+        <div class="site-container container-ontario relative z-10">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-14 items-center">
+            
+            <!-- Colonne Gauche : Texte Éditorial Majeur (~7 colonnes) -->
+            <div class="lg:col-span-7 flex flex-col justify-center text-left">
               <!-- Pastille Catégorie Pill Translucide -->
-              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-xs font-bold uppercase tracking-wider mb-4">
+              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-bold uppercase tracking-wider mb-4 w-fit">
                 <span class="w-2 h-2 rounded-full bg-[#EF4248]"></span>
-                <span>${heroArticle.categoryBadge || 'TECH / AI'}</span>
+                <span class="text-white/95">${heroArticle.categoryBadge || 'TECH / AI'}</span>
               </div>
 
               <!-- Grand Titre H1 Éditorial -->
-              <h1 onclick="navigateArticle('${heroArticle.slug}')" class="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-5 cursor-pointer hover:text-zinc-200 transition-colors">
+              <h1 onclick="navigateArticle('${heroArticle.slug}')" class="font-heading text-3xl sm:text-4xl lg:text-5xl xl:text-[52px] font-extrabold tracking-tight leading-[1.12] mb-5 cursor-pointer hover:text-zinc-200 transition-colors">
                 ${heroArticle.title}
               </h1>
 
               <!-- Métadonnées & Auteur -->
-              <div class="flex items-center gap-3 text-xs sm:text-sm text-zinc-300 mb-4">
-                <span>Par <b class="text-white">${authorHero.name}</b></span>
+              <div class="flex items-center gap-3 text-xs sm:text-sm text-zinc-300 mb-5 flex-wrap">
+                <div class="flex items-center gap-2">
+                  <img src="${authorHero.avatar}" alt="${authorHero.name}" class="w-6 h-6 rounded-full object-cover border border-white/20">
+                  <span>Par <b class="text-white font-semibold">${authorHero.name}</b></span>
+                </div>
                 <span>•</span>
                 <span>${heroArticle.publishedAt}</span>
                 <span>•</span>
                 <span>⏱️ ${heroArticle.readingTime} min</span>
               </div>
 
-              <!-- Extrait fluide -->
-              <p class="text-sm sm:text-base text-zinc-200/90 leading-relaxed mb-6 line-clamp-2 sm:line-clamp-3">
+              <!-- Extrait fluide et lisible -->
+              <p class="text-sm sm:text-base text-zinc-300 leading-relaxed mb-6 sm:mb-8 line-clamp-3 max-w-xl">
                 ${heroArticle.excerpt}
               </p>
 
-              <!-- Flèches de navigation Slider Hero -->
-              <div class="flex items-center gap-3 flex-wrap">
-                <button onclick="navigateArticle('${heroArticle.slug}')" class="px-6 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-md">
-                  Lire l'article complet →
+              <!-- Actions & Flèches de navigation Slider Hero -->
+              <div class="flex items-center gap-4 flex-wrap">
+                <button onclick="navigateArticle('${heroArticle.slug}')" class="px-6 sm:px-7 py-3 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs sm:text-sm font-bold transition-all shadow-lg shadow-[#EF4248]/25 flex items-center gap-2 group cursor-pointer">
+                  <span>Lire l'article complet</span>
+                  <span class="transition-transform group-hover:translate-x-1">→</span>
                 </button>
                 <div class="flex items-center gap-2">
-                  <button onclick="prevHeroSlide(event)" aria-label="Article précédent" class="w-9 h-9 rounded-full border border-white/40 bg-black/30 backdrop-blur-md hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">‹</button>
-                  <button onclick="nextHeroSlide(event)" aria-label="Article suivant" class="w-9 h-9 rounded-full border border-white/40 bg-black/30 backdrop-blur-md hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">›</button>
-                  <span class="text-[11px] font-mono font-medium text-zinc-300 ml-1">0${heroSliderIndex + 1} / 0${heroArticles.length}</span>
+                  <button onclick="prevHeroSlide(event)" aria-label="Article précédent" class="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">‹</button>
+                  <button onclick="nextHeroSlide(event)" aria-label="Article suivant" class="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">›</button>
+                  <span class="text-xs font-mono font-medium text-zinc-400 ml-1.5">0${heroSliderIndex + 1} / 0${heroArticles.length}</span>
                 </div>
               </div>
             </div>
+
+            <!-- Colonne Droite : Frame Photo 4:3 avec angles 22px, bordure fine, ombre discrète (~5 colonnes) -->
+            <div class="lg:col-span-5 w-full flex flex-col">
+              <div class="relative w-full aspect-[4/3] rounded-[22px] overflow-hidden border border-white/10 shadow-2xl shadow-black/50 bg-[#0E2137] group cursor-pointer" onclick="navigateArticle('${heroArticle.slug}')">
+                
+                <!-- Skeleton de chargement sous-jacent -->
+                <div class="absolute inset-0 bg-[#0E2137] animate-pulse flex items-center justify-center text-zinc-500 text-xs">
+                  <span>Chargement du visuel...</span>
+                </div>
+
+                <!-- Photographie éditoriale haute définition avec point de cadrage configurable -->
+                <img 
+                  src="${heroArticle.coverImage}" 
+                  alt="${heroArticle.imageAlt || heroArticle.title}" 
+                  loading="eager" 
+                  fetchpriority="high"
+                  style="object-position: ${heroArticle.focalPoint || 'center center'};"
+                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=85'; this.parentElement.classList.add('img-loaded');"
+                  onload="this.parentElement.classList.add('img-loaded');"
+                  class="relative z-10 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                >
+
+                <!-- Légende d'image optionnelle au bas du cadre -->
+                ${(heroArticle.imageCaption || heroArticle.coverCaption || heroArticle.excerpt) ? `
+                  <div class="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 pt-6 text-[11px] text-zinc-300">
+                    <p class="line-clamp-1 italic">${heroArticle.imageCaption || heroArticle.coverCaption || 'Photographie éditoriale — ONTARIO Magazine'}</p>
+                  </div>
+                ` : ''}
+
+                <!-- Badge interactif coin supérieur droit -->
+                <div class="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/15 text-[10px] font-bold text-white uppercase tracking-wider">
+                  À la Une
+                </div>
+              </div>
+
+              <!-- Mention / Légende éditoriale discrète sous le cadre -->
+              ${(heroArticle.imageCaption || heroArticle.coverCaption) ? `
+                <span class="text-[11px] text-zinc-400 mt-2 px-1 text-right italic hidden sm:block">${heroArticle.imageCaption || heroArticle.coverCaption}</span>
+              ` : ''}
+            </div>
+
           </div>
         </div>
       </section>
@@ -1060,10 +1110,62 @@ function renderArticle(container, slug) {
                 return `<p>${b.text}</p>`;
               }
               if (b.type === 'heading') {
-                return `<h2>${b.text}</h2>`;
+                return b.level === 'h3' ? `<h3>${b.text}</h3>` : `<h2>${b.text}</h2>`;
               }
               if (b.type === 'quote') {
-                return `<blockquote>${b.text}</blockquote>`;
+                return `<blockquote><p>${b.text}</p>${b.author ? `<cite class="block text-xs not-italic mt-2 text-zinc-400">— ${b.author}</cite>` : ''}</blockquote>`;
+              }
+              if (b.type === 'list') {
+                return `<ul class="list-disc pl-6 space-y-2 my-4 text-base">${(b.items || []).map(i => `<li>${i}</li>`).join('')}</ul>`;
+              }
+              if (b.type === 'image') {
+                return `
+                  <figure class="my-8">
+                    <img src="${b.url}" alt="${b.alt || ''}" onerror="onImgError(this)" class="w-full rounded-2xl shadow-md">
+                    ${b.caption ? `<figcaption class="text-xs text-center mt-2.5 italic text-zinc-400">${b.caption}</figcaption>` : ''}
+                  </figure>
+                `;
+              }
+              if (b.type === 'gallery') {
+                return `
+                  <div class="my-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      ${(b.images || []).map(img => `<img src="${img}" onerror="onImgError(this)" class="rounded-2xl w-full h-56 object-cover shadow-sm">`).join('')}
+                    </div>
+                    ${b.caption ? `<p class="text-xs text-center mt-2 italic text-zinc-400">${b.caption}</p>` : ''}
+                  </div>
+                `;
+              }
+              if (b.type === 'video') {
+                return `
+                  <div class="my-8">
+                    <div class="aspect-video w-full rounded-2xl overflow-hidden shadow-lg border border-[#1E3752]">
+                      <iframe class="w-full h-full" src="${b.url.includes('youtube.com') ? b.url.replace('watch?v=', 'embed/') : b.url}" title="Vidéo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                    ${b.caption ? `<p class="text-xs text-center mt-2 italic text-zinc-400">${b.caption}</p>` : ''}
+                  </div>
+                `;
+              }
+              if (b.type === 'callout') {
+                return `
+                  <div class="p-6 rounded-2xl my-6 border-l-4 border-[#EF4248] bg-black/5 dark:bg-white/5">
+                    <h4 class="font-bold text-sm mb-1 text-[#EF4248]">${b.title || 'À Retenir'}</h4>
+                    <p class="text-sm leading-relaxed">${b.text}</p>
+                  </div>
+                `;
+              }
+              if (b.type === 'separator') {
+                return `<hr class="my-8 border-t border-zinc-200 dark:border-zinc-800">`;
+              }
+              if (b.type === 'button') {
+                return `
+                  <div class="my-6">
+                    <a href="${b.url}" class="px-6 py-3 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition-all">
+                      <span>${b.text}</span>
+                      <span>→</span>
+                    </a>
+                  </div>
+                `;
               }
               if (b.type === 'affiliate') {
                 return `
@@ -1073,19 +1175,19 @@ function renderArticle(container, slug) {
                       <span class="text-xs font-bold uppercase tracking-wider text-[#EF4248]">PRODUIT RECOMMANDÉ PAR LA RÉDACTION</span>
                     </div>
                     <div class="flex flex-col sm:flex-row gap-6 items-center">
-                      <img src="${b.imageUrl}" onerror="onImgError(this)" class="w-36 h-36 rounded-2xl object-cover flex-shrink-0 shadow-sm">
+                      <img src="${b.imageUrl || 'https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&fit=crop&w=800&q=80'}" onerror="onImgError(this)" class="w-36 h-36 rounded-2xl object-cover flex-shrink-0 shadow-sm">
                       <div class="flex-1">
                         <h4 class="font-heading text-lg font-bold mb-1" style="color: var(--text-primary);">${b.productName}</h4>
-                        <span class="text-xs font-semibold block mb-2" style="color: var(--text-muted);">${b.brand} • Distribué par ${b.merchantName}</span>
-                        <p class="text-xs sm:text-sm mb-3" style="color: var(--text-secondary);">${b.description}</p>
+                        <span class="text-xs font-semibold block mb-2" style="color: var(--text-muted);">${b.brand || 'Partenaire Rédaction'} • Distribué par ${b.merchantName || 'Amazon'}</span>
+                        <p class="text-xs sm:text-sm mb-3" style="color: var(--text-secondary);">${b.description || ''}</p>
                         <ul class="text-xs space-y-1 mb-4" style="color: var(--text-secondary);">
                           ${(b.features || []).map(f => `<li>✓ ${f}</li>`).join('')}
                         </ul>
                         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                          <a href="${b.affiliateUrl}" target="_blank" rel="sponsored noopener noreferrer" class="px-6 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md transition-all">
-                            ${b.buttonText}
+                          <a href="${b.affiliateUrl || '#'}" target="_blank" rel="sponsored noopener noreferrer" class="px-6 py-2.5 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md transition-all">
+                            ${b.buttonText || 'Voir sur Amazon (Offre Partenaire)'}
                           </a>
-                          <span class="text-[10px]" style="color: var(--text-muted);">${b.disclaimer}</span>
+                          <span class="text-[10px]" style="color: var(--text-muted);">${b.disclaimer || 'Lien affilié — nous pouvons percevoir une commission éditoriale.'}</span>
                         </div>
                       </div>
                     </div>
@@ -1842,10 +1944,15 @@ function cancelEditor() {
 
 function addBlock(type) {
   if (type === 'paragraph') editorBlocks.push({ type: 'paragraph', text: 'Nouveau paragraphe éditorial...' });
-  if (type === 'heading') editorBlocks.push({ type: 'heading', level: 'h2', text: 'Nouveau titre de section' });
-  if (type === 'quote') editorBlocks.push({ type: 'quote', text: 'Citation mémorable de l’intervenant...' });
-  if (type === 'image') editorBlocks.push({ type: 'image', url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=85', caption: 'Légende illustrative du visuel' });
+  if (type === 'heading') editorBlocks.push({ type: 'heading', level: 'h2', text: 'Nouveau titre H2 de section' });
+  if (type === 'heading-h3') editorBlocks.push({ type: 'heading', level: 'h3', text: 'Sous-titre H3' });
+  if (type === 'quote') editorBlocks.push({ type: 'quote', text: 'Citation mémorable de l’intervenant...', author: 'Auteur / Intervenant' });
+  if (type === 'list') editorBlocks.push({ type: 'list', items: ['Premier point d’analyse', 'Deuxième enseignement clé', 'Troisième perspective stratégique'] });
+  if (type === 'image') editorBlocks.push({ type: 'image', url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=85', alt: 'Visuel illustratif', caption: 'Légende illustrative du visuel' });
+  if (type === 'gallery') editorBlocks.push({ type: 'gallery', images: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80'], caption: 'Galerie photographique comparative' });
   if (type === 'video') editorBlocks.push({ type: 'video', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', caption: 'Documentaire ou banc d’essai vidéo' });
+  if (type === 'callout') editorBlocks.push({ type: 'callout', title: 'À Retenir', text: 'Les points essentiels de ce dossier synthétisés pour les décideurs.' });
+  if (type === 'separator') editorBlocks.push({ type: 'separator' });
   if (type === 'table') editorBlocks.push({ type: 'table', rows: [['Caractéristique', 'Modèle Standard', 'Modèle Pro'], ['Architecture NPU', '24 TOPS', '45 TOPS'], ['Autonomie', '12h', '18h']] });
   if (type === 'button') editorBlocks.push({ type: 'button', text: 'En savoir plus sur l’offre', url: 'https://ontariowp.com' });
   if (type === 'affiliate') {
@@ -1871,6 +1978,14 @@ function moveBlock(idx, dir) {
   renderAdmin(document.getElementById('app-container'));
 }
 
+function duplicateBlock(idx) {
+  if (editorBlocks[idx]) {
+    const clone = JSON.parse(JSON.stringify(editorBlocks[idx]));
+    editorBlocks.splice(idx + 1, 0, clone);
+    renderAdmin(document.getElementById('app-container'));
+  }
+}
+
 function deleteBlock(idx) {
   editorBlocks.splice(idx, 1);
   renderAdmin(document.getElementById('app-container'));
@@ -1880,8 +1995,116 @@ function updateBlockText(idx, val) {
   if (editorBlocks[idx]) editorBlocks[idx].text = val;
 }
 
+function updateBlockField(idx, field, val) {
+  if (editorBlocks[idx]) editorBlocks[idx][field] = val;
+}
+
 function updateAffiliateField(idx, field, val) {
   if (editorBlocks[idx]) editorBlocks[idx][field] = val;
+}
+
+function updateEditorCoverPreview(url) {
+  const preview = document.getElementById('editor-cover-preview');
+  if (preview) preview.src = url || FALLBACK_IMAGE;
+}
+
+function updateEditorFocalPoint(fp) {
+  const preview = document.getElementById('editor-cover-preview');
+  if (preview) preview.style.objectPosition = fp;
+}
+
+function openMediaPickerForEditor() {
+  const modal = document.createElement('div');
+  modal.id = 'media-picker-modal';
+  modal.className = 'fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6';
+  modal.innerHTML = `
+    <div class="w-full max-w-4xl max-h-[85vh] bg-[#0E2137] border border-[#1E3752] rounded-3xl p-6 flex flex-col shadow-2xl text-white">
+      <div class="flex items-center justify-between pb-4 border-b border-[#1E3752]">
+        <div>
+          <h3 class="font-heading text-lg font-bold">Sélectionner un Visuel dans la Médiathèque</h3>
+          <p class="text-xs text-zinc-400">Cliquez sur une image pour l'appliquer comme visuel principal de l'article</p>
+        </div>
+        <button onclick="closeMediaPickerModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm">✕</button>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto py-4 flex-1">
+        ${ADMIN_MEDIA.map(m => `
+          <div onclick="selectMediaForEditor('${m.url}', '${m.title}')" class="group relative rounded-2xl overflow-hidden border border-[#1E3752] hover:border-[#EF4248] cursor-pointer bg-[#0A1A2F] transition-all">
+            <div class="aspect-[4/3] w-full overflow-hidden">
+              <img src="${m.url}" onerror="onImgError(this)" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+            </div>
+            <div class="p-2.5">
+              <h4 class="text-xs font-bold truncate text-white">${m.title}</h4>
+              <span class="text-[10px] text-zinc-400">${m.dimensions}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function closeMediaPickerModal() {
+  const modal = document.getElementById('media-picker-modal');
+  if (modal) modal.remove();
+}
+
+function selectMediaForEditor(url, title) {
+  const input = document.getElementById('editor-cover');
+  if (input) input.value = url;
+  const alt = document.getElementById('editor-image-alt');
+  if (alt && !alt.value) alt.value = title;
+  updateEditorCoverPreview(url);
+  closeMediaPickerModal();
+}
+
+function previewCurrentEditorArticle() {
+  const title = (document.getElementById('editor-title')?.value || '').trim() || 'Aperçu de l’article';
+  const excerpt = (document.getElementById('editor-excerpt')?.value || '').trim() || 'Extrait de l’article';
+  const coverImage = (document.getElementById('editor-cover')?.value || '').trim() || FALLBACK_IMAGE;
+  const imageCaption = (document.getElementById('editor-image-caption')?.value || '').trim();
+  const focalPoint = document.getElementById('editor-focal-point')?.value || 'center center';
+
+  const modal = document.createElement('div');
+  modal.id = 'article-preview-modal';
+  modal.className = 'fixed inset-0 z-[100] bg-black/85 backdrop-blur-md overflow-y-auto p-4 sm:p-8 flex justify-center';
+  modal.innerHTML = `
+    <div class="w-full max-w-4xl bg-[#071426] border border-[#1E3752] rounded-3xl p-6 sm:p-10 my-auto shadow-2xl text-white relative">
+      <div class="flex items-center justify-between pb-6 mb-6 border-b border-[#1E3752]">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EF4248]/20 text-[#EF4248] text-xs font-bold uppercase">
+          👁️ Mode Prévisualisation Directe
+        </div>
+        <button onclick="closeArticlePreviewModal()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold">
+          Fermer l'aperçu ✕
+        </button>
+      </div>
+
+      <h1 class="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 leading-tight">${title}</h1>
+      <p class="text-base sm:text-lg text-zinc-300 mb-6 leading-relaxed">${excerpt}</p>
+      
+      <div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 border border-white/10 shadow-xl bg-[#0E2137]">
+        <img src="${coverImage}" style="object-position: ${focalPoint};" class="w-full h-full object-cover">
+        ${imageCaption ? `<div class="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-xs text-zinc-300 italic">${imageCaption}</div>` : ''}
+      </div>
+
+      <div class="prose-editorial text-zinc-300 space-y-4 pt-4 border-t border-[#1E3752]">
+        ${editorBlocks.map(b => {
+          if (b.type === 'paragraph') return `<p>${b.text}</p>`;
+          if (b.type === 'heading') return `<h2 class="font-heading text-2xl font-bold text-white mt-6">${b.text}</h2>`;
+          if (b.type === 'quote') return `<blockquote class="border-l-4 border-[#EF4248] pl-4 italic text-zinc-200">${b.text}</blockquote>`;
+          if (b.type === 'image') return `<figure class="my-6"><img src="${b.url}" class="rounded-xl w-full"><figcaption class="text-xs text-zinc-400 mt-1 italic">${b.caption || ''}</figcaption></figure>`;
+          if (b.type === 'affiliate') return `<div class="p-5 rounded-2xl bg-[#0E2137] border border-[#EF4248]/50 my-6"><h4 class="font-bold text-white">${b.productName}</h4><p class="text-xs text-zinc-400 mt-1">${b.disclaimer || ''}</p></div>`;
+          return '';
+        }).join('')}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function closeArticlePreviewModal() {
+  const modal = document.getElementById('article-preview-modal');
+  if (modal) modal.remove();
 }
 
 function saveArticleDraft() {
@@ -1895,9 +2118,24 @@ function publishArticleEditor() {
 function saveArticleWithStatus(targetStatus) {
   const title = (document.getElementById('editor-title')?.value || '').trim() || 'Article Sans Titre';
   const excerpt = (document.getElementById('editor-excerpt')?.value || '').trim() || 'Extrait de l’article';
-  const catSlug = document.getElementById('editor-cat')?.value || 'ai';
+  const catSlug = document.getElementById('editor-cat')?.value || 'intelligence-artificielle';
   const coverImage = (document.getElementById('editor-cover')?.value || '').trim() || FALLBACK_IMAGE;
-  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const imageAlt = (document.getElementById('editor-image-alt')?.value || '').trim() || title;
+  const imageCaption = (document.getElementById('editor-image-caption')?.value || '').trim();
+  const focalPoint = document.getElementById('editor-focal-point')?.value || 'center center';
+  const isHero = document.getElementById('editor-is-hero')?.checked ?? false;
+  const scheduledAt = document.getElementById('editor-schedule')?.value || null;
+  const authorSlug = document.getElementById('editor-author')?.value || 'steve-jones';
+  const customSlug = (document.getElementById('editor-slug')?.value || '').trim();
+  const slug = customSlug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const seoTitle = (document.getElementById('editor-seo-title')?.value || '').trim() || title;
+  const seoDescription = (document.getElementById('editor-seo-desc')?.value || '').trim() || excerpt;
+  const tags = (document.getElementById('editor-tags')?.value || '').split(',').map(t => t.trim()).filter(Boolean);
+
+  let finalStatus = targetStatus;
+  if (scheduledAt && targetStatus === 'published') {
+    finalStatus = 'scheduled';
+  }
 
   if (editingArticleId === 'new') {
     const newArt = {
@@ -1907,20 +2145,31 @@ function saveArticleWithStatus(targetStatus) {
       slug,
       excerpt,
       coverImage,
+      imageAlt,
+      imageCaption,
+      focalPoint,
       categorySlug: catSlug,
       categoryBadge: 'RÉCENT',
-      authorSlug: 'steve-jones',
+      authorSlug,
       readingTime: Math.max(3, Math.round(editorBlocks.length * 1.5)),
-      publishedAt: '14 Oct 2026',
-      status: targetStatus,
-      isHero: false,
-      isFeatured: false,
+      publishedAt: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
+      status: finalStatus,
+      scheduledAt,
+      isHero,
+      isFeatured: isHero,
       views: 1,
       likes: 0,
-      tags: ['Nouveau', 'Magazine'],
+      tags: tags.length ? tags : ['Nouveau', 'Magazine'],
+      seo: {
+        metaTitle: seoTitle,
+        metaDescription: seoDescription
+      },
       contentBlocks: editorBlocks
     };
     ARTICLES.unshift(newArt);
+    if (isHero) {
+      heroSliderIndex = 0;
+    }
   } else {
     const art = ARTICLES.find(a => a.id === editingArticleId);
     if (art) {
@@ -1929,13 +2178,27 @@ function saveArticleWithStatus(targetStatus) {
       art.slug = slug;
       art.excerpt = excerpt;
       art.coverImage = coverImage;
+      art.imageAlt = imageAlt;
+      art.imageCaption = imageCaption;
+      art.focalPoint = focalPoint;
       art.categorySlug = catSlug;
-      art.status = targetStatus;
+      art.authorSlug = authorSlug;
+      art.status = finalStatus;
+      art.scheduledAt = scheduledAt;
+      art.isHero = isHero;
+      if (isHero) art.isFeatured = true;
+      art.tags = tags.length ? tags : art.tags;
+      art.seo = {
+        metaTitle: seoTitle,
+        metaDescription: seoDescription
+      };
       art.contentBlocks = editorBlocks;
     }
   }
 
-  alert("Article " + (targetStatus === 'published' ? 'publié avec succès sur le site public' : 'enregistré en brouillon') + " !");
+  localStorage.setItem('ontario_cms_database_v2', JSON.stringify({ articles: ARTICLES }));
+
+  alert("✓ Article " + (finalStatus === 'published' ? 'publié avec succès sur le site public' : (finalStatus === 'scheduled' ? 'programmé pour publication à la date définie' : 'enregistré en brouillon')) + " !");
   editingArticleId = null;
   adminCurrentTab = 'articles';
   syncStoreAndRender();
@@ -3193,97 +3456,324 @@ function renderGutenbergEditor(container) {
   const article = isNew ? {
     title: '',
     excerpt: '',
-    categorySlug: 'ai',
+    categorySlug: 'intelligence-artificielle',
     coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=85',
-    status: 'draft'
+    imageAlt: 'Visuel éditorial',
+    imageCaption: 'Photographie éditoriale — ONTARIO Magazine',
+    focalPoint: 'center center',
+    status: 'draft',
+    authorSlug: 'steve-jones',
+    tags: ['Magazine', 'Éditorial'],
+    isHero: false,
+    seo: { metaTitle: '', metaDescription: '' }
   } : ARTICLES.find(a => a.id === editingArticleId);
 
   container.innerHTML = `
-    <div class="min-h-screen bg-[#071426] text-white p-6 sm:p-10 font-sans">
+    <div class="min-h-screen bg-[#071426] text-white p-4 sm:p-8 lg:p-10 font-sans">
       <div class="max-w-7xl mx-auto space-y-6">
-        <div class="flex items-center justify-between pb-6 border-b border-[#1E3752]">
+        
+        <!-- Barre Supérieure d'Actions Éditeur WordPress/Gutenberg -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E3752]">
           <div class="flex items-center gap-3">
-            <button onclick="cancelEditor()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-white">
+            <button onclick="cancelEditor()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-white font-medium transition-colors">
               ← Retour au Dashboard
             </button>
-            <span class="text-xs text-zinc-400 font-bold">
-              ${isNew ? 'Création d’un Nouvel Article Gutenberg' : 'Modification de l’Article'}
-            </span>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${article.status === 'published' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (article.status === 'scheduled' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30')}">
+                ${article.status === 'published' ? '● Publié' : (article.status === 'scheduled' ? '⏰ Programmé' : '📝 Brouillon')}
+              </span>
+              <span class="text-xs text-zinc-400 hidden md:inline">
+                ${isNew ? 'Création d’un Nouvel Article' : 'Édition en direct : ' + article.title.substring(0, 30) + '...'}
+              </span>
+            </div>
           </div>
-          <div class="flex items-center gap-3">
-            <button onclick="saveArticleDraft()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white">
+          
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <button onclick="previewCurrentEditorArticle()" type="button" class="px-4 py-2 rounded-xl bg-[#122B45] hover:bg-[#1A3859] border border-[#1E3752] text-xs font-bold text-white flex items-center gap-1.5 transition-all">
+              <span>👁️ Aperçu Direct</span>
+            </button>
+            <button onclick="saveArticleDraft()" type="button" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition-colors">
               Enregistrer Brouillon
             </button>
-            <button onclick="publishArticleEditor()" class="px-5 py-2 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md">
-              Publier sur le Site
+            <button onclick="publishArticleEditor()" type="button" class="px-5 py-2 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-lg shadow-red-500/25 transition-all flex items-center gap-1.5">
+              <span>🚀 Publier / Mettre à jour</span>
             </button>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <!-- Zone Rédaction Gutenberg (8 Cols) -->
-          <div class="lg:col-span-8 p-6 sm:p-8 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-            <input type="text" id="editor-title" placeholder="Titre principal de l'article..." value="${article.title}" class="w-full font-heading text-2xl sm:text-4xl font-extrabold bg-transparent focus:outline-none text-white placeholder-zinc-500">
-            <textarea id="editor-excerpt" rows="2" placeholder="Extrait éditorial ou chapeau de l'article..." class="w-full text-xs text-zinc-300 bg-transparent border-b border-[#1E3752] pb-3 focus:outline-none placeholder-zinc-500">${article.excerpt}</textarea>
+          
+          <!-- Zone Centrale Rédactionnelle Gutenberg (8 Cols) -->
+          <div class="lg:col-span-8 p-6 sm:p-8 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-6">
+            
+            <!-- Titre et Extrait Chapeau -->
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Titre de l'Article</label>
+              <input type="text" id="editor-title" placeholder="Titre percutant de votre enquête..." value="${article.title}" class="w-full font-heading text-2xl sm:text-4xl font-extrabold bg-transparent focus:outline-none text-white placeholder-zinc-500 border-b border-[#1E3752] pb-3">
+            </div>
 
-            <!-- Blocs Éditoriaux -->
-            <div class="space-y-3 pt-4">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Chapeau / Extrait Éditorial</label>
+              <textarea id="editor-excerpt" rows="2" placeholder="Extrait synthétique ou introduction percutante..." class="w-full text-sm text-zinc-300 bg-transparent border-b border-[#1E3752] pb-3 focus:outline-none placeholder-zinc-500 leading-relaxed">${article.excerpt}</textarea>
+            </div>
+
+            <!-- Inserteur Fixe de Blocs Gutenberg -->
+            <div class="p-4 rounded-2xl bg-[#0A1A2F] border border-[#1E3752]">
+              <div class="flex items-center justify-between mb-3 text-xs">
+                <span class="font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="text-[#EF4248] text-base">+</span> Inserteur de Blocs Gutenberg
+                </span>
+                <span class="text-[10px] text-zinc-400">${editorBlocks.length} blocs insérés</span>
+              </div>
+              <div class="flex flex-wrap gap-2 text-xs">
+                <button type="button" onclick="addBlock('paragraph')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">¶ Paragraphe</button>
+                <button type="button" onclick="addBlock('heading')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">H2 Titre Section</button>
+                <button type="button" onclick="addBlock('heading-h3')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">H3 Sous-Titre</button>
+                <button type="button" onclick="addBlock('quote')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">❝ Citation</button>
+                <button type="button" onclick="addBlock('list')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">☰ Liste</button>
+                <button type="button" onclick="addBlock('image')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">🖼️ Image</button>
+                <button type="button" onclick="addBlock('gallery')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">🗂️ Galerie</button>
+                <button type="button" onclick="addBlock('video')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">🎥 Vidéo</button>
+                <button type="button" onclick="addBlock('callout')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">💡 Encadré</button>
+                <button type="button" onclick="addBlock('separator')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">— Séparateur</button>
+                <button type="button" onclick="addBlock('affiliate')" class="px-3 py-1.5 rounded-xl border border-[#EF4248] text-[#EF4248] hover:bg-[#EF4248]/10 font-bold transition-all">★ Produit Affilié</button>
+              </div>
+            </div>
+
+            <!-- Liste des Blocs Actifs -->
+            <div class="space-y-4 pt-2">
               ${editorBlocks.map((b, idx) => `
-                <div class="p-4 rounded-2xl bg-[#0A1A2F] border border-[#1E3752] relative group">
-                  <div class="flex items-center justify-between text-[10px] text-zinc-400 mb-2">
-                    <span class="font-bold uppercase tracking-wider text-[#EF4248]">${b.type}</span>
-                    <div class="flex items-center gap-2">
-                      <button onclick="moveBlock(${idx}, -1)" class="hover:text-white p-1">↑</button>
-                      <button onclick="moveBlock(${idx}, 1)" class="hover:text-white p-1">↓</button>
-                      <button onclick="deleteBlock(${idx})" class="text-red-400 hover:text-red-300 p-1">🗑️</button>
+                <div class="p-4 sm:p-5 rounded-2xl bg-[#0A1A2F] border border-[#1E3752] relative group hover:border-[#EF4248]/40 transition-all">
+                  
+                  <!-- En-tête du bloc avec actions -->
+                  <div class="flex items-center justify-between text-xs text-zinc-400 mb-3 pb-2 border-b border-[#1E3752]/50">
+                    <span class="font-bold uppercase tracking-wider text-[#EF4248] flex items-center gap-1.5">
+                      <span class="text-[10px] text-zinc-500">#${idx + 1}</span>
+                      <span>${b.type === 'heading' ? (b.level === 'h3' ? 'Titre H3' : 'Titre H2') : b.type}</span>
+                    </span>
+                    <div class="flex items-center gap-1">
+                      <button type="button" onclick="moveBlock(${idx}, -1)" title="Monter" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center text-xs">↑</button>
+                      <button type="button" onclick="moveBlock(${idx}, 1)" title="Descendre" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center text-xs">↓</button>
+                      <button type="button" onclick="duplicateBlock(${idx})" title="Dupliquer" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center text-xs">📋</button>
+                      <button type="button" onclick="deleteBlock(${idx})" title="Supprimer" class="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center text-xs">🗑️</button>
                     </div>
                   </div>
+
+                  <!-- Champs selon le type de bloc -->
                   ${b.type === 'paragraph' ? `
-                    <textarea onchange="updateBlockText(${idx}, this.value)" rows="3" class="w-full text-xs bg-transparent border border-[#1E3752] p-3 rounded-xl focus:outline-none text-white">${b.text}</textarea>
+                    <textarea onchange="updateBlockText(${idx}, this.value)" rows="3" class="w-full text-xs sm:text-sm bg-transparent border border-[#1E3752] p-3 rounded-xl focus:outline-none text-white leading-relaxed placeholder-zinc-500" placeholder="Rédigez votre paragraphe...">${b.text}</textarea>
                   ` : ''}
+
                   ${b.type === 'heading' ? `
-                    <input type="text" onchange="updateBlockText(${idx}, this.value)" value="${b.text}" class="w-full font-bold text-sm bg-transparent border border-[#1E3752] p-2.5 rounded-xl focus:outline-none text-white">
-                  ` : ''}
-                  ${b.type === 'quote' ? `
-                    <textarea onchange="updateBlockText(${idx}, this.value)" rows="2" class="w-full italic text-xs bg-transparent border border-[#1E3752] p-3 rounded-xl focus:outline-none text-zinc-200">${b.text}</textarea>
-                  ` : ''}
-                  ${b.type === 'affiliate' ? `
-                    <div class="space-y-2 text-xs">
-                      <input type="text" placeholder="Nom du produit" value="${b.productName || ''}" onchange="updateAffiliateField(${idx}, 'productName', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
-                      <input type="text" placeholder="URL Affiliée Amazon" value="${b.affiliateUrl || ''}" onchange="updateAffiliateField(${idx}, 'affiliateUrl', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
+                    <div class="space-y-2">
+                      <input type="text" onchange="updateBlockText(${idx}, this.value)" value="${b.text}" class="w-full font-bold text-sm bg-transparent border border-[#1E3752] p-2.5 rounded-xl focus:outline-none text-white" placeholder="Intitulé du titre...">
+                      <div class="flex items-center gap-3 text-xs text-zinc-400">
+                        <label class="flex items-center gap-1 cursor-pointer">
+                          <input type="radio" name="h-level-${idx}" ${b.level !== 'h3' ? 'checked' : ''} onchange="updateBlockField(${idx}, 'level', 'h2')">
+                          <span>Niveau H2</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                          <input type="radio" name="h-level-${idx}" ${b.level === 'h3' ? 'checked' : ''} onchange="updateBlockField(${idx}, 'level', 'h3')">
+                          <span>Niveau H3</span>
+                        </label>
+                      </div>
                     </div>
                   ` : ''}
+
+                  ${b.type === 'quote' ? `
+                    <div class="space-y-2">
+                      <textarea onchange="updateBlockText(${idx}, this.value)" rows="2" class="w-full italic text-xs sm:text-sm bg-transparent border border-[#1E3752] p-3 rounded-xl focus:outline-none text-zinc-200" placeholder="Texte de la citation...">${b.text}</textarea>
+                      <input type="text" onchange="updateBlockField(${idx}, 'author', this.value)" value="${b.author || ''}" class="w-full text-xs bg-transparent border border-[#1E3752] p-2 rounded-xl text-zinc-400" placeholder="Auteur ou source de la citation (ex. Steve Jobs, 2011)">
+                    </div>
+                  ` : ''}
+
+                  ${b.type === 'list' ? `
+                    <div class="space-y-2">
+                      <label class="text-[11px] text-zinc-400">Éléments de la liste (un élément par ligne) :</label>
+                      <textarea onchange="updateBlockField(${idx}, 'items', this.value.split('\\n').filter(Boolean))" rows="3" class="w-full text-xs bg-transparent border border-[#1E3752] p-3 rounded-xl focus:outline-none text-white">${(b.items || []).join('\n')}</textarea>
+                    </div>
+                  ` : ''}
+
+                  ${b.type === 'image' ? `
+                    <div class="space-y-2.5">
+                      <div class="flex items-center gap-2">
+                        <input type="text" onchange="updateBlockField(${idx}, 'url', this.value)" value="${b.url || ''}" class="flex-1 text-xs bg-[#122B45] border border-[#1E3752] p-2.5 rounded-xl text-white" placeholder="URL de l'image...">
+                        <button type="button" onclick="openMediaPickerForEditor()" class="px-3 py-2 bg-[#EF4248]/20 hover:bg-[#EF4248]/30 border border-[#EF4248]/40 rounded-xl text-xs text-[#EF4248] font-bold">Médiathèque</button>
+                      </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <input type="text" onchange="updateBlockField(${idx}, 'alt', this.value)" value="${b.alt || ''}" class="text-xs bg-[#122B45] border border-[#1E3752] p-2 rounded-xl text-white" placeholder="Texte alternatif (SEO / Accessibilité)">
+                        <input type="text" onchange="updateBlockField(${idx}, 'caption', this.value)" value="${b.caption || ''}" class="text-xs bg-[#122B45] border border-[#1E3752] p-2 rounded-xl text-white" placeholder="Légende d'image">
+                      </div>
+                      ${b.url ? `<img src="${b.url}" onerror="onImgError(this)" class="w-full h-32 object-cover rounded-xl mt-1 border border-[#1E3752]">` : ''}
+                    </div>
+                  ` : ''}
+
+                  ${b.type === 'gallery' ? `
+                    <div class="space-y-2">
+                      <label class="text-[11px] text-zinc-400">URLs des images (séparées par une virgule) :</label>
+                      <textarea onchange="updateBlockField(${idx}, 'images', this.value.split(',').map(s => s.trim()).filter(Boolean))" rows="2" class="w-full text-xs bg-[#122B45] border border-[#1E3752] p-2.5 rounded-xl text-white">${(b.images || []).join(', ')}</textarea>
+                      <input type="text" onchange="updateBlockField(${idx}, 'caption', this.value)" value="${b.caption || ''}" class="w-full text-xs bg-transparent border border-[#1E3752] p-2 rounded-xl text-zinc-400" placeholder="Légende de la galerie">
+                    </div>
+                  ` : ''}
+
+                  ${b.type === 'video' ? `
+                    <div class="space-y-2">
+                      <input type="text" onchange="updateBlockField(${idx}, 'url', this.value)" value="${b.url || ''}" class="w-full text-xs bg-[#122B45] border border-[#1E3752] p-2.5 rounded-xl text-white" placeholder="URL YouTube ou vidéo MP4...">
+                      <input type="text" onchange="updateBlockField(${idx}, 'caption', this.value)" value="${b.caption || ''}" class="w-full text-xs bg-transparent border border-[#1E3752] p-2 rounded-xl text-zinc-400" placeholder="Légende vidéo">
+                    </div>
+                  ` : ''}
+
+                  ${b.type === 'callout' ? `
+                    <div class="space-y-2">
+                      <input type="text" onchange="updateBlockField(${idx}, 'title', this.value)" value="${b.title || 'À Retenir'}" class="w-full font-bold text-xs bg-[#122B45] border border-[#1E3752] p-2 rounded-xl text-[#EF4248]">
+                      <textarea onchange="updateBlockField(${idx}, 'text', this.value)" rows="2" class="w-full text-xs bg-transparent border border-[#1E3752] p-2.5 rounded-xl text-zinc-200" placeholder="Contenu de l'encadré...">${b.text || ''}</textarea>
+                    </div>
+                  ` : ''}
+
+                  ${b.type === 'separator' ? `
+                    <div class="py-2 text-center text-xs text-zinc-500">— Ligne de Séparation Éditoriale Horizontale —</div>
+                  ` : ''}
+
+                  ${b.type === 'affiliate' ? `
+                    <div class="space-y-2.5 text-xs">
+                      <div class="grid grid-cols-2 gap-2">
+                        <input type="text" placeholder="Nom du produit" value="${b.productName || ''}" onchange="updateAffiliateField(${idx}, 'productName', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white font-bold">
+                        <input type="text" placeholder="Marque (ex. Apex Computing)" value="${b.brand || ''}" onchange="updateAffiliateField(${idx}, 'brand', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
+                      </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <input type="text" placeholder="Distributeur (ex. Amazon)" value="${b.merchantName || 'Amazon'}" onchange="updateAffiliateField(${idx}, 'merchantName', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
+                        <input type="text" placeholder="Texte du bouton (ex. Voir sur Amazon)" value="${b.buttonText || 'Voir sur Amazon (Offre Partenaire)'}" onchange="updateAffiliateField(${idx}, 'buttonText', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
+                      </div>
+                      <input type="text" placeholder="URL Affiliée Amazon (avec tag partenaire)" value="${b.affiliateUrl || ''}" onchange="updateAffiliateField(${idx}, 'affiliateUrl', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
+                      <input type="text" placeholder="Mention légale (rel=sponsored)" value="${b.disclaimer || 'Lien affilié vérifié — Nous pouvons percevoir une commission éditoriale.'}" onchange="updateAffiliateField(${idx}, 'disclaimer', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-zinc-400">
+                    </div>
+                  ` : ''}
+
                 </div>
               `).join('')}
             </div>
 
-            <!-- Insertion de Nouveaux Blocs -->
-            <div class="pt-4 border-t border-[#1E3752] flex flex-wrap gap-2">
-              <button onclick="addBlock('paragraph')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] text-xs font-semibold hover:bg-white/5">+ Paragraphe</button>
-              <button onclick="addBlock('heading')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] text-xs font-semibold hover:bg-white/5">+ Titre H2</button>
-              <button onclick="addBlock('quote')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] text-xs font-semibold hover:bg-white/5">+ Citation</button>
-              <button onclick="addBlock('image')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] text-xs font-semibold hover:bg-white/5">+ Image</button>
-              <button onclick="addBlock('video')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] text-xs font-semibold hover:bg-white/5">+ Vidéo</button>
-              <button onclick="addBlock('affiliate')" class="px-3 py-1.5 rounded-xl border border-[#EF4248] text-xs font-bold text-[#EF4248] hover:bg-[#EF4248]/10">+ Produit Affilié</button>
-            </div>
           </div>
 
-          <!-- Panneau Latéral Publication (4 Cols) -->
-          <div class="lg:col-span-4 p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-            <h4 class="font-bold text-sm text-white">Réglages de Publication</h4>
-            <div>
-              <label class="text-xs text-zinc-400 block mb-1">Catégorie Principale</label>
-              <select id="editor-cat" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-                ${CATEGORIES.map(c => `
-                  <option value="${c.slug}" ${c.slug === article.categorySlug ? 'selected' : ''}>${c.name}</option>
-                `).join('')}
-              </select>
+          <!-- Panneau Latéral Publication & Cadrage (4 Cols) -->
+          <div class="lg:col-span-4 space-y-6">
+            
+            <!-- 1. Réglages de Publication -->
+            <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
+              <h4 class="font-heading font-bold text-sm text-white flex items-center justify-between">
+                <span>Statut & Publication</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              </h4>
+
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Catégorie Principale</label>
+                <select id="editor-cat" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+                  ${CATEGORIES.map(c => `
+                    <option value="${c.slug}" ${c.slug === article.categorySlug ? 'selected' : ''}>${c.name}</option>
+                  `).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Auteur de l'Article</label>
+                <select id="editor-author" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+                  ${AUTHORS.map(a => `
+                    <option value="${a.slug}" ${a.slug === (article.authorSlug || 'steve-jones') ? 'selected' : ''}>${a.name}</option>
+                  `).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Date de Programmation (Optionnelle)</label>
+                <input type="datetime-local" id="editor-schedule" value="${article.scheduledAt || ''}" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+                <p class="text-[10px] text-zinc-500 mt-1">Laissez vide pour publier immédiatement.</p>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Tags (séparés par des virgules)</label>
+                <input type="text" id="editor-tags" value="${(article.tags || []).join(', ')}" placeholder="IA, Innovation, Tech..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+              </div>
+
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Slug URL Personnalisé</label>
+                <input type="text" id="editor-slug" value="${article.slug || ''}" placeholder="mon-article-personnalise" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white font-mono">
+              </div>
             </div>
-            <div>
-              <label class="text-xs text-zinc-400 block mb-1">Image de Couverture (URL)</label>
-              <input type="text" id="editor-cover" value="${article.coverImage}" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+
+            <!-- 2. Visuel Principal & Cadrage Hero (Ratio 4:3 Conforme Section 2) -->
+            <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
+              <h4 class="font-heading font-bold text-sm text-white flex items-center justify-between">
+                <span>Image Principale & Cadrage</span>
+                <span class="text-[10px] font-mono text-[#EF4248]">4:3 Hero Frame</span>
+              </h4>
+
+              <!-- Aperçu en direct du cadre 4:3 avec coins 22px -->
+              <div class="relative w-full aspect-[4/3] rounded-[18px] overflow-hidden border border-white/10 shadow-lg bg-[#0A1A2F]">
+                <img id="editor-cover-preview" src="${article.coverImage}" style="object-position: ${article.focalPoint || 'center center'};" class="w-full h-full object-cover">
+                <span class="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 text-white text-[9px] font-mono">Ratio 4:3</span>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="text-[11px] text-zinc-400">URL du Visuel</label>
+                  <button type="button" onclick="openMediaPickerForEditor()" class="text-[11px] text-[#EF4248] hover:underline font-bold">
+                    📁 Choisir depuis la Médiathèque
+                  </button>
+                </div>
+                <input type="text" id="editor-cover" oninput="updateEditorCoverPreview(this.value)" value="${article.coverImage}" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+              </div>
+
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Point de Cadrage (Focal Point)</label>
+                <select id="editor-focal-point" onchange="updateEditorFocalPoint(this.value)" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+                  <option value="center center" ${(article.focalPoint || 'center center') === 'center center' ? 'selected' : ''}>Centré (Center Center)</option>
+                  <option value="top center" ${article.focalPoint === 'top center' ? 'selected' : ''}>Haut (Top Center)</option>
+                  <option value="bottom center" ${article.focalPoint === 'bottom center' ? 'selected' : ''}>Bas (Bottom Center)</option>
+                  <option value="left center" ${article.focalPoint === 'left center' ? 'selected' : ''}>Gauche (Left Center)</option>
+                  <option value="right center" ${article.focalPoint === 'right center' ? 'selected' : ''}>Droite (Right Center)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Texte Alternatif (Alt Text)</label>
+                <input type="text" id="editor-image-alt" value="${article.imageAlt || ''}" placeholder="Description pour SEO et malvoyants..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+              </div>
+
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Légende d'Image Éditoriale</label>
+                <input type="text" id="editor-image-caption" value="${article.imageCaption || article.coverCaption || ''}" placeholder="Crédit photo ou mention éditoriale..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+              </div>
+
+              <div class="pt-2 border-t border-[#1E3752]/60">
+                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-white">
+                  <input type="checkbox" id="editor-is-hero" ${article.isHero ? 'checked' : ''} class="w-4 h-4 rounded text-[#EF4248] focus:ring-0">
+                  <span>Mettre en avant dans le Hero Slider de l'accueil</span>
+                </label>
+              </div>
             </div>
+
+            <!-- 3. Référencement Naturel & SEO -->
+            <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
+              <h4 class="font-heading font-bold text-sm text-white">Référencement SEO & Réseaux</h4>
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Titre SEO (Meta Title)</label>
+                <input type="text" id="editor-seo-title" value="${article.seo?.metaTitle || ''}" placeholder="Titre optimisé pour Google..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+              </div>
+              <div>
+                <label class="text-[11px] text-zinc-400 block mb-1">Description SEO (Meta Description)</label>
+                <textarea id="editor-seo-desc" rows="2" placeholder="Description de 160 caractères max..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">${article.seo?.metaDescription || ''}</textarea>
+              </div>
+
+              <!-- Aperçu SERP Google -->
+              <div class="p-3 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-[11px] space-y-1">
+                <span class="text-emerald-400 block truncate">https://ontario.com/article/${article.slug || 'slug'}</span>
+                <span class="text-blue-400 font-bold block truncate">${article.seo?.metaTitle || article.title || 'Titre de l’article'}</span>
+                <span class="text-zinc-400 block line-clamp-2">${article.seo?.metaDescription || article.excerpt || 'Extrait de l’article...'}</span>
+              </div>
+            </div>
+
           </div>
+
         </div>
       </div>
     </div>

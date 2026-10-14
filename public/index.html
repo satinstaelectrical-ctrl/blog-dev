@@ -40,6 +40,8 @@
 
   <style>
     :root {
+      --site-max: 1376px;
+      --site-gutter: 24px;
       --page-bg: #ffffff;
       --surface: #ffffff;
       --surface-soft: #f4f6f9;
@@ -53,6 +55,12 @@
       --footer-bg: #f4f6f9;
       --radius-pill: 9999px;
       --radius-card: 14px;
+    }
+
+    @media (max-width: 760px) {
+      :root {
+        --site-gutter: 16px;
+      }
     }
 
     html.dark, [data-theme="dark"] {
@@ -100,43 +108,16 @@
       box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.6);
     }
 
-    /* Container de contenu éditorial Ontario — 1440px & 1920px Haute Fidélité */
-    .container-ontario {
-      max-width: 1440px;
-      margin-left: auto;
-      margin-right: auto;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-
-    @media (min-width: 640px) {
-      .container-ontario {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .container-ontario {
-        padding-left: 2rem;
-        padding-right: 2rem;
-      }
-    }
-
-    @media (min-width: 1536px) {
-      .container-ontario {
-        max-width: 1540px;
-        padding-left: 2.5rem;
-        padding-right: 2.5rem;
-      }
-    }
-
-    @media (min-width: 1920px) {
-      .container-ontario {
-        max-width: 1680px;
-        padding-left: 3rem;
-        padding-right: 3rem;
-      }
+    /* Conteneur Partagé Officiel Ontario — Aligné sur les repères x=216 et x=1592 (1376px) */
+    .site-container,
+    .container-ontario,
+    .container-media {
+      width: min(var(--site-max), calc(100% - 2 * var(--site-gutter)));
+      margin-inline: auto;
+      min-width: 0;
+      box-sizing: border-box;
+      padding-left: 0;
+      padding-right: 0;
     }
 
     /* Typographie d'article */
