@@ -1,5 +1,117 @@
 [
   {
+    "id": "act-1791999921018-2cuw",
+    "type": "article",
+    "action": "Suppression définitive de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\"",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:45:21.018Z"
+  },
+  {
+    "id": "act-1791999921009-oih4",
+    "type": "article",
+    "action": "Restauration de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\" (Statut: brouillon)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:45:21.009Z"
+  },
+  {
+    "id": "act-1791999921000-fl6u",
+    "type": "article",
+    "action": "Mise à la corbeille de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\"",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:45:21.000Z"
+  },
+  {
+    "id": "act-1791999920991-9vxj",
+    "type": "article",
+    "action": "Mise à jour de l'article : \"Article Test Validation Droits Administrateur [PUBLIÉ]\" (Statut: published)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:45:20.991Z"
+  },
+  {
+    "id": "act-1791999920978-4ig4",
+    "type": "article",
+    "action": "Création de l'article : \"Article Test Validation Droits Administrateur\" (Statut: draft)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:45:20.978Z"
+  },
+  {
+    "id": "act-1791999920964-msho",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Directeur de Rédaction (admin)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:45:20.964Z"
+  },
+  {
+    "id": "act-1791999920946-e1rl",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Lecteur Membre (reader)",
+    "user": "Lecteur Membre",
+    "timestamp": "2026-10-14T17:45:20.946Z"
+  },
+  {
+    "id": "act-1791999178233-zg56",
+    "type": "article",
+    "action": "Suppression définitive de l'article : \"Article Créé par Administrateur Vérifié\"",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:32:58.233Z"
+  },
+  {
+    "id": "act-1791999178212-edjv",
+    "type": "article",
+    "action": "Création de l'article : \"Article Créé par Administrateur Vérifié\" (Statut: draft)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:32:58.212Z"
+  },
+  {
+    "id": "act-1791999178182-e7in",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Directeur de Rédaction (admin)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:32:58.182Z"
+  },
+  {
+    "id": "act-1791999178159-8msl",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Lecteur Membre (reader)",
+    "user": "Lecteur Membre",
+    "timestamp": "2026-10-14T17:32:58.159Z"
+  },
+  {
+    "id": "act-1791999008032-9tzv",
+    "type": "article",
+    "action": "Suppression définitive de l'article : \"Article Créé par Administrateur Vérifié\"",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:30:08.032Z"
+  },
+  {
+    "id": "act-1791999008013-te18",
+    "type": "article",
+    "action": "Création de l'article : \"Article Créé par Administrateur Vérifié\" (Statut: draft)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:30:08.013Z"
+  },
+  {
+    "id": "act-1791999007986-wj6b",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Directeur de Rédaction (admin)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T17:30:07.986Z"
+  },
+  {
+    "id": "act-1791999007974-uxjq",
+    "type": "settings",
+    "action": "Mise à jour des paramètres généraux du site",
+    "user": "Lecteur Membre",
+    "timestamp": "2026-10-14T17:30:07.974Z"
+  },
+  {
+    "id": "act-1791999007949-ji1l",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Lecteur Membre (reader)",
+    "user": "Lecteur Membre",
+    "timestamp": "2026-10-14T17:30:07.949Z"
+  },
+  {
     "id": "act-1791991503244-2evj",
     "type": "article",
     "action": "Suppression définitive de l'article : \"Article Test Validation E2E [PUBLIÉ]\"",

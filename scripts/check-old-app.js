@@ -1,0 +1,13 @@
+const { execSync } = require('child_process');
+
+try {
+  const oldApp = execSync('git show HEAD~1:public/app.js', { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+  const lines = oldApp.split('\n');
+  lines.forEach((l, idx) => {
+    if (l.includes("route === 'admin'") || (l.includes("renderReaderPage") && l.includes("container"))) {
+      console.log(`Line ${idx + 1}: ${l.trim()}`);
+    }
+  });
+} catch (e) {
+  console.error(e.message);
+}

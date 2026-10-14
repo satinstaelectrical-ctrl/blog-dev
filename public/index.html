@@ -289,7 +289,7 @@
           </button>
 
           <!-- Bouton Compte Lecteur -->
-          <button onclick="navigate('login')" id="user-btn" aria-label="Compte lecteur" class="p-2 sm:p-2.5 rounded-full hover:bg-white/10 transition-colors text-xs font-semibold flex items-center gap-1.5 text-white">
+          <button onclick="navigate('compte')" id="user-btn" aria-label="Compte personnel" class="p-2 sm:p-2.5 rounded-full hover:bg-white/10 transition-colors text-xs font-semibold flex items-center gap-1.5 text-white">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span id="user-badge" class="hidden sm:inline">Lecteur</span>
           </button>
@@ -325,7 +325,10 @@
           <button onclick="navigate('about'); toggleMobileMenu();" class="text-left py-1">À Propos</button>
           <button onclick="navigate('contact'); toggleMobileMenu();" class="text-left py-1">Contact</button>
           <div class="pt-3 border-t" style="border-color: var(--border-color);">
-            <button onclick="navigate('login'); toggleMobileMenu();" class="w-full text-center py-2.5 rounded-full text-xs font-bold border" style="border-color: var(--border-color);">
+            <button onclick="navigate('compte'); toggleMobileMenu();" class="w-full text-center py-2.5 rounded-full text-xs font-bold border" style="border-color: var(--border-color);">
+            Espace Membre (/compte)
+          </button>
+          <button onclick="navigate('admin'); toggleMobileMenu();" class="w-full text-center py-2.5 rounded-full text-xs font-bold bg-[#EF4248]/20 border border-[#EF4248]/40 text-white mt-2">
               Mon Compte Lecteur
             </button>
           </div>

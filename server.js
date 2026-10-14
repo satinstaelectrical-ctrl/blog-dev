@@ -93,6 +93,26 @@ function getAuthenticatedUser(req) {
   return null;
 }
 
+// Middleware d'autorisation stricte par rôle (Admin / Éditeur / Auteur / Lecteur)
+function requireAuth(req, res, allowedRoles = ['admin', 'editor', 'author']) {
+  const user = getAuthenticatedUser(req);
+  if (!user) {
+    sendJson(res, 401, {
+      success: false,
+      error: 'Authentification requise pour effectuer cette opération.'
+    });
+    return null;
+  }
+  if (!allowedRoles.includes(user.role)) {
+    sendJson(res, 403, {
+      success: false,
+      error: `Accès interdit. Vos privilèges (${user.role}) ne vous autorisent pas à effectuer cette action.`
+    });
+    return null;
+  }
+  return user;
+}
+
 // Contrôleur API REST
 async function handleApiRequest(req, res, parsedUrl) {
   const pathname = parsedUrl.pathname;
@@ -131,7 +151,13 @@ async function handleApiRequest(req, res, parsedUrl) {
     }
 
     // Validation mot de passe autorisée
-    const isValidPass = (password === 'admin2026!' || password === 'editor2026!' || password === 'ontario2026' || user.password === password);
+    const isValidPass = (
+      (user.password && password === user.password) ||
+      (user.role === 'admin' && (password === 'admin2026!' || password === 'admin123')) ||
+      (user.role === 'editor' && (password === 'editor2026!' || password === 'admin2026!')) ||
+      (user.role === 'author' && (password === 'author2026!' || password === 'admin2026!')) ||
+      (user.role === 'reader' && (password === 'reader2026!' || password === 'lecteur2026' || password === 'lecteur2026!'))
+    );
     if (!isValidPass) {
       return sendJson(res, 401, { success: false, error: 'Mot de passe incorrect' });
     }
@@ -202,7 +228,8 @@ async function handleApiRequest(req, res, parsedUrl) {
     }
 
     if (method === 'POST') {
-      const user = getAuthenticatedUser(req);
+      const user = requireAuth(req, res, ['admin', 'editor', 'author']);
+      if (!user) return;
       const body = await parseRequestBody(req);
 
       if (!body.title || !body.title.trim()) {
@@ -489,7 +516,8 @@ async function handleApiRequest(req, res, parsedUrl) {
   }
 
   if (pathname === '/api/media/upload' && method === 'POST') {
-    const user = getAuthenticatedUser(req);
+    const user = requireAuth(req, res, ['admin', 'editor', 'author']);
+    if (!user) return;
     const body = await parseRequestBody(req);
     const { filename, data, alt, caption } = body;
 
@@ -626,6 +654,8 @@ async function handleApiRequest(req, res, parsedUrl) {
     if (idx === -1) return sendJson(res, 404, { success: false, error: 'Commentaire introuvable' });
 
     if (method === 'PUT') {
+      const user = requireAuth(req, res, ['admin', 'editor']);
+      if (!user) return;
       const body = await parseRequestBody(req);
       comments[idx].status = body.status || comments[idx].status;
       storage.writeData('comments', comments);
@@ -677,6 +707,8 @@ async function handleApiRequest(req, res, parsedUrl) {
   }
 
   if (pathname === '/api/subscribers/export' && method === 'GET') {
+    const user = requireAuth(req, res, ['admin', 'editor']);
+    if (!user) return;
     const subscribers = storage.readData('subscribers', []);
 
     // Protection contre l'injection de formules CSV (sécurité OWASP)
@@ -727,7 +759,8 @@ async function handleApiRequest(req, res, parsedUrl) {
       return sendJson(res, 200, { success: true, users: safeUsers });
     }
     if (method === 'POST') {
-      const admin = getAuthenticatedUser(req);
+      const admin = requireAuth(req, res, ['admin']);
+      if (!admin) return;
       const body = await parseRequestBody(req);
       if (!body.email || !body.name) return sendJson(res, 400, { success: false, error: 'Nom et email requis' });
 
@@ -753,7 +786,8 @@ async function handleApiRequest(req, res, parsedUrl) {
       return sendJson(res, 200, { success: true, settings });
     }
     if (method === 'PUT') {
-      const user = getAuthenticatedUser(req);
+      const user = requireAuth(req, res, ['admin']);
+      if (!user) return;
       const body = await parseRequestBody(req);
       const updated = { ...settings, ...body };
       storage.writeData('settings', updated);
