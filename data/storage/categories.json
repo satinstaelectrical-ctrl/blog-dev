@@ -1,0 +1,64 @@
+[
+  {
+    "id": "cat-ai",
+    "name": "AI",
+    "slug": "ai",
+    "bgLight": "#F0ECFA",
+    "textLight": "#5844A8",
+    "bgDark": "#1C193B",
+    "textDark": "#A5B4FC",
+    "count": 24
+  },
+  {
+    "id": "cat-crypto",
+    "name": "Crypto",
+    "slug": "crypto",
+    "bgLight": "#ECF8F4",
+    "textLight": "#217960",
+    "bgDark": "#12302A",
+    "textDark": "#6EE7B7",
+    "count": 18
+  },
+  {
+    "id": "cat-digital",
+    "name": "Digital",
+    "slug": "digital",
+    "bgLight": "#EBF0FA",
+    "textLight": "#2563A0",
+    "bgDark": "#13283E",
+    "textDark": "#7DD3FC",
+    "count": 32
+  },
+  {
+    "id": "cat-startups",
+    "name": "Startups",
+    "slug": "startups",
+    "bgLight": "#FCEEF4",
+    "textLight": "#9E3258",
+    "bgDark": "#351624",
+    "textDark": "#F0ABFC",
+    "count": 15
+  },
+  {
+    "id": "cat-tech",
+    "name": "Technology",
+    "slug": "technology",
+    "bgLight": "#13283E",
+    "textLight": "#FFFFFF",
+    "bgDark": "#13283E",
+    "textDark": "#FFFFFF",
+    "isDark": true,
+    "image": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80",
+    "count": 41
+  },
+  {
+    "id": "cat-trends",
+    "name": "Trends",
+    "slug": "trends",
+    "bgLight": "#FFF2EB",
+    "textLight": "#A65522",
+    "bgDark": "#3A1E14",
+    "textDark": "#FDBA74",
+    "count": 29
+  }
+]

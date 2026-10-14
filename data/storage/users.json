@@ -1,0 +1,42 @@
+[
+  {
+    "id": "usr-admin-1",
+    "name": "Directeur de Rédaction",
+    "email": "admin@ontario.com",
+    "role": "admin",
+    "active": true,
+    "createdAt": "2026-01-10"
+  },
+  {
+    "id": "usr-editor-1",
+    "name": "Steve Jones",
+    "email": "steve@ontario.com",
+    "role": "editor",
+    "active": true,
+    "createdAt": "2026-01-15"
+  },
+  {
+    "id": "usr-author-1",
+    "name": "Kate Johnson",
+    "email": "kate@ontario.com",
+    "role": "author",
+    "active": true,
+    "createdAt": "2026-02-01"
+  },
+  {
+    "id": "usr-author-2",
+    "name": "Thomas Laurent",
+    "email": "thomas@ontario.com",
+    "role": "author",
+    "active": true,
+    "createdAt": "2026-02-05"
+  },
+  {
+    "id": "usr-reader-1",
+    "name": "Lecteur Premium",
+    "email": "reader@ontario.com",
+    "role": "reader",
+    "active": true,
+    "createdAt": "2026-03-01"
+  }
+]

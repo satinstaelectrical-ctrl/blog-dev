@@ -1,0 +1,35 @@
+[
+  {
+    "id": "med-1",
+    "name": "hero_ontario_orange.jpg",
+    "url": "/images/hero_ontario_orange.jpg",
+    "size": "773 Ko",
+    "dimensions": "1920x1080",
+    "mimeType": "image/jpeg",
+    "alt": "Portrait futuriste Ontario",
+    "caption": "Portrait éditorial Next Gen Marketing",
+    "createdAt": "2026-03-26"
+  },
+  {
+    "id": "med-2",
+    "name": "hero_ontario_cyber.jpg",
+    "url": "/images/hero_ontario_cyber.jpg",
+    "size": "645 Ko",
+    "dimensions": "1920x1080",
+    "mimeType": "image/jpeg",
+    "alt": "Cybernétique et vision futuriste",
+    "caption": "Motion design & cybernétique",
+    "createdAt": "2026-03-25"
+  },
+  {
+    "id": "med-3",
+    "name": "hero_ontario_arch.jpg",
+    "url": "/images/hero_ontario_arch.jpg",
+    "size": "820 Ko",
+    "dimensions": "1920x1080",
+    "mimeType": "image/jpeg",
+    "alt": "Architecture fluide organique",
+    "caption": "Architecture paramétrique au crépuscule",
+    "createdAt": "2026-03-24"
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "com-1",
+    "articleId": "art-hero-1",
+    "articleTitle": "Next Gen Marketing: Innovative Strategies",
+    "author": "Sophie Renard",
+    "email": "sophie.renard@design-forward.org",
+    "content": "Analyse très fine sur la spatialisation des marques. L'équilibre entre inférence IA locale et souveraineté des contenus est le défi central de 2026.",
+    "status": "approved",
+    "createdAt": "2026-03-26T10:15:00.000Z"
+  },
+  {
+    "id": "com-2",
+    "articleId": "art-hero-2",
+    "articleTitle": "AI Motion Techniques in Abstract Digital Design",
+    "author": "Julien Valette",
+    "email": "julien@motion-lab.studio",
+    "content": "Avez-vous testé les nouveaux pipelines WebGPU pour le rendu volumétrique en temps réel dans les navigateurs mobiles ?",
+    "status": "pending",
+    "createdAt": "2026-03-26T11:45:00.000Z"
+  },
+  {
+    "id": "com-3",
+    "articleId": "art-hero-1",
+    "articleTitle": "Next Gen Marketing: Innovative Strategies",
+    "author": "Crypto Bot 9000",
+    "email": "spam@promolink-fast.biz",
+    "content": "Click here to double your crypto tokens fast: http://scam-link.xyz/bonus",
+    "status": "spam",
+    "createdAt": "2026-03-25T08:00:00.000Z"
+  }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "id": "page-home",
+    "title": "Page d'accueil",
+    "slug": "home",
+    "status": "published",
+    "updatedAt": "2026-03-26",
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Page principale du magazine éditorial Ontario."
+      }
+    ]
+  },
+  {
+    "id": "page-about",
+    "title": "À Propos de la Rédaction",
+    "slug": "about",
+    "status": "published",
+    "updatedAt": "2026-03-24",
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Ontario est un média prospectif explorant les technologies de rupture et le design."
+      }
+    ]
+  },
+  {
+    "id": "page-contact",
+    "title": "Contact & Rédaction",
+    "slug": "contact",
+    "status": "published",
+    "updatedAt": "2026-03-20",
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Contactez notre secrétariat de rédaction."
+      }
+    ]
+  },
+  {
+    "id": "page-legal",
+    "title": "Mentions Légales & Confidentialité",
+    "slug": "legal",
+    "status": "published",
+    "updatedAt": "2026-03-15",
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Informations juridiques et conformité RGPD."
+      }
+    ]
+  }
+]

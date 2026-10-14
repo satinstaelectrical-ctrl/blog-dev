@@ -1,0 +1,100 @@
+[
+  {
+    "id": "act-1791991503244-2evj",
+    "type": "article",
+    "action": "Suppression définitive de l'article : \"Article Test Validation E2E [PUBLIÉ]\"",
+    "user": "Admin",
+    "timestamp": "2026-10-14T15:25:03.244Z"
+  },
+  {
+    "id": "act-1791991503216-12pg",
+    "type": "article",
+    "action": "Restauration de l'article : \"Article Test Validation E2E [PUBLIÉ]\" (Statut: brouillon)",
+    "user": "Admin",
+    "timestamp": "2026-10-14T15:25:03.216Z"
+  },
+  {
+    "id": "act-1791991503188-0l0b",
+    "type": "article",
+    "action": "Mise à la corbeille de l'article : \"Article Test Validation E2E [PUBLIÉ]\"",
+    "user": "Admin",
+    "timestamp": "2026-10-14T15:25:03.188Z"
+  },
+  {
+    "id": "act-1791991503148-23n5",
+    "type": "article",
+    "action": "Mise à jour de l'article : \"Article Test Validation E2E [PUBLIÉ]\" (Statut: published)",
+    "user": "Éditeur",
+    "timestamp": "2026-10-14T15:25:03.148Z"
+  },
+  {
+    "id": "act-1791991503096-3xt1",
+    "type": "article",
+    "action": "Création de l'article : \"Article Test Validation E2E\" (Statut: draft)",
+    "user": "Éditeur",
+    "timestamp": "2026-10-14T15:25:03.096Z"
+  },
+  {
+    "id": "act-1791991503043-92p1",
+    "type": "auth",
+    "action": "Connexion réussie de l'utilisateur Directeur de Rédaction (admin)",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T15:25:03.043Z"
+  },
+  {
+    "id": "act-1791988447972-l40n",
+    "type": "newsletter",
+    "action": "Nouvel abonné à la newsletter : test.qa.1791988447959@ontario-test.fr",
+    "user": "Lecteur Public",
+    "timestamp": "2026-10-14T14:34:07.972Z"
+  },
+  {
+    "id": "act-1791988447952-zwgk",
+    "type": "article",
+    "action": "Suppression définitive de l'article : \"Article de Test QA - Mis à Jour\"",
+    "user": "Admin",
+    "timestamp": "2026-10-14T14:34:07.952Z"
+  },
+  {
+    "id": "act-1791988447930-d8fg",
+    "type": "article",
+    "action": "Restauration de l'article : \"Article de Test QA - Mis à Jour\" (Statut: brouillon)",
+    "user": "Admin",
+    "timestamp": "2026-10-14T14:34:07.930Z"
+  },
+  {
+    "id": "act-1791988447906-6tqi",
+    "type": "article",
+    "action": "Mise à la corbeille de l'article : \"Article de Test QA - Mis à Jour\"",
+    "user": "Admin",
+    "timestamp": "2026-10-14T14:34:07.906Z"
+  },
+  {
+    "id": "act-1791988447883-427w",
+    "type": "article",
+    "action": "Mise à jour de l'article : \"Article de Test QA - Mis à Jour\" (Statut: published)",
+    "user": "Éditeur",
+    "timestamp": "2026-10-14T14:34:07.883Z"
+  },
+  {
+    "id": "act-1791988447855-qr6t",
+    "type": "article",
+    "action": "Création de l'article : \"Article de Test Automatisé QA\" (Statut: draft)",
+    "user": "Éditeur",
+    "timestamp": "2026-10-14T14:34:07.856Z"
+  },
+  {
+    "id": "act-1",
+    "type": "system",
+    "action": "Démarrage du système de persistance serveur ONTARIO",
+    "user": "Système ONTARIO",
+    "timestamp": "2026-10-14T14:27:30.589Z"
+  },
+  {
+    "id": "act-2",
+    "type": "publish",
+    "action": "Publication de l'article vedette Next Gen Marketing: Innovative Strategies",
+    "user": "Directeur de Rédaction",
+    "timestamp": "2026-10-14T13:27:30.598Z"
+  }
+]

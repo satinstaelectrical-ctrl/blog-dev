@@ -1,0 +1,53 @@
+{
+  "siteName": "ONTARIO Magazine",
+  "siteDescription": "Média d'investigation prospective, intelligence artificielle et spatial design.",
+  "siteUrl": "http://localhost:3000",
+  "logoText": "ONTARIO",
+  "primaryColor": "#EF4248",
+  "footerCopyright": "© 2026 ONTARIO Media Inc. Tous droits réservés.",
+  "adsense": {
+    "enabled": true,
+    "publisherId": "pub-9482910482910394",
+    "autoAds": false,
+    "testMode": true,
+    "reportingConnected": false,
+    "slots": {
+      "home_after_featured": {
+        "enabled": true,
+        "slotId": "8492019481",
+        "format": "responsive",
+        "minHeight": 90
+      },
+      "home_in_feed": {
+        "enabled": true,
+        "slotId": "7391028472",
+        "format": "rectangle",
+        "minHeight": 250
+      },
+      "article_sidebar": {
+        "enabled": true,
+        "slotId": "9201847192",
+        "format": "half-page",
+        "minHeight": 600
+      },
+      "article_in_content": {
+        "enabled": true,
+        "slotId": "6102938471",
+        "format": "fluid",
+        "minHeight": 120
+      },
+      "article_end": {
+        "enabled": true,
+        "slotId": "5019283746",
+        "format": "banner",
+        "minHeight": 90
+      }
+    }
+  },
+  "carousel": {
+    "mode": "popular",
+    "maxSlides": 5,
+    "autoplay": true,
+    "autoplayInterval": 6000
+  }
+}

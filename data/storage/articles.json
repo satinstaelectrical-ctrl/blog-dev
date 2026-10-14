@@ -1,0 +1,519 @@
+[
+  {
+    "id": "art-hero-1",
+    "title": "Next Gen Marketing: Innovative Strategies",
+    "frenchTitle": "Next Gen Marketing : Stratégies Innovantes & Ruptures Numériques",
+    "slug": "next-gen-marketing-innovative-strategies",
+    "excerpt": "In the heart of a bustling city, where innovation meets opportunity, the story of our digital agency began. Like all great journeys, it started with a single, audacious idea...",
+    "coverImage": "/images/hero_ontario_orange.jpg",
+    "imageAlt": "Next Gen Marketing portrait créatif futuriste dans un casque spatial transparent",
+    "imageCaption": "Photographie éditoriale — Next Gen Marketing & Spatial Innovation",
+    "focalPoint": "center center",
+    "categorySlug": "intelligence-artificielle",
+    "categoryBadge": "AI",
+    "secondaryBadge": "TECHNOLOGY",
+    "authorSlug": "steve-jones",
+    "readingTime": 6,
+    "publishedAt": "Mar 24, 2026",
+    "status": "published",
+    "isHero": true,
+    "isFeatured": true,
+    "views": 28400,
+    "likes": 1890,
+    "tags": [
+      "Marketing",
+      "IA",
+      "Innovation",
+      "Stratégie"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "In the heart of a bustling city, where innovation meets opportunity, the story of our digital agency began. Like all great journeys, it started with a single, audacious idea: transforming how brands connect with audiences in a hyper-connected world."
+      },
+      {
+        "type": "heading",
+        "level": "h2",
+        "text": "La convergence entre spatial computing et synthèse algorithmique"
+      },
+      {
+        "type": "paragraph",
+        "text": "Nous ne sommes plus à l’ère des bannières passives. Les marques qui dominent désormais conçoivent des univers narratifs persistants capables de s’adapter en temps réel aux réactions émotionnelles du lecteur."
+      },
+      {
+        "type": "quote",
+        "text": "« Le véritable luxe de demain ne résidera pas dans l’accès à l’information, mais dans la clarté et la pertinence de sa mise en scène. »"
+      },
+      {
+        "type": "affiliate",
+        "productName": "Station de Travail Modulaire Studio Pro X1",
+        "brand": "Apex Computing",
+        "description": "La station de référence adoptée par notre rédaction pour la génération d’assets 3D volumétriques et l’inférence IA locale ultra-rapide.",
+        "features": [
+          "Processeur NPU neuronal dédié 45 TOPS",
+          "Châssis aluminium unibody à dissipation passive",
+          "Connectivité Thunderbolt 5 intégrée"
+        ],
+        "imageUrl": "https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&fit=crop&w=800&q=80",
+        "merchantName": "Amazon",
+        "affiliateUrl": "https://www.amazon.fr/dp/B0EXEMPLE?tag=ontario-21",
+        "buttonText": "Voir sur Amazon (Offre Partenaire)",
+        "disclaimer": "Lien affilié vérifié — Nous pouvons percevoir une commission éditoriale sans surcoût pour vous."
+      },
+      {
+        "type": "paragraph",
+        "text": "Ce banc d’essai démontre que la fluidité matérielle conditionne directement l’agilité des équipes créatives face aux exigences de publication multi-formats."
+      }
+    ]
+  },
+  {
+    "id": "art-hero-2",
+    "title": "AI Motion Techniques in Abstract Digital Design",
+    "frenchTitle": "Techniques de Motion IA dans le Design Numérique Abstrait",
+    "slug": "ai-motion-techniques-abstract-digital-design",
+    "excerpt": "Exploring the intersection of generative motion systems, spatial interface computing, and the new visual language transforming interactive media.",
+    "coverImage": "/images/hero_ontario_cyber.jpg",
+    "imageAlt": "Portrait cyberpunk contemporain et vision cybernétique",
+    "imageCaption": "Photographie éditoriale — Cybernétique & Spatial Interface",
+    "focalPoint": "center center",
+    "categorySlug": "intelligence-artificielle",
+    "categoryBadge": "AI",
+    "secondaryBadge": "MOTION",
+    "authorSlug": "kate-johnson",
+    "readingTime": 5,
+    "publishedAt": "Mar 25, 2026",
+    "status": "published",
+    "isHero": true,
+    "isFeatured": true,
+    "views": 24200,
+    "likes": 1640,
+    "tags": [
+      "AI",
+      "Motion",
+      "Digital Design",
+      "Cyber"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Exploring the intersection of generative motion systems, spatial interface computing, and the new visual language transforming interactive media."
+      },
+      {
+        "type": "heading",
+        "level": "h2",
+        "text": "Cinématique générative et immersion volumétrique"
+      },
+      {
+        "type": "paragraph",
+        "text": "Les algorithmes de rendu temps réel brisent les contraintes des timelines linéaires pour créer des compositions vivantes qui réagissent au regard."
+      }
+    ]
+  },
+  {
+    "id": "art-hero-3",
+    "title": "Organic Shapes in Modern Digital Architecture",
+    "frenchTitle": "Formes Organiques dans l’Architecture Numérique Moderne",
+    "slug": "organic-shapes-modern-digital-architecture",
+    "excerpt": "How biomorphic curves, parametric simulation, and ambient twilight illumination are reshaping contemporary public spaces and cultural institutions.",
+    "coverImage": "/images/hero_ontario_arch.jpg",
+    "imageAlt": "Pavillon architectural fluide et organique illuminé au crépuscule",
+    "imageCaption": "Photographie éditoriale — Architecture Paramétrique & Lumière Ambiante",
+    "focalPoint": "center center",
+    "categorySlug": "business",
+    "categoryBadge": "BUSINESS",
+    "secondaryBadge": "ARCHITECTURE",
+    "authorSlug": "thomas-laurent",
+    "readingTime": 7,
+    "publishedAt": "Mar 26, 2026",
+    "status": "published",
+    "isHero": true,
+    "isFeatured": true,
+    "views": 21900,
+    "likes": 1350,
+    "tags": [
+      "Architecture",
+      "Parametric",
+      "Design",
+      "Innovation"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "How biomorphic curves, parametric simulation, and ambient twilight illumination are reshaping contemporary public spaces and cultural institutions."
+      },
+      {
+        "type": "heading",
+        "level": "h2",
+        "text": "L’enveloppe réactive et la géométrie continue"
+      },
+      {
+        "type": "paragraph",
+        "text": "La disparition des angles droits au profit de surfaces gauches calculées par ordinateur marque l’avènement d’un nouvel humanisme spatial."
+      }
+    ]
+  },
+  {
+    "id": "art-hero-4",
+    "title": "Transparent Structures in Digital Architecture",
+    "frenchTitle": "Structures Transparentes dans l’Architecture Numérique",
+    "slug": "transparent-structures-in-digital-architecture",
+    "excerpt": "A deep dive into transparent lightweight materials, structural envelopes, and algorithmic daylight distribution for next-generation urban developments.",
+    "coverImage": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=2000&q=90",
+    "imageAlt": "Structures architecturales transparentes et géométrie spatiale",
+    "imageCaption": "Photographie éditoriale — Structures Transparentes & Urbanisme",
+    "focalPoint": "center center",
+    "categorySlug": "digital",
+    "categoryBadge": "DIGITAL",
+    "secondaryBadge": "STRUCTURES",
+    "authorSlug": "thomas-laurent",
+    "readingTime": 6,
+    "publishedAt": "Mar 27, 2026",
+    "status": "published",
+    "isHero": true,
+    "isFeatured": true,
+    "views": 19400,
+    "likes": 1120,
+    "tags": [
+      "Digital",
+      "Structures",
+      "Urbanisme",
+      "Tech"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "A deep dive into transparent lightweight materials, structural envelopes, and algorithmic daylight distribution for next-generation urban developments."
+      }
+    ]
+  },
+  {
+    "id": "art-hero-5",
+    "title": "Colorful Packaging in Contemporary Crypto Branding",
+    "frenchTitle": "Packaging Coloré dans le Branding Crypto Contemporain",
+    "slug": "colorful-packaging-in-contemporary-crypto-branding",
+    "excerpt": "Reinventing cryptographic identity through vibrant gradients, tactile packaging design, and accessible consumer touchpoints.",
+    "coverImage": "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=2000&q=90",
+    "imageAlt": "Design contemporain de packaging et identité visuelle colorée",
+    "imageCaption": "Photographie éditoriale — Branding Crypto & Design Tactile",
+    "focalPoint": "center center",
+    "categorySlug": "crypto",
+    "categoryBadge": "CRYPTO",
+    "secondaryBadge": "BRANDING",
+    "authorSlug": "kate-johnson",
+    "readingTime": 5,
+    "publishedAt": "Mar 28, 2026",
+    "status": "published",
+    "isHero": true,
+    "isFeatured": true,
+    "views": 18100,
+    "likes": 980,
+    "tags": [
+      "Crypto",
+      "Branding",
+      "Design",
+      "Color"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Reinventing cryptographic identity through vibrant gradients, tactile packaging design, and accessible consumer touchpoints."
+      }
+    ]
+  },
+  {
+    "id": "art-fresh-1",
+    "title": "Commanding Unknown Terrain: The Lessons from Bold Pioneers",
+    "frenchTitle": "Maîtriser les Terrains Inconnus : Les Leçons des Pionniers de l’IA",
+    "slug": "commanding-unknown-terrain-lessons-bold-pioneers",
+    "excerpt": "L’exploration des nouveaux paradigmes algorithmiques exige une audace comparable à celle des premières traversées océaniques. Retour sur les initiatives qui osent défier le consensus.",
+    "coverImage": "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1200&q=85",
+    "categorySlug": "intelligence-artificielle",
+    "categoryBadge": "RECENT",
+    "authorSlug": "steve-jones",
+    "readingTime": 4,
+    "publishedAt": "26 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": true,
+    "views": 18400,
+    "likes": 930,
+    "tags": [
+      "Pionniers",
+      "IA",
+      "Prospective",
+      "Audace"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Lorsque les frontières du savoir conventionnel s’estompent, seuls les esprits audacieux osent cartographier le vide."
+      }
+    ]
+  },
+  {
+    "id": "art-fresh-2",
+    "title": "What Digital Signals Tell Us About Market Behavior",
+    "frenchTitle": "Ce que les Signaux Numériques Révèlent sur le Comportement des Marchés",
+    "slug": "what-digital-signals-tell-us-about-market-behavior",
+    "excerpt": "L’analyse en temps réel des micro-signaux transactionnels transforme la prévision économique en une science probabiliste quasi instantanée.",
+    "coverImage": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=85",
+    "categorySlug": "business",
+    "categoryBadge": "RECENT",
+    "authorSlug": "steve-jones",
+    "readingTime": 7,
+    "publishedAt": "24 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": true,
+    "views": 14200,
+    "likes": 810,
+    "tags": [
+      "Marchés",
+      "Data",
+      "Signaux",
+      "Finance"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Derrière les flux d’ordres automatisés se dessine une géographie secrète des flux de capitaux mondiaux."
+      }
+    ]
+  },
+  {
+    "id": "art-fresh-3",
+    "title": "Urban Mindfulness: Finding Peace Above Noise",
+    "frenchTitle": "Sérénité Urbaine : Trouver la Clarté au-dessus de la Saturation",
+    "slug": "urban-mindfulness-finding-peace-above-noise",
+    "excerpt": "Dans des métropoles saturées d’ondes et de notifications incessantes, réapprendre à concevoir des îlots de silence cognitif devient un art de vivre.",
+    "coverImage": "https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?auto=format&fit=crop&w=800&q=85",
+    "categorySlug": "lifestyle",
+    "categoryBadge": "RECENT",
+    "authorSlug": "kate-johnson",
+    "readingTime": 4,
+    "publishedAt": "22 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": false,
+    "views": 9800,
+    "likes": 670,
+    "tags": [
+      "Mindfulness",
+      "Lifestyle",
+      "Santé Mentale",
+      "Design"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Prendre de la hauteur face aux stimulations visuelles quotidiennes est une nécessité ergonomique."
+      }
+    ]
+  },
+  {
+    "id": "art-fresh-4",
+    "title": "How Bold Aesthetics Redefine Product Identity",
+    "frenchTitle": "Comment l’Esthétique Radicale Redéfinit l’Identité des Objets",
+    "slug": "how-bold-aesthetics-redefine-product-identity",
+    "excerpt": "Pourquoi les lignes douces et les finitions chromées futuristes s’imposent comme le langage visuel des produits technologiques de pointe.",
+    "coverImage": "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=800&q=85",
+    "categorySlug": "culture",
+    "categoryBadge": "RECENT",
+    "authorSlug": "kate-johnson",
+    "readingTime": 5,
+    "publishedAt": "20 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": false,
+    "views": 11200,
+    "likes": 740,
+    "tags": [
+      "Esthétique",
+      "Design",
+      "Produit",
+      "Futurisme"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "L’objet physique n’est plus seulement un outil : il devient l’incarnation sensorielle d’une vision du futur."
+      }
+    ]
+  },
+  {
+    "id": "art-fresh-5",
+    "title": "Mind Circuits: Engineering the Future Self",
+    "frenchTitle": "Circuits de l’Esprit : L’Ingénierie du Soi Augmenté par l’IA",
+    "slug": "mind-circuits-engineering-the-future-self",
+    "excerpt": "L’émergence des agents cognitifs personnels ouvre une nouvelle ère où la mémoire, la synthèse et la créativité humaine sont démultipliées.",
+    "coverImage": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=85",
+    "categorySlug": "intelligence-artificielle",
+    "categoryBadge": "RECENT",
+    "authorSlug": "steve-jones",
+    "readingTime": 8,
+    "publishedAt": "18 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": false,
+    "views": 16700,
+    "likes": 1190,
+    "tags": [
+      "Cognition",
+      "Futur",
+      "Philosophie",
+      "IA"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "La relation entre l’utilisateur et son modèle de raisonnement personnalisé dépasse le simple dialogue machine."
+      }
+    ]
+  },
+  {
+    "id": "art-fresh-6",
+    "title": "Building Smarter Systems: How AI Reshapes Business Operations",
+    "frenchTitle": "Systèmes Intelligents : Comment l’IA Métamorphose l’Entreprise",
+    "slug": "building-smarter-systems-ai-reshapes-business-operations",
+    "excerpt": "De la logistique prédictive à l’orchestration autonome des flux de travail, autopsie d’une révolution organisationnelle sans précédent.",
+    "coverImage": "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=1200&q=85",
+    "categorySlug": "business",
+    "categoryBadge": "RECENT",
+    "authorSlug": "thomas-laurent",
+    "readingTime": 9,
+    "publishedAt": "16 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": true,
+    "views": 21300,
+    "likes": 1350,
+    "tags": [
+      "Entreprise",
+      "Opérations",
+      "Systèmes",
+      "Automatisation"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "L’automatisation raisonnée permet de réaffecter le capital humain vers la stratégie et l’invention pure."
+      }
+    ]
+  },
+  {
+    "id": "art-recent-1",
+    "title": "Why Most Marketing Budgets Fail to Move Revenue",
+    "frenchTitle": "Pourquoi la Majorité des Budgets Marketing Échouent à Générer du Chiffre",
+    "slug": "why-most-marketing-budgets-fail-to-move-revenue",
+    "excerpt": "Dans une époque obsédée par les métriques de vanité, beaucoup d’agences oublient le principe cardinal : bâtir une confiance organique inébranlable.",
+    "coverImage": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=85",
+    "categorySlug": "business",
+    "authorSlug": "steve-jones",
+    "readingTime": 5,
+    "publishedAt": "25 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": false,
+    "views": 13900,
+    "likes": 880,
+    "tags": [
+      "Marketing",
+      "Revenu",
+      "Performance",
+      "Croissance"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "La course effrénée aux impressions au détriment de la résonance profonde produit des rendements décroissants."
+      }
+    ]
+  },
+  {
+    "id": "art-recent-2",
+    "title": "The Impact of Strategic Marketing on Business Transformation",
+    "frenchTitle": "L’Impact du Positionnement Stratégique sur la Transformation Globale",
+    "slug": "impact-strategic-marketing-business-transformation",
+    "excerpt": "Au cœur de la métropole effervescente, notre laboratoire éditorial a analysé comment les organisations pionnières pivotent avec succès.",
+    "coverImage": "https://images.unsplash.com/photo-1546776310-eef45dd6d63c?auto=format&fit=crop&w=800&q=85",
+    "categorySlug": "trends",
+    "authorSlug": "steve-jones",
+    "readingTime": 6,
+    "publishedAt": "23 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": false,
+    "views": 9400,
+    "likes": 610,
+    "tags": [
+      "Stratégie",
+      "Transformation",
+      "Pivots",
+      "Organisation"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "Réaligner l’ensemble de la chaîne de valeur sur une promesse claire est le secret des marques durables."
+      }
+    ]
+  },
+  {
+    "id": "art-recent-3",
+    "title": "How Strategic Marketing Transforms Modern Businesses",
+    "frenchTitle": "Comment le Marketing Stratégique Réinvente les Entreprises Contemporaines",
+    "slug": "how-strategic-marketing-transforms-modern-businesses",
+    "excerpt": "Dans un univers saturé, l’écoute empathique des besoins des utilisateurs et la précision du design créent des avantages concurrentiels décisifs.",
+    "coverImage": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=85",
+    "categorySlug": "intelligence-artificielle",
+    "authorSlug": "kate-johnson",
+    "readingTime": 7,
+    "publishedAt": "21 Mars 2026",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": false,
+    "views": 15600,
+    "likes": 1040,
+    "tags": [
+      "Innovation",
+      "Design",
+      "Écoute",
+      "Expérience"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "L’expérience client vécue est le seul véritable marketing qui laisse une empreinte durable."
+      }
+    ]
+  },
+  {
+    "id": "art-sidebar-featured",
+    "title": "The Impact of Immersive Landscapes in Digital Architecture",
+    "frenchTitle": "L’Impact des Paysages Immersifs dans l’Architecture Numérique",
+    "slug": "impact-of-immersive-landscapes-digital-architecture",
+    "excerpt": "Repenser les interfaces web non plus comme des pages statiques mais comme des espaces tridimensionnels habitables et stimulants.",
+    "coverImage": "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&q=85",
+    "categorySlug": "culture",
+    "authorSlug": "steve-jones",
+    "readingTime": 5,
+    "publishedAt": "07 Sept 2025",
+    "status": "published",
+    "isHero": false,
+    "isFeatured": true,
+    "views": 29500,
+    "likes": 2100,
+    "tags": [
+      "Architecture",
+      "3D",
+      "WebGPU",
+      "Paysages"
+    ],
+    "contentBlocks": [
+      {
+        "type": "paragraph",
+        "text": "La transition vers les environnements immersifs marque la fin du modèle classique du document textuel."
+      }
+    ]
+  }
+]

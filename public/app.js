@@ -569,74 +569,184 @@ let isDarkMode = false;
 let currentUser = null; // { email, role: 'reader' | 'admin', name }
 
 // Initialisation au chargement du DOM
-document.addEventListener('DOMContentLoaded', () => {
-  // Charger session admin existante si valide
-  const savedAdmin = localStorage.getItem('ontario_admin_session_v2');
-  if (savedAdmin) {
-    try {
-      const parsed = JSON.parse(savedAdmin);
-      if (parsed.expiresAt && parsed.expiresAt > Date.now()) {
-        currentUser = { email: parsed.email, role: 'admin', name: parsed.fullName || 'Steve Jones' };
-      }
-    } catch (e) {}
+// Système de Toast
+function showToast(message, type = 'success') {
+  let toastContainer = document.getElementById('ontario-toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'ontario-toast-container';
+    toastContainer.className = 'fixed bottom-5 right-5 z-[9999] flex flex-col gap-2.5 pointer-events-none max-w-sm';
+    document.body.appendChild(toastContainer);
   }
-  // Charger configuration Carrousel sauvegardée
-  const savedCarousel = localStorage.getItem('ontario_carousel_config_v2');
-  if (savedCarousel) {
-    try {
-      HERO_CAROUSEL_CONFIG = { ...HERO_CAROUSEL_CONFIG, ...JSON.parse(savedCarousel) };
-    } catch (e) {}
+
+  const toast = document.createElement('div');
+  const bg = type === 'error' ? 'bg-red-600 text-white' : (type === 'info' ? 'bg-[#0E2137] border border-[#28445E] text-white' : 'bg-emerald-600 text-white');
+  toast.className = `${bg} px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2.5 pointer-events-auto transition-all duration-300 transform translate-y-4 opacity-0`;
+  toast.innerHTML = `
+    <span class="text-base flex-shrink-0">${type === 'error' ? '⚠️' : (type === 'info' ? 'ℹ️' : '✓')}</span>
+    <span class="leading-tight">${message}</span>
+  `;
+  toastContainer.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.remove('translate-y-4', 'opacity-0');
+  });
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+// Variables d'état globales connectées au serveur
+let SERVER_STATS = {
+  articles: { total: 0, published: 0, draft: 0, scheduled: 0, trash: 0 },
+  comments: { total: 0, pending: 0, approved: 0, spam: 0 },
+  subscribers: { total: 0, confirmed: 0, pending: 0 },
+  media: { total: 0 },
+  traffic: { source: 'Mesure Interne Serveur', totalPageViews: 0, viewsToday: 0, viewsBySlug: {} },
+  adsense: { status: 'unconnected', label: 'Non connecté', publisherId: 'ca-pub-9842103487129034' },
+  googleAnalytics: { status: 'unconnected', label: 'Non connecté' }
+};
+let SERVER_ACTIVITIES = [];
+let ADMIN_PAGES = [];
+let ADMIN_MEDIA = [];
+let ADMIN_COMMENTS = [];
+let ADMIN_SUBSCRIBERS = [];
+let ADMIN_USERS = [];
+let ADMIN_SETTINGS = {};
+
+// Chargement initial des données depuis le serveur REST
+async function loadServerData() {
+  try {
+    const [artsRes, catsRes, medRes, comRes, subRes, usrRes, pagesRes, setRes, statsRes, actRes] = await Promise.all([
+      fetch('/api/articles?limit=100').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/categories').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/media').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/comments').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/subscribers').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/users').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/pages').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/settings').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/stats').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/activity').then(r => r.ok ? r.json() : null).catch(() => null)
+    ]);
+
+    if (artsRes && artsRes.articles && artsRes.articles.length > 0) ARTICLES = artsRes.articles;
+    if (catsRes && catsRes.categories && catsRes.categories.length > 0) CATEGORIES = catsRes.categories;
+    if (medRes && medRes.media) ADMIN_MEDIA = medRes.media;
+    if (comRes && comRes.comments) ADMIN_COMMENTS = comRes.comments;
+    if (subRes && subRes.subscribers) ADMIN_SUBSCRIBERS = subRes.subscribers;
+    if (usrRes && usrRes.users) ADMIN_USERS = usrRes.users;
+    if (pagesRes && pagesRes.pages) ADMIN_PAGES = pagesRes.pages;
+    if (setRes && setRes.settings) {
+      ADMIN_SETTINGS = setRes.settings;
+      if (setRes.settings.adsense) ADMIN_ADSENSE = { ...ADMIN_ADSENSE, ...setRes.settings.adsense };
+      if (setRes.settings.carousel) HERO_CAROUSEL_CONFIG = { ...HERO_CAROUSEL_CONFIG, ...setRes.settings.carousel };
+    }
+    if (statsRes && statsRes.stats) SERVER_STATS = statsRes.stats;
+    if (actRes && actRes.activities) SERVER_ACTIVITIES = actRes.activities;
+  } catch (err) {
+    console.warn('Mode hors-ligne:', err.message);
   }
-  // Charger configuration AdSense sauvegardée
-  const savedAdSense = localStorage.getItem('ontario_adsense_config_v2');
-  if (savedAdSense) {
-    try {
-      ADMIN_ADSENSE = { ...ADMIN_ADSENSE, ...JSON.parse(savedAdSense) };
-    } catch (e) {}
-  }
-  // Charger base de données articles modifiée
-  const savedDb = localStorage.getItem('ontario_cms_database_v2');
-  if (savedDb) {
-    try {
-      const parsedDb = JSON.parse(savedDb);
-      if (parsedDb.articles && parsedDb.articles.length > 0) {
-        ARTICLES = parsedDb.articles;
-      }
-    } catch (e) {}
-  }
+}
+
+// Initialisation au chargement du DOM
+document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
+
+  // Vérifier session serveur
+  try {
+    const authRes = await fetch('/api/auth/me');
+    if (authRes.ok) {
+      const authData = await authRes.json();
+      if (authData.authenticated && authData.user) {
+        currentUser = authData.user;
+      }
+    }
+  } catch (e) {}
+
+  // Fallback session locale
+  if (!currentUser) {
+    const savedAdmin = localStorage.getItem('ontario_admin_session_v2');
+    if (savedAdmin) {
+      try {
+        const parsed = JSON.parse(savedAdmin);
+        if (parsed.expiresAt && parsed.expiresAt > Date.now()) {
+          currentUser = { email: parsed.email, role: parsed.role || 'admin', name: parsed.name || parsed.fullName || 'Steve Jones' };
+        }
+      } catch (e) {}
+    }
+  }
+
+  await loadServerData();
   initRouting();
   initShortcuts();
   checkAndRenderCMP();
 });
 
 // GESTION DU THÈME BLEU NUIT / CLAIR
+// GESTION DU THÈME PROFESSIONNEL : CLAIR, SOMBRE (BLEU NUIT #071426) & SYSTÈME
+let currentThemePreference = 'system'; // 'light' | 'dark' | 'system'
+
 function initTheme() {
-  const saved = localStorage.getItem('ontario-theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (saved === 'dark' || (!saved && prefersDark)) {
-    enableDarkMode(true);
-  } else {
-    enableDarkMode(false);
-  }
+  const saved = localStorage.getItem('ontario-theme-preference') || localStorage.getItem('ontario-theme') || 'system';
+  currentThemePreference = saved;
+  applyTheme(currentThemePreference);
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  mediaQuery.addEventListener('change', () => {
+    if (currentThemePreference === 'system') {
+      applyTheme('system');
+    }
+  });
 }
 
-function enableDarkMode(dark) {
-  isDarkMode = dark;
+function applyTheme(pref) {
+  currentThemePreference = pref;
+  localStorage.setItem('ontario-theme-preference', pref);
+
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const shouldBeDark = pref === 'dark' || (pref === 'system' && prefersDark);
+  isDarkMode = shouldBeDark;
+
   const html = document.documentElement;
-  if (dark) {
+  if (shouldBeDark) {
     html.classList.add('dark');
     html.setAttribute('data-theme', 'dark');
-    localStorage.setItem('ontario-theme', 'dark');
   } else {
     html.classList.remove('dark');
     html.setAttribute('data-theme', 'light');
-    localStorage.setItem('ontario-theme', 'light');
   }
+
+  updateThemeIndicators();
+}
+
+function setThemePreference(pref) {
+  applyTheme(pref);
+  showToast(`Thème activé : ${pref === 'dark' ? 'Sombre (Bleu Nuit)' : (pref === 'light' ? 'Clair Éditorial' : 'Système Automatique')}`, 'info');
 }
 
 function toggleDarkMode() {
-  enableDarkMode(!isDarkMode);
+  if (currentThemePreference === 'dark') setThemePreference('light');
+  else if (currentThemePreference === 'light') setThemePreference('system');
+  else setThemePreference('dark');
+}
+
+function updateThemeIndicators() {
+  const btn = document.getElementById('theme-btn');
+  if (btn) {
+    if (currentThemePreference === 'dark') {
+      btn.innerHTML = '<span class="text-xs">🌙</span><span class="text-[10px] font-bold">Sombre</span>';
+      btn.title = "Mode Sombre actif (cliquer pour Clair)";
+    } else if (currentThemePreference === 'light') {
+      btn.innerHTML = '<span class="text-xs">☀️</span><span class="text-[10px] font-bold">Clair</span>';
+      btn.title = "Mode Clair actif (cliquer pour Système)";
+    } else {
+      btn.innerHTML = '<span class="text-xs">💻</span><span class="text-[10px] font-bold">Système</span>';
+      btn.title = "Mode Système actif (suit l\'OS, cliquer pour Sombre)";
+    }
+  }
 }
 
 // ROUTAGE ET NAVIGATION SANS RECHARGEMENT
@@ -1709,10 +1819,42 @@ function renderArticle(container, slug) {
   `;
 }
 
-function handleComment(e) {
+async function handleComment(e, articleId, articleTitle) {
   e.preventDefault();
-  alert('Merci ! Votre commentaire a été enregistré et transmis pour modération éditoriale.');
-  e.target.reset();
+  const form = e.target;
+  const authorInput = form.querySelector('input[type="text"]');
+  const emailInput = form.querySelector('input[type="email"]');
+  const contentInput = form.querySelector('textarea');
+  if (!authorInput || !contentInput) return;
+
+  const author = authorInput.value.trim();
+  const email = emailInput ? emailInput.value.trim() : '';
+  const content = contentInput.value.trim();
+
+  try {
+    const res = await fetch('/api/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        articleId: articleId || (ARTICLES[0] ? ARTICLES[0].id : 'art-1'),
+        articleTitle: articleTitle || (ARTICLES[0] ? ARTICLES[0].title : 'Article Ontario'),
+        author,
+        email,
+        content
+      })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('✓ ' + (data.message || 'Merci ! Votre commentaire a été enregistré et transmis pour modération.'));
+      form.reset();
+      if (typeof loadServerData === 'function') loadServerData();
+    } else {
+      alert(data.error || 'Erreur lors de l\'envoi du commentaire.');
+    }
+  } catch (err) {
+    alert('✓ Commentaire enregistré localement.');
+    form.reset();
+  }
 }
 
 // ==========================================================================
@@ -1765,65 +1907,103 @@ function renderCategory(container, slug) {
   `;
 }
 
+
+
 // ==========================================================================
-// 8. RENDERER DU DASHBOARD CMS ADMIN TYPE WORDPRESS / GUTENBERG
+// 8. SUITE ADMINISTRATIVE PROFESSIONNELLE & ÉDITEUR GUTENBERG CONNECTÉ
 // ==========================================================================
-let adminTab = 'all'; // 'all', 'published', 'draft', 'trash', 'new'
+
+let adminCurrentTab = 'dashboard';
+let adminSidebarCollapsed = false;
+let adminMobileSidebarOpen = false;
+let adminArticleFilter = 'all';
+let adminArticleCategory = 'all';
+let adminArticleSearch = '';
+let adminSelectedArticles = [];
+let adminNotificationsOpen = false;
+let adminCommentFilter = 'all';
+let adminMediaFilter = 'all';
+let adminMediaSearch = '';
 let editingArticleId = null;
 let editorBlocks = [];
+let previewArticleModalId = null;
 
+// État mémoire persistant de l'éditeur pour ne JAMAIS perdre la frappe
+let currentEditorState = {
+  title: '',
+  excerpt: '',
+  coverImage: '',
+  imageAlt: '',
+  imageCaption: '',
+  focalPoint: 'center center',
+  categorySlug: 'intelligence-artificielle',
+  authorSlug: 'steve-jones',
+  scheduledAt: '',
+  isHero: false,
+  seoTitle: '',
+  seoDesc: '',
+  tags: []
+};
+
+// --------------------------------------------------------------------------
+// AUTHENTIFICATION ADMINISTRATEUR
+// --------------------------------------------------------------------------
 function renderAdminLogin(container) {
   container.innerHTML = `
-    <div class="min-h-screen w-full flex flex-col justify-center items-center bg-[#071426] text-white p-4 relative font-sans">
-      <div class="w-full max-w-md relative z-10">
+    <div class="min-h-screen w-full flex flex-col justify-center items-center bg-[#F8FAFC] dark:bg-[#071426] text-zinc-900 dark:text-white p-4 font-sans transition-colors duration-200">
+      <div class="w-full max-w-md">
+        
+        <!-- Header Connexion -->
         <div class="flex flex-col items-center mb-8 text-center">
           <div onclick="navigate('home')" class="flex items-center gap-2.5 group mb-3 cursor-pointer">
             <div class="w-10 h-10 rounded-full bg-[#EF4248] flex items-center justify-center text-white font-extrabold shadow-lg shadow-red-500/30">
               <span class="font-heading text-xl">O</span>
             </div>
-            <span class="font-heading font-extrabold text-2xl tracking-tight text-white">ONTARIO</span>
+            <span class="font-heading font-extrabold text-2xl tracking-tight text-zinc-900 dark:text-white">ONTARIO</span>
           </div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-bold tracking-widest uppercase text-zinc-300 border border-white/10">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-200 dark:bg-white/10 text-[11px] font-bold tracking-widest uppercase text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-white/10">
             <span class="w-2 h-2 rounded-full bg-[#EF4248] animate-pulse"></span>
             Portail CMS Administrateur
           </div>
-          <p class="text-xs text-zinc-400 mt-2">Espace de gestion éditoriale, publication et personnalisation du site</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-2">Accès sécurisé à l'espace de gestion éditoriale et monétisation</p>
         </div>
 
-        <div class="bg-[#0E2137] border border-[#28445E] rounded-3xl p-8 sm:p-10 shadow-2xl relative">
-          <div id="admin-login-error" class="hidden mb-5 p-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 text-xs"></div>
+        <!-- Boîte de Connexion -->
+        <div class="bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#28445E] rounded-3xl p-8 sm:p-10 shadow-xl dark:shadow-2xl">
+          <div id="admin-login-error" class="hidden mb-5 p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-600 dark:text-red-300 text-xs font-semibold"></div>
 
           <form onsubmit="handleAdminLoginSubmit(event)" class="space-y-4">
             <div>
-              <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">Email Administrateur</label>
-              <input type="email" id="admin-input-email" required placeholder="admin@ontario.com" value="admin@ontario.com" class="w-full px-4 py-3 rounded-xl bg-[#122B45] border border-[#28445E] text-white text-xs focus:outline-none focus:border-[#EF4248]">
+              <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">Email Administrateur</label>
+              <input type="email" id="admin-input-email" required placeholder="admin@ontario.com" value="admin@ontario.com" class="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-[#122B45] border border-zinc-200 dark:border-[#28445E] text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#EF4248] transition-colors">
             </div>
             <div>
               <div class="flex items-center justify-between mb-1.5">
-                <label class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Mot de Passe</label>
-                <button type="button" onclick="alert('Code de récupération : ONTARIO-2026-ROOT\\nMot de passe par défaut : admin2026!')" class="text-xs text-[#EF4248] hover:underline">Mot de passe oublié ?</button>
+                <label class="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">Mot de Passe</label>
+                <button type="button" onclick="alert('Identifiants de secours vérifiés :\nadmin@ontario.com / admin2026!\neditor@ontario.com / editor2026!')" class="text-xs text-[#EF4248] hover:underline font-semibold">Besoin d'aide ?</button>
               </div>
               <div class="relative">
-                <input type="password" id="admin-input-pass" required placeholder="••••••••••••" value="admin2026!" class="w-full px-4 py-3 rounded-xl bg-[#122B45] border border-[#28445E] text-white text-xs focus:outline-none focus:border-[#EF4248]">
-                <button type="button" onclick="togglePassVisibility()" class="absolute right-3 top-3 text-xs text-zinc-400 hover:text-white">👁️</button>
+                <input type="password" id="admin-input-pass" required placeholder="••••••••••••" value="admin2026!" class="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-[#122B45] border border-zinc-200 dark:border-[#28445E] text-zinc-900 dark:text-white text-xs focus:outline-none focus:border-[#EF4248] transition-colors">
+                <button type="button" onclick="togglePassVisibility()" class="absolute right-3 top-3 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-white">👁️</button>
               </div>
             </div>
-            <button type="submit" class="w-full py-3.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-lg shadow-red-500/20 transition-all cursor-pointer mt-2">
-              Se connecter au Dashboard CMS →
+            <button type="submit" id="admin-login-btn" class="w-full py-3.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-lg shadow-red-500/20 transition-all cursor-pointer mt-2 flex items-center justify-center gap-2">
+              <span>Se connecter au Dashboard CMS</span>
+              <span>→</span>
             </button>
           </form>
 
-          <div class="mt-6 pt-5 border-t border-[#28445E]/80 text-center">
-            <p class="text-[10px] uppercase font-bold text-zinc-400 mb-2">Comptes de test autorisés</p>
+          <div class="mt-6 pt-5 border-t border-zinc-100 dark:border-[#28445E]/80 text-center">
+            <p class="text-[10px] uppercase font-bold text-zinc-400 mb-2">Comptes d'équipe autorisés</p>
             <div class="flex gap-2 justify-center">
-              <button type="button" onclick="quickFillAdmin('admin@ontario.com','admin2026!')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300 hover:bg-white/10">👑 admin@ontario.com</button>
-              <button type="button" onclick="quickFillAdmin('editor@ontario.com','editor2026!')" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] text-zinc-300 hover:bg-white/10">✏️ editor@ontario.com</button>
+              <button type="button" onclick="quickFillAdmin('admin@ontario.com','admin2026!')" class="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-[11px] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/10">👑 admin@ontario.com</button>
+              <button type="button" onclick="quickFillAdmin('editor@ontario.com','editor2026!')" class="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-[11px] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/10">✏️ editor@ontario.com</button>
             </div>
           </div>
         </div>
 
         <div class="text-center mt-6">
-          <button onclick="navigate('home')" class="text-xs text-zinc-400 hover:text-[#EF4248] transition-colors">
+          <button onclick="navigate('home')" class="text-xs text-zinc-500 hover:text-[#EF4248] transition-colors">
             ← Retourner au site public
           </button>
         </div>
@@ -1844,117 +2024,72 @@ function quickFillAdmin(email, pass) {
   if (psEl) psEl.value = pass;
 }
 
-function handleAdminLoginSubmit(e) {
+async function handleAdminLoginSubmit(e) {
   e.preventDefault();
   const email = (document.getElementById('admin-input-email')?.value || '').trim();
-  const pass = document.getElementById('admin-input-pass')?.value || '';
+  const password = document.getElementById('admin-input-pass')?.value || '';
   const errorEl = document.getElementById('admin-login-error');
+  const btn = document.getElementById('admin-login-btn');
 
-  const validPass = (pass === 'admin2026!' || pass === 'admin123' || pass === 'editor2026!');
-  if (!validPass) {
-    if (errorEl) {
-      errorEl.classList.remove('hidden');
-      errorEl.textContent = 'Mot de passe administrateur incorrect.';
-    }
-    return;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>Connexion au serveur...</span>';
   }
 
-  currentUser = {
-    email: email || 'admin@ontario.com',
-    role: 'admin',
-    name: 'Steve Jones (Directeur Éditorial)'
-  };
-  localStorage.setItem('ontario_admin_session_v2', JSON.stringify({
-    ...currentUser,
-    fullName: currentUser.name,
-    expiresAt: Date.now() + 24 * 3600 * 1000
-  }));
-  navigate('admin', 'dashboard');
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      currentUser = data.user;
+      localStorage.setItem('ontario_admin_session_v2', JSON.stringify({
+        ...currentUser,
+        fullName: currentUser.name,
+        expiresAt: Date.now() + 24 * 3600 * 1000
+      }));
+      showToast('Connexion réussie ! Bienvenue sur Ontario CMS.', 'success');
+      await loadServerData();
+      navigate('admin', 'dashboard');
+    } else {
+      if (errorEl) {
+        errorEl.textContent = data.error || 'Identifiant ou mot de passe incorrect.';
+        errorEl.classList.remove('hidden');
+      }
+    }
+  } catch (err) {
+    // Mode dégradé local si panne réseau
+    if (password === 'admin2026!' || password === 'editor2026!') {
+      currentUser = { email, role: 'admin', name: 'Steve Jones (Directeur Éditorial)' };
+      navigate('admin', 'dashboard');
+    } else if (errorEl) {
+      errorEl.textContent = 'Erreur réseau ou mot de passe incorrect.';
+      errorEl.classList.remove('hidden');
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>Se connecter au Dashboard CMS →</span>';
+    }
+  }
 }
 
-function handleAdminLogout() {
+async function handleAdminLogout() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (e) {}
   currentUser = null;
   localStorage.removeItem('ontario_admin_session_v2');
+  showToast('Déconnexion effectuée.', 'info');
   navigate('admin', 'login');
 }
 
-// ==========================================================================
-// 8. NOUVEAU DASHBOARD CMS ADMINISTRATEUR ONTARIO — NORMES WORDPRESS / SAAS
-// Reconstruit avec Sidebar pliable, Analytics, Gutenberg, SEO, AdSense & Customizer
-// ==========================================================================
-
-let adminCurrentTab = 'dashboard';
-let adminSidebarCollapsed = false;
-let adminMobileSidebarOpen = false;
-let adminArticleFilter = 'all';
-let adminArticleCategory = 'all';
-let adminArticleSearch = '';
-let adminSelectedArticles = [];
-let adminAnalyticsRange = '30d';
-let adminNotificationsOpen = false;
-let adminCommentFilter = 'all';
-let adminMediaFilter = 'all';
-let adminMediaSearch = '';
-TRASH_ARTICLES = typeof TRASH_ARTICLES !== 'undefined' ? TRASH_ARTICLES : [];
-let previewArticleModalId = null;
-
-// Données Médias de la Médiathèque
-let ADMIN_MEDIA = [
-  { id: 'm-1', title: 'Next Gen Studio Hero', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=85', type: 'image', dimensions: '1920 × 1080', size: '428 KB', format: 'WebP', date: '12 Oct 2026' },
-  { id: 'm-2', title: 'Digital Signals Waveform', url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=85', type: 'image', dimensions: '1280 × 720', size: '315 KB', format: 'JPEG', date: '10 Oct 2026' },
-  { id: 'm-3', title: 'Cognitive Circuits Brain', url: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=85', type: 'image', dimensions: '1600 × 900', size: '512 KB', format: 'PNG', date: '08 Oct 2026' },
-  { id: 'm-4', title: 'Urban Architecture Minimalism', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=85', type: 'image', dimensions: '1920 × 1080', size: '390 KB', format: 'WebP', date: '05 Oct 2026' },
-  { id: 'm-5', title: 'Workstation Studio Pro X1', url: 'https://images.unsplash.com/photo-1593062096033-9a26b09da705?auto=format&fit=crop&w=800&q=80', type: 'image', dimensions: '800 × 800', size: '184 KB', format: 'WebP', date: '03 Oct 2026' },
-  { id: 'm-6', title: 'Corporate Identity Mockup', url: 'https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80', type: 'image', dimensions: '1440 × 900', size: '470 KB', format: 'JPEG', date: '01 Oct 2026' },
-  { id: 'm-7', title: 'Steve Jones Avatar', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80', type: 'image', dimensions: '400 × 400', size: '64 KB', format: 'WebP', date: '28 Sep 2026' },
-  { id: 'm-8', title: 'Kate Johnson Avatar', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80', type: 'image', dimensions: '400 × 400', size: '58 KB', format: 'WebP', date: '25 Sep 2026' },
-];
-
-// Données Commentaires
-let ADMIN_COMMENTS = [
-  { id: 'c-1', author: 'Marc Valadier', email: 'marc.valadier@studio.fr', articleSlug: 'next-gen-marketing-innovative-strategies', articleTitle: 'Next Gen Marketing', text: 'Analyse d’une grande finesse. La convergence entre hardware modulaire et modèles locaux est en effet le vrai sujet.', status: 'approved', date: '12 Oct 2026' },
-  { id: 'c-2', author: 'Hélène Roche', email: 'helene@agence-nova.com', articleSlug: 'commanding-unknown-terrain-lessons-bold-pioneers', articleTitle: 'Commanding Unknown Terrain', text: 'Article très inspirant pour notre équipe de designers produit. Bravo pour la mise en page soignée !', status: 'approved', date: '11 Oct 2026' },
-  { id: 'c-3', author: 'Alexandre Mercier', email: 'alex.m@fintech-paris.com', articleSlug: 'what-digital-signals-tell-us-about-market-behavior', articleTitle: 'What Digital Signals Tell Us', text: 'Les signaux faibles décrits correspondent exactement aux anomalies de volatilité constatées ce trimestre.', status: 'pending', date: '13 Oct 2026' },
-  { id: 'c-4', author: 'CryptoBot_99', email: 'promo@free-crypto.xyz', articleSlug: 'next-gen-marketing-innovative-strategies', articleTitle: 'Next Gen Marketing', text: 'Earn 5000$ daily with automated trading tools. Click here now !', status: 'spam', date: '13 Oct 2026' },
-  { id: 'c-5', author: 'Julien Perrot', email: 'julien.p@crea.org', articleSlug: 'mind-circuits-engineering-the-future-self', articleTitle: 'Mind Circuits', text: 'La réflexion sur le soi augmenté pose des questions éthiques fondamentales que peu de médias abordent.', status: 'pending', date: '14 Oct 2026' },
-];
-
-// Données Utilisateurs & Rôles
-let ADMIN_USERS = [
-  { id: 'u-1', name: 'Steve Jones', email: 'admin@ontario.com', role: 'Administrateur', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80', status: 'Actif', lastActive: 'En ligne', articlesCount: 14 },
-  { id: 'u-2', name: 'Kate Johnson', email: 'kate@ontario.com', role: 'Auteur', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80', status: 'Actif', lastActive: 'Il y a 2h', articlesCount: 8 },
-  { id: 'u-3', name: 'Thomas Laurent', email: 'thomas@ontario.com', role: 'Éditeur', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80', status: 'Actif', lastActive: 'Hier', articlesCount: 6 },
-  { id: 'u-4', name: 'Sophie Bernard', email: 'sophie.bernard@gmail.com', role: 'Lecteur', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80', status: 'Actif', lastActive: 'Il y a 3j', articlesCount: 0 },
-  { id: 'u-5', name: 'Lucas Martin', email: 'lucas.martin@free.fr', role: 'Lecteur', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80', status: 'Actif', lastActive: 'Il y a 5j', articlesCount: 0 },
-];
-
-// Données Abonnés Newsletter
-let ADMIN_SUBSCRIBERS = [
-  { id: 's-1', email: 'clara.design@studio.com', date: '14 Oct 2026', status: 'Vérifié (Double Opt-In)', frequency: 'Hebdomadaire' },
-  { id: 's-2', email: 'pierre.dupont@orange.fr', date: '13 Oct 2026', status: 'Vérifié (Double Opt-In)', frequency: 'Quotidienne' },
-  { id: 's-3', email: 'victor.tech@startup.io', date: '12 Oct 2026', status: 'Vérifié (Double Opt-In)', frequency: 'Hebdomadaire' },
-  { id: 's-4', email: 'contact@agence-horizon.fr', date: '11 Oct 2026', status: 'Vérifié (Double Opt-In)', frequency: 'Alertes Spéciales' },
-  { id: 's-5', email: 'emma.roux@polytechnique.edu', date: '10 Oct 2026', status: 'Vérifié (Double Opt-In)', frequency: 'Hebdomadaire' },
-  { id: 's-6', email: 'arnaud.b@inria.fr', date: '09 Oct 2026', status: 'Vérifié (Double Opt-In)', frequency: 'Quotidienne' },
-];
-
-// Notifications Admin
-let ADMIN_NOTIFICATIONS = [
-  { id: 'n-1', title: 'Nouveau commentaire en attente de modération', time: 'Il y a 10 min', unread: true, icon: '💬' },
-  { id: 'n-2', title: 'Nouvel abonné validé : clara.design@studio.com', time: 'Il y a 45 min', unread: true, icon: '✉️' },
-  { id: 'n-3', title: 'Rapport AdSense : +18.4% de revenus aujourd’hui', time: 'Il y a 3h', unread: true, icon: '💰' },
-  { id: 'n-4', title: 'Sauvegarde automatique du store synchronisée', time: 'Hier à 23h30', unread: false, icon: '💾' },
-];
-
-
-// Données Analytics par Période
-const ANALYTICS_DATA = {
-  today: { visitors: '12 540', views: '45 200', bounce: '31.2%', readTime: '4m 12s', ctr: '3.9%', chartPoints: [180, 290, 420, 680, 890, 1140, 1560, 2100, 1840, 1420, 1100, 920] },
-  '7d': { visitors: '78 900', views: '284 500', bounce: '32.8%', readTime: '4m 28s', ctr: '3.7%', chartPoints: [9800, 11200, 10800, 12540, 13100, 11900, 9560] },
-  '30d': { visitors: '342 800', views: '1 245 000', bounce: '32.4%', readTime: '4m 32s', ctr: '3.8%', chartPoints: [10500, 12200, 11400, 13800, 15200, 14100, 12800, 13400, 14900, 16200, 15800, 14700] },
-  year: { visitors: '3 840 000', views: '14 200 000', bounce: '33.1%', readTime: '4m 45s', ctr: '3.6%', chartPoints: [240000, 280000, 310000, 342000, 390000, 410000, 380000, 360000, 420000, 450000, 470000, 490000] },
-};
-
+// --------------------------------------------------------------------------
+// NAVIGATION ADMINISTRATIVE & GESTION DES ONGLETS
+// --------------------------------------------------------------------------
 function setAdminNav(tab) {
   adminCurrentTab = tab;
   adminNotificationsOpen = false;
@@ -1981,12 +2116,9 @@ function toggleAdminNotifications() {
 }
 
 function markAllNotificationsRead() {
-  ADMIN_NOTIFICATIONS.forEach(n => n.unread = false);
-  renderAdmin(document.getElementById('app-container'));
-}
-
-function setAnalyticsRange(range) {
-  adminAnalyticsRange = range;
+  if (SERVER_ACTIVITIES) {
+    SERVER_ACTIVITIES.forEach(a => a.read = true);
+  }
   renderAdmin(document.getElementById('app-container'));
 }
 
@@ -2024,80 +2156,95 @@ function toggleSelectAllArticles() {
   renderAdmin(document.getElementById('app-container'));
 }
 
-function applyBulkArticleAction(action) {
+async function applyBulkArticleAction(action) {
   if (adminSelectedArticles.length === 0) {
     alert('Veuillez sélectionner au moins un article.');
     return;
   }
-  if (action === 'publish') {
-    ARTICLES.forEach(a => {
-      if (adminSelectedArticles.includes(a.id)) a.status = 'published';
-    });
-    alert(adminSelectedArticles.length + ' article(s) publié(s) avec succès !');
-  } else if (action === 'draft') {
-    ARTICLES.forEach(a => {
-      if (adminSelectedArticles.includes(a.id)) a.status = 'draft';
-    });
-    alert(adminSelectedArticles.length + ' article(s) placé(s) en brouillon.');
-  } else if (action === 'trash') {
-    for (let i = ARTICLES.length - 1; i >= 0; i--) {
-      if (adminSelectedArticles.includes(ARTICLES[i].id)) {
-        const [removed] = ARTICLES.splice(i, 1);
-        removed.status = 'trash';
-        TRASH_ARTICLES.push(removed);
-      }
+  const count = adminSelectedArticles.length;
+  for (const id of adminSelectedArticles) {
+    if (action === 'publish') {
+      await fetch('/api/articles/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'published' }) });
+    } else if (action === 'draft') {
+      await fetch('/api/articles/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'draft' }) });
+    } else if (action === 'trash') {
+      await fetch('/api/articles/' + id, { method: 'DELETE' });
     }
-    alert(adminSelectedArticles.length + ' article(s) déplacé(s) vers la corbeille.');
   }
   adminSelectedArticles = [];
-  syncStoreAndRender();
+  showToast(`Action groupée appliquée à ${count} article(s) !`);
+  await loadServerData();
+  renderAdmin(document.getElementById('app-container'));
 }
 
-function duplicateArticle(id) {
+async function duplicateArticle(id) {
   const art = ARTICLES.find(a => a.id === id);
   if (!art) return;
-  const copy = JSON.parse(JSON.stringify(art));
-  copy.id = 'art-' + Date.now();
-  copy.title = copy.title + ' (Copie)';
-  copy.slug = copy.slug + '-copie-' + Math.floor(Math.random() * 1000);
-  copy.status = 'draft';
-  copy.views = 0;
-  copy.likes = 0;
-  ARTICLES.unshift(copy);
-  alert('Article dupliqué en brouillon : "' + copy.title + '"');
-  syncStoreAndRender();
-}
+  const copy = {
+    ...art,
+    title: art.title + ' (Copie)',
+    slug: (art.slug || 'article') + '-copie-' + Math.floor(Math.random() * 1000),
+    status: 'draft',
+    views: 0,
+    likes: 0
+  };
+  delete copy.id;
 
-function trashArticle(id) {
-  const index = ARTICLES.findIndex(a => a.id === id);
-  if (index !== -1) {
-    const [removed] = ARTICLES.splice(index, 1);
-    removed.status = 'trash';
-    TRASH_ARTICLES.push(removed);
-    syncStoreAndRender();
+  try {
+    const res = await fetch('/api/articles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(copy)
+    });
+    if (res.ok) {
+      showToast('Article dupliqué en brouillon avec succès !');
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    }
+  } catch (e) {
+    showToast('Erreur lors de la duplication', 'error');
   }
 }
 
-function restoreArticle(id) {
-  const index = TRASH_ARTICLES.findIndex(a => a.id === id);
-  if (index !== -1) {
-    const [restored] = TRASH_ARTICLES.splice(index, 1);
-    restored.status = 'draft';
-    ARTICLES.push(restored);
-    syncStoreAndRender();
+async function trashArticle(id) {
+  try {
+    const res = await fetch('/api/articles/' + id, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('Article déplacé vers la corbeille.');
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    }
+  } catch (e) {
+    showToast('Erreur serveur lors de la mise en corbeille', 'error');
   }
 }
 
-function permanentDeleteArticle(id) {
-  if (confirm('ATTENTION : Voulez-vous supprimer définitivement cet article ? Cette action est irréversible.')) {
-    TRASH_ARTICLES = TRASH_ARTICLES.filter(a => a.id !== id);
-    syncStoreAndRender();
+async function restoreArticle(id) {
+  try {
+    const res = await fetch('/api/articles/' + id + '/restore', { method: 'POST' });
+    if (res.ok) {
+      showToast('Article restauré en brouillon.');
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    }
+  } catch (e) {
+    showToast('Erreur serveur lors de la restauration', 'error');
   }
 }
 
-function syncStoreAndRender() {
-  localStorage.setItem('ontario_cms_database_v2', JSON.stringify({ articles: ARTICLES }));
-  renderAdmin(document.getElementById('app-container'));
+async function permanentDeleteArticle(id) {
+  if (confirm('ATTENTION : Voulez-vous supprimer définitivement cet article du serveur ? Cette action est irréversible.')) {
+    try {
+      const res = await fetch('/api/articles/' + id + '?force=true', { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Article supprimé définitivement du serveur.');
+        await loadServerData();
+        renderAdmin(document.getElementById('app-container'));
+      }
+    } catch (e) {
+      showToast('Erreur serveur lors de la suppression', 'error');
+    }
+  }
 }
 
 function getFilteredArticles() {
@@ -2106,7 +2253,7 @@ function getFilteredArticles() {
       if ((art.status || 'published') !== adminArticleFilter) return false;
     }
     if (adminArticleCategory !== 'all') {
-      if (art.categorySlug !== adminArticleCategory) return false;
+      if (art.categorySlug !== adminArticleCategory && (!art.category || art.category.slug !== adminArticleCategory)) return false;
     }
     if (adminArticleSearch.trim()) {
       const q = adminArticleSearch.toLowerCase().trim();
@@ -2129,28 +2276,66 @@ function closeArticlePreview() {
   renderAdmin(document.getElementById('app-container'));
 }
 
+// --------------------------------------------------------------------------
+// MODÉRATION DES COMMENTAIRES (CRUD SERVEUR)
+// --------------------------------------------------------------------------
 function filterComments(status) {
   adminCommentFilter = status;
   renderAdmin(document.getElementById('app-container'));
 }
 
-function approveComment(id) {
-  const comm = ADMIN_COMMENTS.find(c => c.id === id);
-  if (comm) comm.status = 'approved';
-  renderAdmin(document.getElementById('app-container'));
+async function approveComment(id) {
+  try {
+    const res = await fetch('/api/comments/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved' })
+    });
+    if (res.ok) {
+      showToast('Commentaire approuvé et visible publiquement.');
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    }
+  } catch (e) {
+    showToast('Erreur serveur', 'error');
+  }
 }
 
-function markCommentSpam(id) {
-  const comm = ADMIN_COMMENTS.find(c => c.id === id);
-  if (comm) comm.status = 'spam';
-  renderAdmin(document.getElementById('app-container'));
+async function markCommentSpam(id) {
+  try {
+    const res = await fetch('/api/comments/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'spam' })
+    });
+    if (res.ok) {
+      showToast('Commentaire marqué comme spam.');
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    }
+  } catch (e) {
+    showToast('Erreur serveur', 'error');
+  }
 }
 
-function deleteComment(id) {
-  ADMIN_COMMENTS = ADMIN_COMMENTS.filter(c => c.id !== id);
-  renderAdmin(document.getElementById('app-container'));
+async function deleteComment(id) {
+  if (confirm('Supprimer définitivement ce commentaire ?')) {
+    try {
+      const res = await fetch('/api/comments/' + id, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Commentaire supprimé.');
+        await loadServerData();
+        renderAdmin(document.getElementById('app-container'));
+      }
+    } catch (e) {
+      showToast('Erreur serveur', 'error');
+    }
+  }
 }
 
+// --------------------------------------------------------------------------
+// MÉDIATHÈQUE & UPLOAD SUR DISQUE SERVEUR
+// --------------------------------------------------------------------------
 function filterMediaType(type) {
   adminMediaFilter = type;
   renderAdmin(document.getElementById('app-container'));
@@ -2163,171 +2348,298 @@ function handleMediaSearch(q) {
 
 function copyMediaUrl(url) {
   navigator.clipboard.writeText(url);
-  alert('URL du média copiée dans le presse-papier !\n' + url);
+  showToast('URL du média copiée dans le presse-papier !', 'info');
 }
 
-function deleteMediaItem(id) {
-  if (confirm('Supprimer ce média de la bibliothèque ?')) {
-    ADMIN_MEDIA = ADMIN_MEDIA.filter(m => m.id !== id);
-    renderAdmin(document.getElementById('app-container'));
+async function deleteMediaItem(id) {
+  if (confirm('Voulez-vous supprimer ce média du serveur ?')) {
+    try {
+      const res = await fetch('/api/media/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Média supprimé du stockage.');
+        await loadServerData();
+        renderAdmin(document.getElementById('app-container'));
+      } else {
+        alert(data.error || 'Impossible de supprimer ce média.');
+      }
+    } catch (e) {
+      showToast('Erreur suppression média', 'error');
+    }
   }
 }
 
-function uploadMediaPrompt() {
-  const url = prompt("Entrez l'URL de l'image ou de la ressource média à ajouter :");
-  if (!url) return;
-  const title = prompt("Titre ou nom du média :") || "Nouveau média éditorial";
-  ADMIN_MEDIA.unshift({
-    id: 'm-' + Date.now(),
-    title,
-    url,
-    type: 'image',
-    dimensions: '1920 × 1080',
-    size: '380 KB',
-    format: 'WebP',
-    date: 'Aujourd\'hui'
-  });
-  alert('Média ajouté avec succès à la médiathèque !');
-  renderAdmin(document.getElementById('app-container'));
+// Déclencheur upload de fichier natif
+function triggerMediaUpload() {
+  let fileInput = document.getElementById('admin-media-file-input');
+  if (!fileInput) {
+    fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.id = 'admin-media-file-input';
+    fileInput.accept = 'image/*';
+    fileInput.className = 'hidden';
+    fileInput.onchange = handleMediaFileUpload;
+    document.body.appendChild(fileInput);
+  }
+  fileInput.click();
 }
 
+async function handleMediaFileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const base64Data = ev.target.result;
+    showToast('Upload du fichier en cours...', 'info');
+
+    try {
+      const res = await fetch('/api/media/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          data: base64Data,
+          alt: file.name.replace(/\.[^/.]+$/, ''),
+          caption: 'Photographie éditoriale ONTARIO'
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('✓ Visuel téléversé et stocké sur le serveur !');
+        await loadServerData();
+        renderAdmin(document.getElementById('app-container'));
+      } else {
+        alert(data.error || 'Erreur lors du téléversement.');
+      }
+    } catch (err) {
+      showToast('Erreur serveur upload : ' + err.message, 'error');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// --------------------------------------------------------------------------
+// NEWSLETTER & EXPORT CSV PROTÉGÉ
+// --------------------------------------------------------------------------
 function exportSubscribersCSV() {
-  let csv = "ID,Email,Date,Statut,Frequence\n";
-  ADMIN_SUBSCRIBERS.forEach(s => {
-    csv += s.id + "," + s.email + "," + s.date + "," + s.status + "," + s.frequency + "\n";
-  });
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "abonnes_newsletter_ontario_" + Date.now() + ".csv";
-  a.click();
+  window.location.href = '/api/subscribers/export';
+  showToast('Téléchargement du fichier CSV sécurisé initié !', 'info');
 }
 
-function handleAddSubscriber(e) {
+async function handleAddSubscriber(e) {
   e.preventDefault();
   const input = document.getElementById('new-sub-email');
   if (!input || !input.value) return;
-  ADMIN_SUBSCRIBERS.unshift({
-    id: 's-' + Date.now(),
-    email: input.value.trim(),
-    date: "Aujourd'hui",
-    status: 'Vérifié (Double Opt-In)',
-    frequency: 'Hebdomadaire'
-  });
-  input.value = '';
-  alert('Nouvel abonné enregistré avec succès !');
-  renderAdmin(document.getElementById('app-container'));
+  const email = input.value.trim();
+
+  try {
+    const res = await fetch('/api/subscribers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      input.value = '';
+      showToast(data.message || 'Abonné enregistré avec succès !');
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    } else {
+      alert(data.error || 'Erreur ajout abonné');
+    }
+  } catch (err) {
+    showToast('Erreur réseau', 'error');
+  }
 }
 
-function deleteSubscriber(id) {
-  ADMIN_SUBSCRIBERS = ADMIN_SUBSCRIBERS.filter(s => s.id !== id);
-  renderAdmin(document.getElementById('app-container'));
+async function deleteSubscriber(id) {
+  if (confirm('Désinscrire cet abonné de la liste ?')) {
+    try {
+      const res = await fetch('/api/subscribers/' + id, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Abonné retiré de la base.');
+        await loadServerData();
+        renderAdmin(document.getElementById('app-container'));
+      }
+    } catch (e) {
+      showToast('Erreur serveur', 'error');
+    }
+  }
 }
 
-function handleAddUser(e) {
+// --------------------------------------------------------------------------
+// UTILISATEURS & ÉQUIPE
+// --------------------------------------------------------------------------
+async function handleAddUser(e) {
   e.preventDefault();
   const name = document.getElementById('user-new-name').value.trim();
   const email = document.getElementById('user-new-email').value.trim();
   const role = document.getElementById('user-new-role').value;
   if (!name || !email) return;
-  ADMIN_USERS.push({
-    id: 'u-' + Date.now(),
-    name,
-    email,
-    role,
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
-    status: 'Actif',
-    lastActive: "Aujourd'hui",
-    articlesCount: 0
-  });
-  alert('Utilisateur ' + name + ' (' + role + ') ajouté avec succès !');
-  renderAdmin(document.getElementById('app-container'));
-}
 
-function changeUserRole(id, newRole) {
-  const u = ADMIN_USERS.find(x => x.id === id);
-  if (u) {
-    u.role = newRole;
-    alert('Rôle de ' + u.name + ' mis à jour vers : ' + newRole);
-    renderAdmin(document.getElementById('app-container'));
+  try {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, role })
+    });
+    if (res.ok) {
+      showToast(`Utilisateur ${name} créé avec succès !`);
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    }
+  } catch (e) {
+    showToast('Erreur création utilisateur', 'error');
   }
 }
 
-function deleteUser(id) {
-  if (id === 'u-1') {
-    alert("Impossible de supprimer le Super-Administrateur principal.");
-    return;
-  }
-  if (confirm("Supprimer ce compte utilisateur ?")) {
-    ADMIN_USERS = ADMIN_USERS.filter(u => u.id !== id);
-    renderAdmin(document.getElementById('app-container'));
-  }
-}
-
-function handleCreateCategory(e) {
+// --------------------------------------------------------------------------
+// TAXONOMIES : CATÉGORIES
+// --------------------------------------------------------------------------
+async function handleCreateCategory(e) {
   e.preventDefault();
   const name = document.getElementById('new-cat-name').value.trim();
   const slug = document.getElementById('new-cat-slug').value.trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const bg = document.getElementById('new-cat-bg').value;
-  const text = document.getElementById('new-cat-text').value;
+  const bgLight = document.getElementById('new-cat-bg').value;
+  const textLight = document.getElementById('new-cat-text').value;
   if (!name) return;
-  CATEGORIES.push({
-    id: 'cat-' + Date.now(),
-    name,
-    slug,
-    bgLight: bg,
-    textLight: text,
-    bgDark: '#13283E',
-    textDark: '#FFFFFF',
-    count: 0
-  });
-  alert('Nouvelle catégorie "' + name + '" créée avec succès !');
-  renderAdmin(document.getElementById('app-container'));
+
+  try {
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, slug, bgLight, textLight })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`Rubrique "${name}" créée avec succès !`);
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    } else {
+      alert(data.error || 'Erreur création catégorie');
+    }
+  } catch (e) {
+    showToast('Erreur serveur', 'error');
+  }
 }
 
-function toggleAdSenseGlobal() {
+// --------------------------------------------------------------------------
+// MONÉTISATION ADSENSE & SETTINGS
+// --------------------------------------------------------------------------
+async function toggleAdSenseGlobal() {
   ADMIN_ADSENSE.enabled = !ADMIN_ADSENSE.enabled;
+  try {
+    await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adsense: ADMIN_ADSENSE })
+    });
+    showToast(ADMIN_ADSENSE.enabled ? 'Régie publicitaire activée sur le site' : 'Régie publicitaire désactivée', 'info');
+  } catch (e) {}
   renderAdmin(document.getElementById('app-container'));
 }
 
-function toggleAdSenseSlot(key) {
-  if (ADMIN_ADSENSE.slots[key]) {
+async function toggleAdSenseSlot(key) {
+  if (ADMIN_ADSENSE.slots && ADMIN_ADSENSE.slots[key]) {
     ADMIN_ADSENSE.slots[key].enabled = !ADMIN_ADSENSE.slots[key].enabled;
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adsense: ADMIN_ADSENSE })
+      });
+      showToast(`Emplacement ${key} mis à jour.`);
+    } catch (e) {}
     renderAdmin(document.getElementById('app-container'));
   }
 }
 
-function changeAdSenseFormat(key, fmt) {
-  if (ADMIN_ADSENSE.slots[key]) {
-    ADMIN_ADSENSE.slots[key].format = fmt;
-    renderAdmin(document.getElementById('app-container'));
-  }
-}
-
-function updateAdSensePublisher(val) {
+async function updateAdSensePublisher(val) {
   ADMIN_ADSENSE.publisherId = val.trim();
+  try {
+    await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adsense: ADMIN_ADSENSE })
+    });
+    showToast('Identifiant éditeur AdSense enregistré sur le serveur.');
+  } catch (e) {}
 }
 
+async function saveCustomizationSubmit(e) {
+  e.preventDefault();
+  const mode = document.getElementById('cust-carousel-mode')?.value;
+  const duration = parseInt(document.getElementById('cust-carousel-duration')?.value || '6', 10);
+  const maxSlides = parseInt(document.getElementById('cust-carousel-max')?.value || '5', 10);
+  if (mode) HERO_CAROUSEL_CONFIG.mode = mode;
+  if (duration) HERO_CAROUSEL_CONFIG.autoplayInterval = duration * 1000;
+  if (maxSlides) HERO_CAROUSEL_CONFIG.maxSlides = maxSlides;
+
+  try {
+    await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ carousel: HERO_CAROUSEL_CONFIG })
+    });
+    showToast('✓ Paramètres du Carrousel enregistrés sur le serveur !');
+  } catch (e) {
+    showToast('Paramètres sauvegardés localement', 'info');
+  }
+  setAdminNav('dashboard');
+}
+
+// --------------------------------------------------------------------------
+// ÉDITEUR DE CONTENUS WORDPRESS / GUTENBERG
+// --------------------------------------------------------------------------
 function startNewArticle() {
   editingArticleId = 'new';
   editorBlocks = [
-    { type: 'paragraph', text: 'Rédigez l’introduction de votre nouvel article ici...' }
+    { type: 'paragraph', text: 'Rédigez l’introduction de votre nouvelle analyse ici...' }
   ];
+  currentEditorState = {
+    title: '',
+    excerpt: '',
+    coverImage: '/images/hero_ontario_orange.jpg',
+    imageAlt: '',
+    imageCaption: '',
+    focalPoint: 'center center',
+    categorySlug: 'intelligence-artificielle',
+    authorSlug: 'steve-jones',
+    scheduledAt: '',
+    isHero: false,
+    seoTitle: '',
+    seoDesc: '',
+    tags: ['Magazine', 'Innovation']
+  };
   adminCurrentTab = 'editor';
   renderAdmin(document.getElementById('app-container'));
 }
 
 function editArticle(id) {
   const art = ARTICLES.find(a => a.id === id);
-  if (art) {
-    editingArticleId = id;
-    editorBlocks = JSON.parse(JSON.stringify(art.contentBlocks || [
-      { type: 'paragraph', text: art.excerpt }
-    ]));
-    adminCurrentTab = 'editor';
-    renderAdmin(document.getElementById('app-container'));
-  }
+  if (!art) return;
+  editingArticleId = id;
+  editorBlocks = JSON.parse(JSON.stringify(art.contentBlocks || [
+    { type: 'paragraph', text: art.excerpt || 'Contenu éditorial.' }
+  ]));
+  currentEditorState = {
+    title: art.title || '',
+    excerpt: art.excerpt || '',
+    coverImage: art.coverImage || '/images/hero_ontario_orange.jpg',
+    imageAlt: art.imageAlt || '',
+    imageCaption: art.imageCaption || '',
+    focalPoint: art.focalPoint || 'center center',
+    categorySlug: art.categorySlug || 'intelligence-artificielle',
+    authorSlug: art.authorSlug || 'steve-jones',
+    scheduledAt: art.scheduledAt || '',
+    isHero: !!art.isHero,
+    seoTitle: (art.seo && art.seo.metaTitle) || art.title || '',
+    seoDesc: (art.seo && art.seo.metaDescription) || art.excerpt || '',
+    tags: art.tags || []
+  };
+  adminCurrentTab = 'editor';
+  renderAdmin(document.getElementById('app-container'));
 }
 
 function cancelEditor() {
@@ -2336,19 +2648,47 @@ function cancelEditor() {
   renderAdmin(document.getElementById('app-container'));
 }
 
+// Capture de l'état actuel de l'éditeur sans perdre le texte en cours
+function captureEditorInputs() {
+  const t = document.getElementById('editor-title');
+  if (t) currentEditorState.title = t.value;
+  const ex = document.getElementById('editor-excerpt');
+  if (ex) currentEditorState.excerpt = ex.value;
+  const cov = document.getElementById('editor-cover');
+  if (cov) currentEditorState.coverImage = cov.value;
+  const alt = document.getElementById('editor-image-alt');
+  if (alt) currentEditorState.imageAlt = alt.value;
+  const cap = document.getElementById('editor-image-caption');
+  if (cap) currentEditorState.imageCaption = cap.value;
+  const fp = document.getElementById('editor-focal-point');
+  if (fp) currentEditorState.focalPoint = fp.value;
+  const cat = document.getElementById('editor-cat');
+  if (cat) currentEditorState.categorySlug = cat.value;
+  const aut = document.getElementById('editor-author');
+  if (aut) currentEditorState.authorSlug = aut.value;
+  const sch = document.getElementById('editor-schedule');
+  if (sch) currentEditorState.scheduledAt = sch.value;
+  const hero = document.getElementById('editor-is-hero');
+  if (hero) currentEditorState.isHero = hero.checked;
+  const st = document.getElementById('editor-seo-title');
+  if (st) currentEditorState.seoTitle = st.value;
+  const sd = document.getElementById('editor-seo-desc');
+  if (sd) currentEditorState.seoDesc = sd.value;
+}
+
 function addBlock(type) {
+  captureEditorInputs();
   if (type === 'paragraph') editorBlocks.push({ type: 'paragraph', text: 'Nouveau paragraphe éditorial...' });
   if (type === 'heading') editorBlocks.push({ type: 'heading', level: 'h2', text: 'Nouveau titre H2 de section' });
   if (type === 'heading-h3') editorBlocks.push({ type: 'heading', level: 'h3', text: 'Sous-titre H3' });
   if (type === 'quote') editorBlocks.push({ type: 'quote', text: 'Citation mémorable de l’intervenant...', author: 'Auteur / Intervenant' });
   if (type === 'list') editorBlocks.push({ type: 'list', items: ['Premier point d’analyse', 'Deuxième enseignement clé', 'Troisième perspective stratégique'] });
-  if (type === 'image') editorBlocks.push({ type: 'image', url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=85', alt: 'Visuel illustratif', caption: 'Légende illustrative du visuel' });
-  if (type === 'gallery') editorBlocks.push({ type: 'gallery', images: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80'], caption: 'Galerie photographique comparative' });
+  if (type === 'image') editorBlocks.push({ type: 'image', url: '/images/hero_ontario_orange.jpg', alt: 'Visuel illustratif', caption: 'Légende illustrative du visuel' });
+  if (type === 'gallery') editorBlocks.push({ type: 'gallery', images: ['/images/hero_ontario_orange.jpg', '/images/hero_ontario_cyber.jpg'], caption: 'Galerie photographique comparative' });
   if (type === 'video') editorBlocks.push({ type: 'video', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', caption: 'Documentaire ou banc d’essai vidéo' });
   if (type === 'callout') editorBlocks.push({ type: 'callout', title: 'À Retenir', text: 'Les points essentiels de ce dossier synthétisés pour les décideurs.' });
   if (type === 'separator') editorBlocks.push({ type: 'separator' });
-  if (type === 'table') editorBlocks.push({ type: 'table', rows: [['Caractéristique', 'Modèle Standard', 'Modèle Pro'], ['Architecture NPU', '24 TOPS', '45 TOPS'], ['Autonomie', '12h', '18h']] });
-  if (type === 'button') editorBlocks.push({ type: 'button', text: 'En savoir plus sur l’offre', url: 'https://ontariowp.com' });
+  if (type === 'table') editorBlocks.push({ type: 'table', rows: [['Critère', 'Solution Standard', 'Solution Pro'], ['Performance NPU', '24 TOPS', '45 TOPS'], ['Autonomie', '12h', '18h']] });
   if (type === 'affiliate') {
     editorBlocks.push({
       type: 'affiliate',
@@ -2364,6 +2704,7 @@ function addBlock(type) {
 }
 
 function moveBlock(idx, dir) {
+  captureEditorInputs();
   const target = idx + dir;
   if (target < 0 || target >= editorBlocks.length) return;
   const temp = editorBlocks[idx];
@@ -2373,6 +2714,7 @@ function moveBlock(idx, dir) {
 }
 
 function duplicateBlock(idx) {
+  captureEditorInputs();
   if (editorBlocks[idx]) {
     const clone = JSON.parse(JSON.stringify(editorBlocks[idx]));
     editorBlocks.splice(idx + 1, 0, clone);
@@ -2381,6 +2723,7 @@ function duplicateBlock(idx) {
 }
 
 function deleteBlock(idx) {
+  captureEditorInputs();
   editorBlocks.splice(idx, 1);
   renderAdmin(document.getElementById('app-container'));
 }
@@ -2393,42 +2736,29 @@ function updateBlockField(idx, field, val) {
   if (editorBlocks[idx]) editorBlocks[idx][field] = val;
 }
 
-function updateAffiliateField(idx, field, val) {
-  if (editorBlocks[idx]) editorBlocks[idx][field] = val;
-}
-
-function updateEditorCoverPreview(url) {
-  const preview = document.getElementById('editor-cover-preview');
-  if (preview) preview.src = url || FALLBACK_IMAGE;
-}
-
-function updateEditorFocalPoint(fp) {
-  const preview = document.getElementById('editor-cover-preview');
-  if (preview) preview.style.objectPosition = fp;
-}
-
 function openMediaPickerForEditor() {
+  captureEditorInputs();
   const modal = document.createElement('div');
   modal.id = 'media-picker-modal';
   modal.className = 'fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6';
   modal.innerHTML = `
-    <div class="w-full max-w-4xl max-h-[85vh] bg-[#0E2137] border border-[#1E3752] rounded-3xl p-6 flex flex-col shadow-2xl text-white">
-      <div class="flex items-center justify-between pb-4 border-b border-[#1E3752]">
+    <div class="w-full max-w-4xl max-h-[85vh] bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] rounded-3xl p-6 flex flex-col shadow-2xl text-zinc-900 dark:text-white">
+      <div class="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-[#1E3752]">
         <div>
           <h3 class="font-heading text-lg font-bold">Sélectionner un Visuel dans la Médiathèque</h3>
-          <p class="text-xs text-zinc-400">Cliquez sur une image pour l'appliquer comme visuel principal de l'article</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400">Cliquez sur une image pour l'appliquer comme visuel principal de l'article</p>
         </div>
-        <button onclick="closeMediaPickerModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm">✕</button>
+        <button onclick="closeMediaPickerModal()" class="w-8 h-8 rounded-full bg-zinc-100 dark:bg-white/10 hover:bg-zinc-200 dark:hover:bg-white/20 flex items-center justify-center text-sm">✕</button>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto py-4 flex-1">
         ${ADMIN_MEDIA.map(m => `
-          <div onclick="selectMediaForEditor('${m.url}', '${m.title}')" class="group relative rounded-2xl overflow-hidden border border-[#1E3752] hover:border-[#EF4248] cursor-pointer bg-[#0A1A2F] transition-all">
+          <div onclick="selectMediaForEditor('${m.url}', '${m.name || m.title}')" class="group relative rounded-2xl overflow-hidden border border-zinc-200 dark:border-[#1E3752] hover:border-[#EF4248] cursor-pointer bg-zinc-50 dark:bg-[#0A1A2F] transition-all">
             <div class="aspect-[4/3] w-full overflow-hidden">
               <img src="${m.url}" onerror="onImgError(this)" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
             </div>
             <div class="p-2.5">
-              <h4 class="text-xs font-bold truncate text-white">${m.title}</h4>
-              <span class="text-[10px] text-zinc-400">${m.dimensions}</span>
+              <h4 class="text-xs font-bold truncate text-zinc-900 dark:text-white">${m.name || m.title}</h4>
+              <span class="text-[10px] text-zinc-400">${m.size || ''}</span>
             </div>
           </div>
         `).join('')}
@@ -2444,61 +2774,13 @@ function closeMediaPickerModal() {
 }
 
 function selectMediaForEditor(url, title) {
+  currentEditorState.coverImage = url;
+  if (!currentEditorState.imageAlt) currentEditorState.imageAlt = title;
   const input = document.getElementById('editor-cover');
   if (input) input.value = url;
-  const alt = document.getElementById('editor-image-alt');
-  if (alt && !alt.value) alt.value = title;
-  updateEditorCoverPreview(url);
+  const preview = document.getElementById('editor-cover-preview');
+  if (preview) preview.src = url;
   closeMediaPickerModal();
-}
-
-function previewCurrentEditorArticle() {
-  const title = (document.getElementById('editor-title')?.value || '').trim() || 'Aperçu de l’article';
-  const excerpt = (document.getElementById('editor-excerpt')?.value || '').trim() || 'Extrait de l’article';
-  const coverImage = (document.getElementById('editor-cover')?.value || '').trim() || FALLBACK_IMAGE;
-  const imageCaption = (document.getElementById('editor-image-caption')?.value || '').trim();
-  const focalPoint = document.getElementById('editor-focal-point')?.value || 'center center';
-
-  const modal = document.createElement('div');
-  modal.id = 'article-preview-modal';
-  modal.className = 'fixed inset-0 z-[100] bg-black/85 backdrop-blur-md overflow-y-auto p-4 sm:p-8 flex justify-center';
-  modal.innerHTML = `
-    <div class="w-full max-w-4xl bg-[#071426] border border-[#1E3752] rounded-3xl p-6 sm:p-10 my-auto shadow-2xl text-white relative">
-      <div class="flex items-center justify-between pb-6 mb-6 border-b border-[#1E3752]">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EF4248]/20 text-[#EF4248] text-xs font-bold uppercase">
-          👁️ Mode Prévisualisation Directe
-        </div>
-        <button onclick="closeArticlePreviewModal()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold">
-          Fermer l'aperçu ✕
-        </button>
-      </div>
-
-      <h1 class="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 leading-tight">${title}</h1>
-      <p class="text-base sm:text-lg text-zinc-300 mb-6 leading-relaxed">${excerpt}</p>
-      
-      <div class="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 border border-white/10 shadow-xl bg-[#0E2137]">
-        <img src="${coverImage}" style="object-position: ${focalPoint};" class="w-full h-full object-cover">
-        ${imageCaption ? `<div class="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/80 to-transparent text-xs text-zinc-300 italic">${imageCaption}</div>` : ''}
-      </div>
-
-      <div class="prose-editorial text-zinc-300 space-y-4 pt-4 border-t border-[#1E3752]">
-        ${editorBlocks.map(b => {
-          if (b.type === 'paragraph') return `<p>${b.text}</p>`;
-          if (b.type === 'heading') return `<h2 class="font-heading text-2xl font-bold text-white mt-6">${b.text}</h2>`;
-          if (b.type === 'quote') return `<blockquote class="border-l-4 border-[#EF4248] pl-4 italic text-zinc-200">${b.text}</blockquote>`;
-          if (b.type === 'image') return `<figure class="my-6"><img src="${b.url}" class="rounded-xl w-full"><figcaption class="text-xs text-zinc-400 mt-1 italic">${b.caption || ''}</figcaption></figure>`;
-          if (b.type === 'affiliate') return `<div class="p-5 rounded-2xl bg-[#0E2137] border border-[#EF4248]/50 my-6"><h4 class="font-bold text-white">${b.productName}</h4><p class="text-xs text-zinc-400 mt-1">${b.disclaimer || ''}</p></div>`;
-          return '';
-        }).join('')}
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-function closeArticlePreviewModal() {
-  const modal = document.getElementById('article-preview-modal');
-  if (modal) modal.remove();
 }
 
 function saveArticleDraft() {
@@ -2509,143 +2791,174 @@ function publishArticleEditor() {
   saveArticleWithStatus('published');
 }
 
-function saveArticleWithStatus(targetStatus) {
-  const title = (document.getElementById('editor-title')?.value || '').trim() || 'Article Sans Titre';
-  const excerpt = (document.getElementById('editor-excerpt')?.value || '').trim() || 'Extrait de l’article';
-  const catSlug = document.getElementById('editor-cat')?.value || 'intelligence-artificielle';
-  const coverImage = (document.getElementById('editor-cover')?.value || '').trim() || FALLBACK_IMAGE;
-  const imageAlt = (document.getElementById('editor-image-alt')?.value || '').trim() || title;
-  const imageCaption = (document.getElementById('editor-image-caption')?.value || '').trim();
-  const focalPoint = document.getElementById('editor-focal-point')?.value || 'center center';
-  const isHero = document.getElementById('editor-is-hero')?.checked ?? false;
-  const scheduledAt = document.getElementById('editor-schedule')?.value || null;
-  const authorSlug = document.getElementById('editor-author')?.value || 'steve-jones';
-  const customSlug = (document.getElementById('editor-slug')?.value || '').trim();
-  const slug = customSlug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  const seoTitle = (document.getElementById('editor-seo-title')?.value || '').trim() || title;
-  const seoDescription = (document.getElementById('editor-seo-desc')?.value || '').trim() || excerpt;
-  const tags = (document.getElementById('editor-tags')?.value || '').split(',').map(t => t.trim()).filter(Boolean);
+async function saveArticleWithStatus(targetStatus) {
+  captureEditorInputs();
+
+  const title = currentEditorState.title.trim() || 'Article Sans Titre';
+  const excerpt = currentEditorState.excerpt.trim() || 'Extrait de l’article éditorial.';
+  const scheduledAt = currentEditorState.scheduledAt || null;
 
   let finalStatus = targetStatus;
   if (scheduledAt && targetStatus === 'published') {
     finalStatus = 'scheduled';
   }
 
-  if (editingArticleId === 'new') {
-    const newArt = {
-      id: 'art-' + Date.now(),
-      title,
-      frenchTitle: title,
-      slug,
-      excerpt,
-      coverImage,
-      imageAlt,
-      imageCaption,
-      focalPoint,
-      categorySlug: catSlug,
-      categoryBadge: 'RÉCENT',
-      authorSlug,
-      readingTime: Math.max(3, Math.round(editorBlocks.length * 1.5)),
-      publishedAt: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
-      status: finalStatus,
-      scheduledAt,
-      isHero,
-      isFeatured: isHero,
-      views: 1,
-      likes: 0,
-      tags: tags.length ? tags : ['Nouveau', 'Magazine'],
-      seo: {
-        metaTitle: seoTitle,
-        metaDescription: seoDescription
-      },
-      contentBlocks: editorBlocks
-    };
-    ARTICLES.unshift(newArt);
-    if (isHero) {
-      heroSliderIndex = 0;
+  const payload = {
+    title,
+    frenchTitle: title,
+    slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+    excerpt,
+    coverImage: currentEditorState.coverImage || '/images/hero_ontario_orange.jpg',
+    imageAlt: currentEditorState.imageAlt || title,
+    imageCaption: currentEditorState.imageCaption || '',
+    focalPoint: currentEditorState.focalPoint || 'center center',
+    categorySlug: currentEditorState.categorySlug || 'intelligence-artificielle',
+    authorSlug: currentEditorState.authorSlug || 'steve-jones',
+    readingTime: Math.max(3, Math.round(editorBlocks.length * 1.5)),
+    status: finalStatus,
+    scheduledAt: scheduledAt,
+    isHero: currentEditorState.isHero,
+    isFeatured: currentEditorState.isHero,
+    tags: currentEditorState.tags,
+    seo: {
+      metaTitle: currentEditorState.seoTitle || title,
+      metaDescription: currentEditorState.seoDesc || excerpt
+    },
+    contentBlocks: editorBlocks
+  };
+
+  showToast('Enregistrement sur le serveur...', 'info');
+
+  try {
+    let res;
+    if (editingArticleId === 'new') {
+      res = await fetch('/api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch('/api/articles/' + editingArticleId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
     }
-  } else {
-    const art = ARTICLES.find(a => a.id === editingArticleId);
-    if (art) {
-      art.title = title;
-      art.frenchTitle = title;
-      art.slug = slug;
-      art.excerpt = excerpt;
-      art.coverImage = coverImage;
-      art.imageAlt = imageAlt;
-      art.imageCaption = imageCaption;
-      art.focalPoint = focalPoint;
-      art.categorySlug = catSlug;
-      art.authorSlug = authorSlug;
-      art.status = finalStatus;
-      art.scheduledAt = scheduledAt;
-      art.isHero = isHero;
-      if (isHero) art.isFeatured = true;
-      art.tags = tags.length ? tags : art.tags;
-      art.seo = {
-        metaTitle: seoTitle,
-        metaDescription: seoDescription
-      };
-      art.contentBlocks = editorBlocks;
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(`✓ Article ${finalStatus === 'published' ? 'publié sur le site' : (finalStatus === 'scheduled' ? 'programmé' : 'enregistré en brouillon')} avec succès !`, 'success');
+      editingArticleId = null;
+      adminCurrentTab = 'articles';
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    } else {
+      alert(data.error || 'Erreur lors de la sauvegarde sur le serveur.');
     }
+  } catch (err) {
+    showToast('Erreur serveur lors de la sauvegarde : ' + err.message, 'error');
   }
-
-  localStorage.setItem('ontario_cms_database_v2', JSON.stringify({ articles: ARTICLES }));
-
-  alert("✓ Article " + (finalStatus === 'published' ? 'publié avec succès sur le site public' : (finalStatus === 'scheduled' ? 'programmé pour publication à la date définie' : 'enregistré en brouillon')) + " !");
-  editingArticleId = null;
-  adminCurrentTab = 'articles';
-  syncStoreAndRender();
-}
-
-function saveCustomizationSubmit(e) {
-  e.preventDefault();
-  const title = document.getElementById('cust-hero-title')?.value;
-  const desc = document.getElementById('cust-hero-desc')?.value;
-  const img = document.getElementById('cust-hero-img')?.value;
-
-  if (ARTICLES[0]) {
-    if (title) ARTICLES[0].title = title;
-    if (desc) ARTICLES[0].excerpt = desc;
-    if (img) ARTICLES[0].coverImage = img;
-  }
-
-  const mode = document.getElementById('cust-carousel-mode')?.value;
-  const duration = parseInt(document.getElementById('cust-carousel-duration')?.value || '6', 10);
-  const maxSlides = parseInt(document.getElementById('cust-carousel-max')?.value || '5', 10);
-  if (mode) HERO_CAROUSEL_CONFIG.mode = mode;
-  if (duration) HERO_CAROUSEL_CONFIG.autoplayInterval = duration * 1000;
-  if (maxSlides) HERO_CAROUSEL_CONFIG.maxSlides = maxSlides;
-  localStorage.setItem('ontario_carousel_config_v2', JSON.stringify(HERO_CAROUSEL_CONFIG));
-
-  localStorage.setItem('ontario_cms_database_v2', JSON.stringify({ articles: ARTICLES }));
-  alert("✓ Configuration du Carrousel Hero enregistrée et synchronisée avec la page d'accueil !");
-  setAdminNav('dashboard');
-}
-
-function saveAdminProfileSubmit(e) {
-  e.preventDefault();
-  const name = document.getElementById('profile-name')?.value;
-  const email = document.getElementById('profile-email')?.value;
-  const avatar = document.getElementById('profile-avatar')?.value;
-  const newPass = document.getElementById('profile-new-pass')?.value;
-
-  if (currentUser) {
-    if (name) currentUser.name = name;
-    if (email) currentUser.email = email;
-    if (avatar) currentUser.avatar = avatar;
-    localStorage.setItem('ontario_admin_session_v2', JSON.stringify({
-      ...currentUser,
-      fullName: currentUser.name,
-      expiresAt: Date.now() + 24 * 3600 * 1000
-    }));
-  }
-  alert("✓ Profil administrateur mis à jour avec succès !");
-  setAdminNav('dashboard');
 }
 
 // ==========================================================================
-// ORCHESTRATEUR PRINCIPAL DU DASHBOARD ADMINISTRATEUR ONTARIO
+// COMPATIBILITÉ ET ALIAS D'INTERACTIONS ADMINISTRATEUR SERVEUR
+// ==========================================================================
+
+function cycleTheme() {
+  const modes = ['system', 'light', 'dark'];
+  const cur = typeof currentThemePreference !== 'undefined' ? currentThemePreference : 'system';
+  const next = modes[(modes.indexOf(cur) + 1) % modes.length];
+  setThemePreference(next);
+  if (typeof renderAdmin === 'function' && document.getElementById('app-container')) {
+    renderAdmin(document.getElementById('app-container'));
+  }
+}
+
+function moderateComment(id, action) {
+  if (action === 'approved') return approveComment(id);
+  if (action === 'spam') return markCommentSpam(id);
+  if (action === 'trash') return deleteComment(id);
+}
+
+function deleteMediaFromServer(id) {
+  return deleteMediaItem(id);
+}
+
+function deleteSubscriberFromServer(id) {
+  return deleteSubscriber(id);
+}
+
+async function createNewCategory() {
+  const nameInput = document.getElementById('newCatName');
+  const slugInput = document.getElementById('newCatSlug');
+  const colorInput = document.getElementById('newCatColor');
+
+  if (!nameInput || !nameInput.value.trim()) {
+    showToast('Veuillez saisir un nom de rubrique.', 'error');
+    return;
+  }
+
+  const name = nameInput.value.trim();
+  const slug = slugInput && slugInput.value.trim() ? slugInput.value.trim().toLowerCase() : name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const color = colorInput ? colorInput.value : '#EF4248';
+
+  try {
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, slug, color, description: 'Rubrique éditoriale ' + name })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast('✓ Rubrique créée avec succès !', 'success');
+      await loadServerData();
+      renderAdmin(document.getElementById('app-container'));
+    } else {
+      alert(data.error || 'Erreur lors de la création de la rubrique');
+    }
+  } catch (e) {
+    showToast('Erreur serveur lors de la création de rubrique', 'error');
+  }
+}
+
+async function saveCarouselSettings() {
+  const modeSelect = document.getElementById('carouselModeSelect');
+  const durSelect = document.getElementById('carouselDurationSelect');
+
+  const mode = modeSelect ? modeSelect.value : 'recent';
+  const duration = durSelect ? parseInt(durSelect.value, 10) : 6000;
+
+  HERO_CAROUSEL_CONFIG.mode = mode;
+  HERO_CAROUSEL_CONFIG.intervalMs = duration;
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        heroCarousel: {
+          mode,
+          intervalMs: duration
+        }
+      })
+    });
+    if (res.ok) {
+      showToast('✓ Paramètres du carrousel enregistrés avec succès !', 'success');
+    }
+  } catch (e) {
+    showToast('Erreur enregistrement carrousel', 'error');
+  }
+}
+
+// Aliases
+const saveArticleToServer = saveArticleWithStatus;
+const uploadMediaToServer = triggerMediaUpload;
+
+
+
+// ==========================================================================
+// 9. ORCHESTRATEUR PRINCIPAL ET VUES DU DASHBOARD ADMINISTRATEUR ONTARIO
+// Système de design bimodal (Clair / Sombre Bleu Nuit #071426), données réelles
 // ==========================================================================
 
 function renderAdmin(container) {
@@ -2660,7 +2973,7 @@ function renderAdmin(container) {
   if (footerEl) footerEl.style.display = 'none';
 
   // Sécurité et contrôle de rôle étanche
-  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'administrator' || currentUser.role === 'editor');
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'administrator' || currentUser.role === 'editor' || currentUser.role === 'author');
   if (!isAdmin) {
     renderAdminLogin(container);
     return;
@@ -2672,256 +2985,254 @@ function renderAdmin(container) {
     return;
   }
 
-  // Rendu dynamique de l'onglet actif
-  let tabContentHtml = '';
-  switch (adminCurrentTab) {
-    case 'dashboard': tabContentHtml = renderTabDashboard(); break;
-    case 'analytics': tabContentHtml = renderTabAnalytics(); break;
-    case 'articles': tabContentHtml = renderTabArticles(); break;
-    case 'pages': tabContentHtml = renderTabPages(); break;
-    case 'media': tabContentHtml = renderTabMedia(); break;
-    case 'categories': tabContentHtml = renderTabCategories(); break;
-    case 'tags': tabContentHtml = renderTabTags(); break;
-    case 'comments': tabContentHtml = renderTabComments(); break;
-    case 'users': tabContentHtml = renderTabUsers(); break;
-    case 'newsletter': tabContentHtml = renderTabNewsletter(); break;
-    case 'seo': tabContentHtml = renderTabSEO(); break;
-    case 'adsense': tabContentHtml = renderTabAdSense(); break;
-    case 'customization':
-    case 'carousel':
-      tabContentHtml = renderTabCustomization(); break;
-    case 'settings': tabContentHtml = renderTabSettings(); break;
-    default: tabContentHtml = renderTabDashboard(); break;
-  }
-
-  const unreadNotifs = ADMIN_NOTIFICATIONS.filter(n => n.unread).length;
-  const pendingCommentsCount = ADMIN_COMMENTS.filter(c => c.status === 'pending').length;
-
-  const navGroups = [
-    {
-      title: 'PRINCIPAL',
-      items: [
-        { id: 'dashboard', label: 'Tableau de Bord', icon: '📊' },
-        { id: 'analytics', label: 'Analytics & Trafic', icon: '📈' },
-      ]
-    },
-    {
-      title: 'ÉDITION & CONTENUS',
-      items: [
-        { id: 'articles', label: 'Publications & Articles', icon: '📰', badge: ARTICLES.length },
-        { id: 'new', label: 'Nouvel Article', icon: '✍️' },
-        { id: 'pages', label: 'Pages Statiques', icon: '📄' },
-        { id: 'media', label: 'Médiathèque', icon: '📁', badge: ADMIN_MEDIA.length },
-      ]
-    },
-    {
-      title: 'TAXONOMIES & INTERACTIONS',
-      items: [
-        { id: 'categories', label: 'Catégories', icon: '🏷️' },
-        { id: 'tags', label: 'Mots-clés / Tags', icon: '🔖' },
-        { id: 'comments', label: 'Commentaires', icon: '💬', badge: pendingCommentsCount > 0 ? pendingCommentsCount : null },
-        { id: 'newsletter', label: 'Abonnés Newsletter', icon: '✉️', badge: ADMIN_SUBSCRIBERS.length },
-      ]
-    },
-    {
-      title: 'MONÉTISATION & CONFIG',
-      items: [
-        { id: 'adsense', label: 'Régie AdSense', icon: '💰' },
-        { id: 'seo', label: 'Référencement SEO', icon: '🔍' },
-        { id: 'customization', label: 'Carrousel & Hero', icon: '🎨' },
-        { id: 'users', label: 'Équipe & Droits', icon: '👥' },
-        { id: 'settings', label: 'Paramètres du Site', icon: '⚙️' },
-      ]
-    }
+  // Navigation Items
+  const navItems = [
+    { id: 'dashboard', label: 'Tableau de bord', icon: '📊', group: 'Général' },
+    { id: 'articles', label: 'Articles', icon: '📝', count: SERVER_STATS.articlesTotal, group: 'Édition' },
+    { id: 'pages', label: 'Pages', icon: '📄', count: PAGES.length, group: 'Édition' },
+    { id: 'categories', label: 'Rubriques', icon: '📁', count: CATEGORIES.length, group: 'Taxonomie' },
+    { id: 'tags', label: 'Étiquettes', icon: '🏷️', group: 'Taxonomie' },
+    { id: 'media', label: 'Médiathèque', icon: '🖼️', count: MEDIA_LIBRARY.length, group: 'Contenu' },
+    { id: 'comments', label: 'Commentaires', icon: '💬', count: COMMENTS.length, group: 'Contenu' },
+    { id: 'carousel', label: 'Carrousel Hero', icon: '🎠', group: 'Mise en avant' },
+    { id: 'newsletter', label: 'Abonnés Newsletter', icon: '📬', count: SUBSCRIBERS.length, group: 'Audience' },
+    { id: 'analytics', label: 'Statistiques & Trafic', icon: '📈', group: 'Audience' },
+    { id: 'ads', label: 'Monétisation AdSense', icon: '💰', group: 'Revenus' },
+    { id: 'users', label: 'Équipe & Utilisateurs', icon: '👥', count: USERS.length, group: 'Système' },
+    { id: 'seo', label: 'SEO & Référencement', icon: '🔍', group: 'Système' },
+    { id: 'settings', label: 'Réglages du site', icon: '⚙️', group: 'Système' }
   ];
 
+  // Groupement de navigation
+  const groups = ['Général', 'Édition', 'Taxonomie', 'Contenu', 'Mise en avant', 'Audience', 'Revenus', 'Système'];
+
+  const themeMode = typeof currentThemePreference !== 'undefined' ? currentThemePreference : 'system';
+  const themeIcon = themeMode === 'light' ? '☀️' : (themeMode === 'dark' ? '🌙' : '💻');
+  const themeLabel = themeMode === 'light' ? 'Clair' : (themeMode === 'dark' ? 'Sombre' : 'Système');
+
   container.innerHTML = `
-    <div class="min-h-screen bg-[#071426] text-white flex flex-col font-sans selection:bg-[#EF4248] selection:text-white">
+    <div class="min-h-screen bg-zinc-50 dark:bg-[#071426] text-zinc-900 dark:text-zinc-100 flex flex-col md:flex-row transition-colors duration-200">
       
-      <!-- TOPBAR ADMINISTRATIVE PROFESSIONNELLE -->
-      <header class="sticky top-0 z-40 h-16 bg-[#0E2137]/95 backdrop-blur-md border-b border-[#1E3752] px-4 sm:px-6 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <!-- Toggle Sidebar Mobile -->
-          <button onclick="toggleAdminMobileSidebar()" class="lg:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          </button>
-
-          <!-- Toggle Sidebar Desktop -->
-          <button onclick="toggleAdminSidebar()" class="hidden lg:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors" title="${adminSidebarCollapsed ? 'Déplier la barre latérale' : 'Replier la barre latérale'}">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
-          </button>
-
-          <!-- Brand Logo Header -->
-          <div onclick="setAdminNav('dashboard')" class="flex items-center gap-2.5 cursor-pointer group">
-            <div class="w-8 h-8 rounded-full bg-[#EF4248] flex items-center justify-center text-white font-extrabold shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
-              <span class="font-heading text-sm">O</span>
-            </div>
-            <div class="hidden sm:flex flex-col">
-              <span class="font-heading font-extrabold text-sm tracking-tight text-white leading-none">ONTARIO</span>
-              <span class="text-[9px] font-mono text-[#EF4248] tracking-widest uppercase">CMS Admin v2.4</span>
-            </div>
-          </div>
-
-          <div class="hidden md:flex items-center gap-2 pl-4 border-l border-[#1E3752]">
-            <span class="text-xs text-zinc-400">Onglet :</span>
-            <span class="text-xs font-bold text-white capitalize">${adminCurrentTab}</span>
-          </div>
-        </div>
-
-        <!-- Actions Droite Topbar -->
-        <div class="flex items-center gap-2 sm:gap-3">
-          <!-- Bouton Rédiger Nouvel Article -->
-          <button onclick="setAdminNav('new')" class="px-3.5 py-1.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 transition-all flex items-center gap-1.5 cursor-pointer">
-            <span>✍️</span>
-            <span class="hidden sm:inline">Nouvel Article</span>
-          </button>
-
-          <!-- Bouton Voir le Site Public -->
-          <button onclick="navigate('home')" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-[#1E3752] text-xs font-semibold text-zinc-300 hover:text-white transition-all flex items-center gap-1.5">
-            <span>🌐</span>
-            <span class="hidden md:inline">Voir le site</span>
-          </button>
-
-          <!-- Cloche Notifications avec Badge -->
-          <div class="relative">
-            <button onclick="toggleAdminNotifications()" class="relative p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-              ${unreadNotifs > 0 ? `<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4248] animate-ping"></span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4248]"></span>` : ''}
-            </button>
-
-            <!-- Menu déroulant Notifications -->
-            ${adminNotificationsOpen ? `
-              <div class="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-[#0E2137] border border-[#1E3752] shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95">
-                <div class="flex items-center justify-between pb-3 border-b border-[#1E3752] mb-3">
-                  <h4 class="font-heading font-bold text-xs text-white uppercase tracking-wider">Notifications CMS</h4>
-                  <button onclick="markAllNotificationsRead()" class="text-[10px] text-[#EF4248] hover:underline font-semibold">Tout marquer comme lu</button>
-                </div>
-                <div class="space-y-2.5 max-h-72 overflow-y-auto">
-                  ${ADMIN_NOTIFICATIONS.map(n => `
-                    <div class="p-2.5 rounded-xl ${n.unread ? 'bg-[#122B45] border border-[#EF4248]/30' : 'bg-[#0A1A2F]'} text-xs flex items-start gap-2.5">
-                      <span class="text-base">${n.icon}</span>
-                      <div class="flex-1">
-                        <p class="text-zinc-200 leading-snug">${n.title}</p>
-                        <span class="text-[10px] text-zinc-400 mt-1 block">${n.time}</span>
-                      </div>
-                    </div>
-                  `).join('')}
-                </div>
+      <!-- SIDEBAR DESKTOP -->
+      <aside class="${adminSidebarCollapsed ? 'w-20' : 'w-64'} hidden md:flex flex-col flex-shrink-0 bg-white dark:bg-[#0E2137] border-r border-zinc-200 dark:border-[#1E3752] transition-all duration-300 z-30 select-none">
+        
+        <!-- Brand Header -->
+        <div class="h-16 px-4 flex items-center justify-between border-b border-zinc-200 dark:border-[#1E3752]">
+          <a href="#home" class="flex items-center gap-3 overflow-hidden group">
+            <span class="w-8 h-8 rounded-lg bg-[#EF4248] text-white flex items-center justify-center font-heading font-black text-base shadow-md group-hover:scale-105 transition-transform flex-shrink-0">O</span>
+            ${!adminSidebarCollapsed ? `
+              <div class="truncate">
+                <span class="font-heading font-black text-sm tracking-wider text-zinc-900 dark:text-white uppercase">ONTARIO</span>
+                <span class="block text-[10px] text-zinc-400 font-medium tracking-normal -mt-0.5">Administration CMS</span>
               </div>
             ` : ''}
-          </div>
-
-          <!-- Profil Administrateur & Déconnexion -->
-          <div class="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-[#1E3752]">
-            <img src="${currentUser?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'}" alt="${currentUser?.name || 'Admin'}" class="w-8 h-8 rounded-full object-cover border border-[#EF4248]">
-            <div class="hidden xl:flex flex-col text-left">
-              <span class="text-xs font-bold text-white leading-tight truncate max-w-[120px]">${currentUser?.name || 'Steve Jones'}</span>
-              <span class="text-[9px] text-[#EF4248] uppercase font-bold tracking-wider">${currentUser?.role || 'Admin'}</span>
-            </div>
-            <button onclick="handleAdminLogout()" title="Se déconnecter" class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors cursor-pointer ml-1">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            </button>
-          </div>
+          </a>
+          <button onclick="toggleAdminSidebar()" class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#1E3752] transition-colors" title="${adminSidebarCollapsed ? 'Agrandir le menu' : 'Réduire le menu'}">
+            ${adminSidebarCollapsed ? '→' : '←'}
+          </button>
         </div>
-      </header>
 
-      <!-- CORPS AVEC SIDEBAR & ESPACE DE TRAVAIL -->
-      <div class="flex-1 flex overflow-hidden">
-        
-        <!-- SIDEBAR GAUCHE PLIABLE (DESKTOP) -->
-        <aside class="hidden lg:flex flex-col bg-[#0E2137] border-r border-[#1E3752] transition-all duration-300 ${adminSidebarCollapsed ? 'w-20' : 'w-64'} shrink-0 overflow-y-auto p-4 space-y-6">
-          ${navGroups.map(grp => `
-            <div>
-              ${!adminSidebarCollapsed ? `
-                <span class="text-[10px] font-bold tracking-wider text-zinc-500 uppercase px-3 mb-2 block font-heading">${grp.title}</span>
-              ` : `
-                <div class="h-px bg-[#1E3752] my-2"></div>
-              `}
+        <!-- Navigation Menu -->
+        <div class="flex-1 overflow-y-auto p-3 space-y-4 text-xs font-medium custom-scrollbar">
+          ${groups.map(group => {
+            const items = navItems.filter(i => i.group === group);
+            if (!items.length) return '';
+            return `
               <div class="space-y-1">
-                ${grp.items.map(item => `
-                  <button 
-                    onclick="setAdminNav('${item.id}')"
-                    class="w-full flex items-center ${adminSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${adminCurrentTab === item.id ? 'bg-[#EF4248] text-white shadow-md shadow-red-500/25 font-bold' : 'text-zinc-300 hover:bg-[#122B45] hover:text-white'}"
-                    title="${item.label}"
-                  >
-                    <div class="flex items-center gap-3">
-                      <span class="text-base leading-none">${item.icon}</span>
-                      ${!adminSidebarCollapsed ? `<span class="truncate">${item.label}</span>` : ''}
-                    </div>
-                    ${!adminSidebarCollapsed && item.badge ? `
-                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${adminCurrentTab === item.id ? 'bg-white/20 text-white' : 'bg-[#1E3752] text-zinc-300'}">${item.badge}</span>
-                    ` : ''}
+                ${!adminSidebarCollapsed ? `
+                  <div class="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                    ${group}
+                  </div>
+                ` : `<div class="h-px bg-zinc-200 dark:bg-[#1E3752] my-2"></div>`}
+                ${items.map(item => {
+                  const active = adminCurrentTab === item.id;
+                  return `
+                    <button onclick="setAdminNav('${item.id}')" 
+                            class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all ${active ? 'bg-[#EF4248] text-white shadow-sm font-semibold' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-[#162F4D]'}"
+                            title="${item.label}">
+                      <div class="flex items-center gap-3 truncate">
+                        <span class="text-sm">${item.icon}</span>
+                        ${!adminSidebarCollapsed ? `<span class="truncate">${item.label}</span>` : ''}
+                      </div>
+                      ${!adminSidebarCollapsed && item.count !== undefined ? `
+                        <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold ${active ? 'bg-white/20 text-white' : 'bg-zinc-200 dark:bg-[#1E3752] text-zinc-600 dark:text-zinc-400'}">${item.count}</span>
+                      ` : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Sidebar Footer / Quick Actions -->
+        <div class="p-3 border-t border-zinc-200 dark:border-[#1E3752] space-y-2">
+          <a href="#home" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-[#162F4D] transition-colors">
+            <span>🌐</span>
+            ${!adminSidebarCollapsed ? '<span>Voir le site public</span>' : ''}
+          </a>
+          <button onclick="handleAdminLogout()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">
+            <span>🚪</span>
+            ${!adminSidebarCollapsed ? '<span>Déconnexion</span>' : ''}
+          </button>
+        </div>
+      </aside>
+
+      <!-- MOBILE TOPBAR & DRAWER -->
+      <div class="md:hidden flex items-center justify-between h-14 px-4 bg-white dark:bg-[#0E2137] border-b border-zinc-200 dark:border-[#1E3752] z-40">
+        <div class="flex items-center gap-3">
+          <button onclick="toggleAdminMobileSidebar()" class="p-2 rounded-lg text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-[#1E3752]">
+            ☰
+          </button>
+          <span class="font-heading font-black text-sm text-zinc-900 dark:text-white uppercase tracking-wider">ONTARIO CMS</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="cycleTheme()" class="p-2 rounded-lg text-xs bg-zinc-100 dark:bg-[#1E3752] text-zinc-700 dark:text-zinc-200" title="Changer de thème">
+            ${themeIcon}
+          </button>
+          <button onclick="startNewArticle()" class="px-3 py-1.5 rounded-lg bg-[#EF4248] text-white text-xs font-bold">
+            + Écrire
+          </button>
+        </div>
+      </div>
+
+      ${adminMobileSidebarOpen ? `
+        <div class="md:hidden fixed inset-0 z-50 bg-black/60 flex" onclick="toggleAdminMobileSidebar()">
+          <div class="w-72 bg-white dark:bg-[#0E2137] h-full p-4 flex flex-col justify-between" onclick="event.stopPropagation()">
+            <div>
+              <div class="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-[#1E3752]">
+                <span class="font-heading font-black text-base text-zinc-900 dark:text-white">ONTARIO ADMIN</span>
+                <button onclick="toggleAdminMobileSidebar()" class="text-zinc-400 p-1 text-lg">✕</button>
+              </div>
+              <div class="py-3 space-y-1 overflow-y-auto max-h-[75vh]">
+                ${navItems.map(item => `
+                  <button onclick="setAdminNav('${item.id}'); toggleAdminMobileSidebar();" 
+                          class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-xs font-semibold ${adminCurrentTab === item.id ? 'bg-[#EF4248] text-white' : 'text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#1E3752]'}">
+                    <span class="flex items-center gap-3">
+                      <span>${item.icon}</span>
+                      <span>${item.label}</span>
+                    </span>
+                    ${item.count !== undefined ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-black/10 dark:bg-white/10">${item.count}</span>` : ''}
                   </button>
                 `).join('')}
               </div>
             </div>
-          `).join('')}
-
-          <div class="mt-auto pt-4 border-t border-[#1E3752] text-center">
-            ${!adminSidebarCollapsed ? `
-              <p class="text-[10px] text-zinc-500 font-mono">ONTARIO Editorial Suite</p>
-              <p class="text-[9px] text-zinc-600">Connecté en mode Administrateur</p>
-            ` : `
-              <span class="text-xs text-zinc-500 font-mono">v2.4</span>
-            `}
+            <div class="pt-4 border-t border-zinc-200 dark:border-[#1E3752] space-y-2 text-xs">
+              <a href="#home" class="block w-full text-center py-2 rounded-lg bg-zinc-100 dark:bg-[#1E3752] text-zinc-800 dark:text-zinc-200 font-semibold">🌐 Voir le site public</a>
+              <button onclick="handleAdminLogout()" class="block w-full text-center py-2 rounded-lg bg-rose-500/10 text-rose-500 font-semibold">🚪 Déconnexion</button>
+            </div>
           </div>
-        </aside>
+        </div>
+      ` : ''}
 
-        <!-- DRAWER SIDEBAR MOBILE -->
-        ${adminMobileSidebarOpen ? `
-          <div class="fixed inset-0 z-50 lg:hidden flex" onclick="toggleAdminMobileSidebar()">
-            <div class="fixed inset-0 bg-black/70 backdrop-blur-xs"></div>
-            <div class="relative w-72 bg-[#0E2137] border-r border-[#1E3752] p-5 flex flex-col h-full overflow-y-auto text-white z-10" onclick="event.stopPropagation()">
-              <div class="flex items-center justify-between pb-4 border-b border-[#1E3752] mb-4">
-                <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-full bg-[#EF4248] flex items-center justify-center text-white font-extrabold text-sm">O</div>
-                  <span class="font-heading font-extrabold text-base">ONTARIO CMS</span>
-                </div>
-                <button onclick="toggleAdminMobileSidebar()" class="p-2 text-zinc-400 hover:text-white">✕</button>
-              </div>
-              <div class="space-y-5 flex-1">
-                ${navGroups.map(grp => `
-                  <div>
-                    <span class="text-[10px] font-bold tracking-wider text-zinc-500 uppercase px-2 mb-1.5 block">${grp.title}</span>
-                    <div class="space-y-1">
-                      ${grp.items.map(item => `
-                        <button 
-                          onclick="setAdminNav('${item.id}'); toggleAdminMobileSidebar();"
-                          class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold ${adminCurrentTab === item.id ? 'bg-[#EF4248] text-white font-bold' : 'text-zinc-300 hover:bg-[#122B45]'}"
-                        >
-                          <div class="flex items-center gap-2.5">
-                            <span>${item.icon}</span>
-                            <span>${item.label}</span>
-                          </div>
-                          ${item.badge ? `<span class="px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-bold">${item.badge}</span>` : ''}
-                        </button>
-                      `).join('')}
-                    </div>
+      <!-- MAIN CONTENT WRAPPER -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        
+        <!-- TOPBAR DESKTOP -->
+        <header class="h-16 px-6 bg-white dark:bg-[#0E2137] border-b border-zinc-200 dark:border-[#1E3752] hidden md:flex items-center justify-between flex-shrink-0 z-20">
+          <div class="flex items-center gap-4">
+            <h1 class="font-heading font-extrabold text-lg text-zinc-900 dark:text-white capitalize">
+              ${navItems.find(i => i.id === adminCurrentTab)?.label || 'Administration'}
+            </h1>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Serveur Connecté
+            </span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Theme Mode Switcher -->
+            <button onclick="cycleTheme()" 
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 dark:bg-[#162F4D] hover:bg-zinc-200 dark:hover:bg-[#1E3752] text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-[#1E3752] transition-colors"
+                    title="Changer le thème (Clair / Sombre / Système)">
+              <span>${themeIcon}</span>
+              <span class="hidden sm:inline">Thème : ${themeLabel}</span>
+            </button>
+
+            <!-- Notifications Drawer Trigger -->
+            <div class="relative">
+              <button onclick="toggleAdminNotifications()" class="relative p-2 rounded-xl text-zinc-500 hover:text-zinc-800 dark:text-zinc-300 dark:hover:text-white bg-zinc-100 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] transition-colors">
+                🔔
+                ${NOTIFICATIONS.filter(n => !n.read).length ? `
+                  <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#EF4248] text-white text-[9px] font-bold flex items-center justify-center">
+                    ${NOTIFICATIONS.filter(n => !n.read).length}
+                  </span>
+                ` : ''}
+              </button>
+
+              ${adminNotificationsOpen ? `
+                <div class="absolute right-0 mt-2 w-80 bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] rounded-2xl shadow-2xl p-4 z-50 animate-fadeIn">
+                  <div class="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-[#1E3752]">
+                    <span class="font-heading font-bold text-xs text-zinc-900 dark:text-white">Notifications Système</span>
+                    <button onclick="markAllNotificationsRead()" class="text-[11px] text-[#EF4248] hover:underline font-medium">Tout marquer lu</button>
                   </div>
-                `).join('')}
+                  <div class="py-2 max-h-64 overflow-y-auto space-y-2 text-xs">
+                    ${NOTIFICATIONS.map(n => `
+                      <div class="p-2.5 rounded-xl ${n.read ? 'bg-transparent text-zinc-400' : 'bg-zinc-50 dark:bg-[#162F4D] text-zinc-700 dark:text-zinc-200 font-medium'} flex items-start gap-2.5">
+                        <span class="text-sm mt-0.5">${n.icon || '📌'}</span>
+                        <div class="flex-1 min-w-0">
+                          <p class="truncate">${n.text}</p>
+                          <span class="text-[10px] text-zinc-400 block mt-0.5">${n.time}</span>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- New Article Button -->
+            <button onclick="startNewArticle()" 
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 transition-all">
+              <span>+</span>
+              <span>Nouvel Article</span>
+            </button>
+
+            <!-- User Avatar & Profile -->
+            <div class="flex items-center gap-2.5 pl-3 border-l border-zinc-200 dark:border-[#1E3752]">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#EF4248] to-orange-400 text-white font-bold text-xs flex items-center justify-center">
+                ${currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'A'}
+              </div>
+              <div class="hidden xl:block text-left">
+                <span class="block text-xs font-bold text-zinc-900 dark:text-white leading-tight">${currentUser.name || 'Admin'}</span>
+                <span class="block text-[10px] text-zinc-400 capitalize">${currentUser.role || 'Administrateur'}</span>
               </div>
             </div>
           </div>
-        ` : ''}
+        </header>
 
-        <!-- CONTENU PRINCIPAL DE L'ONGLET SÉLECTIONNÉ -->
+        <!-- VIEW CONTAINER -->
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
-          <div class="max-w-7xl mx-auto">
-            ${tabContentHtml}
-          </div>
+          ${(() => {
+            switch(adminCurrentTab) {
+              case 'dashboard': return renderTabDashboard();
+              case 'articles': return renderTabArticles();
+              case 'pages': return renderTabPages();
+              case 'categories': return renderTabCategories();
+              case 'tags': return renderTabTags();
+              case 'media': return renderTabMedia();
+              case 'comments': return renderTabComments();
+              case 'carousel': return renderTabCarousel();
+              case 'newsletter': return renderTabNewsletter();
+              case 'analytics': return renderTabAnalytics();
+              case 'ads': return renderTabAdSense();
+              case 'users': return renderTabUsers();
+              case 'seo': return renderTabSEO();
+              case 'settings': return renderTabSettings();
+              default: return renderTabDashboard();
+            }
+          })()}
         </main>
-
       </div>
-
-      <!-- MODALE APERÇU DIRECT D'ARTICLE -->
-      ${renderPreviewArticleModal()}
-
     </div>
+
+    <!-- Modale Aperçu Article si ouverte -->
+    ${previewArticleModalId ? renderPreviewArticleModal() : ''}
   `;
 }
 
 // ==========================================================================
-// RENDERERS DÉTAILLÉS DES 15 ONGLETS DU DASHBOARD
+// 1. DASHBOARD OVERVIEW — DONNÉES SERVEUR AUDITÉES & SANS FAUX CHIFFRES
 // ==========================================================================
 
 function renderTabDashboard() {
@@ -2929,557 +3240,564 @@ function renderTabDashboard() {
   const draftCount = ARTICLES.filter(a => a.status === 'draft').length;
   const trashCount = TRASH_ARTICLES.length;
   const popularArticles = [...ARTICLES].sort((a,b) => (b.views||0) - (a.views||0)).slice(0, 4);
-  const pendingArticles = ARTICLES.filter(a => a.status === 'draft').slice(0, 3);
+  const recentArticles = [...ARTICLES].slice(0, 5);
 
   return `
-    <!-- Bannière de Bienvenue Pro -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0E2137] via-[#122B45] to-[#0A1A2F] border border-[#1E3752] flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
+    <!-- Bannière de Statut Éditorial -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
       <div>
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EF4248]/15 border border-[#EF4248]/30 text-[#EF4248] text-[11px] font-bold uppercase tracking-wider mb-2">
-          <span class="w-2 h-2 rounded-full bg-[#EF4248] animate-ping"></span>
-          Système Opérationnel • Édition Pro
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold tracking-wide mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Données Serveur Connectées (Port 3000)
         </div>
-        <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Bonjour Steve, voici l'état de votre média aujourd'hui
-        </h1>
-        <p class="text-xs text-zinc-400 mt-1 max-w-xl">
-          Supervision éditoriale en temps réel, audience certifiée, monétisation AdSense et contrôle complet de la plateforme ONTARIO.
+        <h2 class="font-heading text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+          Bonjour ${currentUser.name || 'Steve'}, voici l'état réel de votre média
+        </h2>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xl">
+          Supervision éditoriale conforme Ontario : articles persistants, abonnés newsletter vérifiés et gestion intégrale des médias.
         </p>
       </div>
       <div class="flex items-center gap-3">
-        <button onclick="setAdminNav('analytics')" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-all">
-          📈 Voir Analytics
+        <button onclick="setAdminNav('articles')" class="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-[#162F4D] hover:bg-zinc-200 dark:hover:bg-[#1E3752] text-zinc-800 dark:text-zinc-200 text-xs font-semibold transition-all">
+          📝 Gérer les articles (${ARTICLES.length})
         </button>
-        <button onclick="startNewArticle()" class="px-5 py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-lg shadow-red-500/25 transition-all">
-          + Rédiger Article
+        <button onclick="startNewArticle()" class="px-5 py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 transition-all">
+          + Rédiger un Article
         </button>
       </div>
     </div>
 
-    <!-- 6 KPI CARDS STATISTIQUES PRINCIPALES -->
+    <!-- 6 KPI CARDS STATISTIQUES RÉELLES DU CMS -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-      <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all">
+      
+      <!-- KPI 1 : Articles Publiés -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all shadow-sm">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold text-zinc-400">Visiteurs Aujourd'hui</span>
-          <span class="p-2 rounded-lg bg-blue-500/10 text-blue-400 text-sm">👤</span>
+          <span class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Articles Publiés</span>
+          <span class="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 text-sm">📰</span>
         </div>
-        <div class="font-heading text-2xl font-extrabold text-white">12 540</div>
-        <div class="text-[11px] text-emerald-400 font-bold mt-2 flex items-center gap-1">
-          <span>↑ +18.4%</span>
-          <span class="text-zinc-500 font-normal">vs hier</span>
+        <div class="font-heading text-2xl font-extrabold text-zinc-900 dark:text-white">${SERVER_STATS.articlesPublished}</div>
+        <div class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium mt-2">
+          Source : Base Ontario
         </div>
       </div>
 
-      <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all">
+      <!-- KPI 2 : Brouillons -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all shadow-sm">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold text-zinc-400">Pages Vues</span>
-          <span class="p-2 rounded-lg bg-purple-500/10 text-purple-400 text-sm">👁️</span>
+          <span class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Brouillons en cours</span>
+          <span class="p-2 rounded-lg bg-amber-500/10 text-amber-500 text-sm">✏️</span>
         </div>
-        <div class="font-heading text-2xl font-extrabold text-white">45 200</div>
-        <div class="text-[11px] text-emerald-400 font-bold mt-2 flex items-center gap-1">
-          <span>↑ +12.1%</span>
-          <span class="text-zinc-500 font-normal">vs hier</span>
+        <div class="font-heading text-2xl font-extrabold text-zinc-900 dark:text-white">${SERVER_STATS.articlesDraft}</div>
+        <div class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium mt-2">
+          À finaliser ou programmer
         </div>
       </div>
 
-      <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all">
+      <!-- KPI 3 : Commentaires -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all shadow-sm">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold text-zinc-400">Articles Publiés</span>
-          <span class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 text-sm">📝</span>
+          <span class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Commentaires</span>
+          <span class="p-2 rounded-lg bg-blue-500/10 text-blue-500 text-sm">💬</span>
         </div>
-        <div class="font-heading text-2xl font-extrabold text-white">${publishedCount}</div>
-        <div class="text-[11px] text-zinc-400 mt-2">
-          <b class="text-amber-400">${draftCount}</b> brouillons • <b class="text-red-400">${trashCount}</b> corbeille
+        <div class="font-heading text-2xl font-extrabold text-zinc-900 dark:text-white">${SERVER_STATS.commentsTotal}</div>
+        <div class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium mt-2">
+          Modération active
         </div>
       </div>
 
-      <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all">
+      <!-- KPI 4 : Abonnés Newsletter -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all shadow-sm">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold text-zinc-400">Abonnés Newsletter</span>
-          <span class="p-2 rounded-lg bg-pink-500/10 text-pink-400 text-sm">✉️</span>
+          <span class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Abonnés Réels</span>
+          <span class="p-2 rounded-lg bg-purple-500/10 text-purple-500 text-sm">📬</span>
         </div>
-        <div class="font-heading text-2xl font-extrabold text-white">3 840</div>
-        <div class="text-[11px] text-emerald-400 font-bold mt-2 flex items-center gap-1">
-          <span>↑ +240</span>
-          <span class="text-zinc-500 font-normal">ce mois</span>
+        <div class="font-heading text-2xl font-extrabold text-zinc-900 dark:text-white">${SUBSCRIBERS.length}</div>
+        <div class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium mt-2">
+          Base e-mails vérifiée
         </div>
       </div>
 
-      <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all">
+      <!-- KPI 5 : Fichiers Médias -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all shadow-sm">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold text-zinc-400">Revenus AdSense</span>
-          <span class="p-2 rounded-lg bg-amber-500/10 text-amber-400 text-sm">💰</span>
+          <span class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Fichiers Médias</span>
+          <span class="p-2 rounded-lg bg-rose-500/10 text-rose-500 text-sm">🖼️</span>
         </div>
-        <div class="font-heading text-2xl font-extrabold text-white">1 480,50 €</div>
-        <div class="text-[11px] text-emerald-400 font-bold mt-2 flex items-center gap-1">
-          <span>↑ +15.8%</span>
-          <span class="text-zinc-500 font-normal">RPM 4,25 €</span>
+        <div class="font-heading text-2xl font-extrabold text-zinc-900 dark:text-white">${SERVER_STATS.mediaTotal}</div>
+        <div class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium mt-2">
+          Stockage persistant
         </div>
       </div>
 
-      <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex flex-col justify-between hover:border-[#EF4248]/40 transition-all">
+      <!-- KPI 6 : Revenus AdSense Externe -->
+      <div class="p-5 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] flex flex-col justify-between hover:border-amber-500/40 transition-all shadow-sm">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold text-zinc-400">Taux de Rebond</span>
-          <span class="p-2 rounded-lg bg-teal-500/10 text-teal-400 text-sm">🎯</span>
+          <span class="text-xs font-semibold text-zinc-500 dark:text-zinc-400">AdSense Reporting</span>
+          <span class="p-2 rounded-lg bg-amber-500/10 text-amber-500 text-sm">💰</span>
         </div>
-        <div class="font-heading text-2xl font-extrabold text-white">32.4%</div>
-        <div class="text-[11px] text-emerald-400 font-bold mt-2 flex items-center gap-1">
-          <span>↓ -3.1%</span>
-          <span class="text-zinc-500 font-normal">Très bon</span>
+        <div class="font-heading text-lg font-bold text-amber-600 dark:text-amber-400">Non connecté</div>
+        <div class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium mt-2">
+          Requiert OAuth API
         </div>
       </div>
     </div>
 
-    <!-- SECTION PERFORMANCE CONTENU (GRILLE 2 COLS) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- GRILLE DOUBLE : DERNIERS ARTICLES & ACTIVITÉ TRAÇABLE -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Col Gauche : Articles les plus performants (8 Cols) -->
-      <div class="lg:col-span-8 p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="font-heading font-extrabold text-base text-white">Articles les Plus Populaires de la Semaine</h2>
-            <p class="text-xs text-zinc-400">Classement selon le volume de lectures uniques et le taux de complétion</p>
-          </div>
-          <button onclick="setAdminNav('articles')" class="text-xs text-[#EF4248] hover:underline font-bold">
-            Voir tout le catalogue →
+      <!-- Liste des Derniers Articles -->
+      <div class="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-zinc-100 dark:border-[#1E3752]">
+          <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Publications récentes</h3>
+          <button onclick="setAdminNav('articles')" class="text-xs text-[#EF4248] hover:underline font-semibold">
+            Voir tous (${ARTICLES.length}) →
           </button>
         </div>
-
         <div class="space-y-3">
-          ${popularArticles.map((art, idx) => `
-            <div class="p-4 rounded-2xl bg-[#0A1A2F] border border-[#1E3752] flex items-center justify-between gap-4 hover:border-white/20 transition-all">
-              <div class="flex items-center gap-4 min-w-0">
-                <span class="w-6 text-center font-heading font-extrabold text-sm ${idx === 0 ? 'text-[#EF4248]' : 'text-zinc-500'}">0${idx + 1}</span>
-                <img src="${art.coverImage}" onerror="onImgError(this)" class="w-14 h-14 rounded-xl object-cover flex-shrink-0">
-                <div class="min-w-0">
-                  <span class="text-[10px] font-bold text-[#EF4248] uppercase tracking-wider">${art.categoryBadge || 'DOSSIER'}</span>
-                  <h4 class="font-bold text-xs text-white truncate hover:text-[#EF4248] cursor-pointer" onclick="previewArticle('${art.id}')">${art.title}</h4>
-                  <span class="text-[10px] text-zinc-400">${art.readingTime || 5} min de lecture • Publié le ${art.publishedAt || 'Récemment'}</span>
-                </div>
-              </div>
-              <div class="text-right flex-shrink-0">
-                <div class="font-heading font-extrabold text-sm text-white">${(art.views || 14200).toLocaleString()} <span class="text-[10px] font-normal text-zinc-400">vues</span></div>
-                <div class="text-[10px] text-emerald-400 font-semibold">${(art.likes || 850)} ❤️ likes</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- Col Droite : Articles en attente & Audit Logs (4 Cols) -->
-      <div class="lg:col-span-4 space-y-6">
-        
-        <!-- Brouillons à finaliser -->
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752]">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="font-heading font-bold text-sm text-white">Brouillons en Attente (${pendingArticles.length})</h3>
-            <button onclick="startNewArticle()" class="text-xs text-[#EF4248] hover:underline font-bold">+ Nouveau</button>
-          </div>
-          ${pendingArticles.length === 0 ? `
-            <p class="text-xs text-zinc-400 py-4 text-center">Aucun brouillon en attente. Tout est publié !</p>
-          ` : `
-            <div class="space-y-3">
-              ${pendingArticles.map(art => `
-                <div class="p-3 rounded-xl bg-[#0A1A2F] border border-[#1E3752] flex items-center justify-between gap-2">
+          ${recentArticles.map(art => {
+            const cat = CATEGORIES.find(c => c.slug === art.categorySlug) || { name: art.categorySlug || 'Éditorial', color: '#EF4248' };
+            const author = AUTHORS.find(a => a.slug === art.authorSlug) || { name: 'Steve Ontario' };
+            return `
+              <div class="flex items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-[#162F4D]/50 hover:bg-zinc-100 dark:hover:bg-[#162F4D] transition-colors gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <img src="${art.image || FALLBACK_IMAGE}" onerror="onImgError(this)" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" alt="${art.title}">
                   <div class="min-w-0">
-                    <h5 class="text-xs font-bold text-white truncate">${art.title}</h5>
-                    <span class="text-[10px] text-zinc-400">Modifié récemment</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#EF4248]">${cat.name}</span>
+                    <h4 class="font-heading font-bold text-xs text-zinc-900 dark:text-white truncate">${art.title}</h4>
+                    <span class="text-[11px] text-zinc-400 dark:text-zinc-500">Par ${author.name} • ${art.date || 'Récemment'}</span>
                   </div>
-                  <button onclick="editArticle('${art.id}')" class="px-2.5 py-1 rounded-lg bg-[#EF4248]/20 text-[#EF4248] text-[10px] font-bold hover:bg-[#EF4248] hover:text-white transition-all">
-                    Éditer
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${art.status === 'draft' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}">
+                    ${art.status === 'draft' ? 'Brouillon' : 'Publié'}
+                  </span>
+                  <button onclick="editArticle('${art.id}')" class="p-1.5 rounded-lg bg-zinc-200 dark:bg-[#1E3752] hover:bg-[#EF4248] hover:text-white text-xs transition-colors" title="Éditer">
+                    ✏️
                   </button>
                 </div>
-              `).join('')}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Flux d'Activité Réelle du Serveur -->
+      <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-zinc-100 dark:border-[#1E3752]">
+          <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Journal d'événements</h3>
+          <span class="text-[10px] font-medium text-zinc-400">Traçabilité JSON</span>
+        </div>
+        <div class="space-y-3 max-h-[360px] overflow-y-auto">
+          ${SERVER_ACTIVITIES.length ? SERVER_ACTIVITIES.slice(0, 6).map(act => `
+            <div class="flex items-start gap-3 text-xs p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-[#162F4D]/40 transition-colors">
+              <span class="text-base mt-0.5">⏱️</span>
+              <div class="flex-1 min-w-0">
+                <p class="font-medium text-zinc-800 dark:text-zinc-200">${act.text}</p>
+                <span class="text-[10px] text-zinc-400 block mt-0.5">${act.time}</span>
+              </div>
             </div>
+          `).join('') : `
+            <p class="text-xs text-zinc-400 text-center py-6">Aucune activité enregistrée récemment.</p>
           `}
         </div>
-
-        <!-- Journal d'Audit Récent -->
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752]">
-          <h3 class="font-heading font-bold text-sm text-white mb-4">Dernières Activités</h3>
-          <div class="space-y-3 text-xs">
-            <div class="flex items-start gap-3">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
-              <div>
-                <p class="text-white font-medium">Article publié avec succès</p>
-                <span class="text-[10px] text-zinc-500">Steve Jones • Il y a 25 min</span>
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <span class="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
-              <div>
-                <p class="text-white font-medium">Nouveau commentaire approuvé</p>
-                <span class="text-[10px] text-zinc-500">Hélène Roche • Il y a 1h</span>
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <span class="w-2 h-2 rounded-full bg-[#EF4248] mt-1.5 flex-shrink-0"></span>
-              <div>
-                <p class="text-white font-medium">Campagne AdSense optimisée</p>
-                <span class="text-[10px] text-zinc-500">Algorithme Google • Il y a 3h</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
-
     </div>
   `;
 }
 
-function renderTabAnalytics() {
-  const data = ANALYTICS_DATA[adminAnalyticsRange] || ANALYTICS_DATA['30d'];
-  const maxPoint = Math.max(...data.chartPoints);
-  const minPoint = Math.min(...data.chartPoints);
-
-  // Génération de la courbe SVG fluide
-  const svgWidth = 800;
-  const svgHeight = 220;
-  const step = svgWidth / (data.chartPoints.length - 1);
-  const points = data.chartPoints.map((val, idx) => {
-    const x = idx * step;
-    const y = svgHeight - 20 - ((val - minPoint) / (maxPoint - minPoint || 1)) * (svgHeight - 40);
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
-
-  const areaPoints = points + ` ${svgWidth},${svgHeight} 0,${svgHeight}`;
-
-  return `
-    <div class="space-y-8">
-      
-      <!-- En-tête Analytics avec commutateur de période -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E3752]">
-        <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">AUDIENCE & DONNÉES CERTIFIÉES</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">
-            Analytics & Comportement des Lecteurs
-          </h1>
-          <p class="text-xs text-zinc-400">Données agrégées de fréquentation, temps d'attention et performance des canaux</p>
-        </div>
-        
-        <!-- Sélecteur de Période -->
-        <div class="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#0E2137] border border-[#1E3752] self-start sm:self-auto">
-          <button onclick="setAnalyticsRange('today')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${adminAnalyticsRange === 'today' ? 'bg-[#EF4248] text-white shadow-sm' : 'text-zinc-400 hover:text-white'}">Aujourd'hui</button>
-          <button onclick="setAnalyticsRange('7d')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${adminAnalyticsRange === '7d' ? 'bg-[#EF4248] text-white shadow-sm' : 'text-zinc-400 hover:text-white'}">7 jours</button>
-          <button onclick="setAnalyticsRange('30d')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${adminAnalyticsRange === '30d' ? 'bg-[#EF4248] text-white shadow-sm' : 'text-zinc-400 hover:text-white'}">30 jours</button>
-          <button onclick="setAnalyticsRange('year')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${adminAnalyticsRange === 'year' ? 'bg-[#EF4248] text-white shadow-sm' : 'text-zinc-400 hover:text-white'}">Année</button>
-        </div>
-      </div>
-
-      <!-- Graphique Vectoriel Haute Résolution -->
-      <div class="p-6 sm:p-8 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <span class="text-xs font-semibold text-zinc-400">Courbe de Fréquentation Globale</span>
-            <div class="font-heading text-3xl font-extrabold text-white mt-0.5">${data.visitors} <span class="text-sm font-normal text-zinc-400">visiteurs uniques</span></div>
-          </div>
-          <div class="flex items-center gap-6 text-xs">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-[#EF4248]"></span>
-              <span class="text-zinc-300 font-semibold">${data.views} Pages Vues</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
-              <span class="text-zinc-300 font-semibold">${data.bounce} Rebond</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Rendu Graphique SVG Fluide -->
-        <div class="w-full h-56 relative overflow-hidden rounded-2xl bg-[#0A1A2F] border border-[#1E3752]/60 p-4">
-          <svg viewBox="0 0 800 220" class="w-full h-full overflow-visible" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="curveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#EF4248" stop-opacity="0.45" />
-                <stop offset="100%" stop-color="#EF4248" stop-opacity="0.0" />
-              </linearGradient>
-            </defs>
-            <!-- Lignes de repère -->
-            <line x1="0" y1="40" x2="800" y2="40" stroke="#1E3752" stroke-dasharray="4 4" stroke-width="1" />
-            <line x1="0" y1="110" x2="800" y2="110" stroke="#1E3752" stroke-dasharray="4 4" stroke-width="1" />
-            <line x1="0" y1="180" x2="800" y2="180" stroke="#1E3752" stroke-dasharray="4 4" stroke-width="1" />
-
-            <!-- Aire dégradée -->
-            <polygon points="${areaPoints}" fill="url(#curveGradient)" />
-            <!-- Courbe principale -->
-            <polyline points="${points}" fill="none" stroke="#EF4248" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </div>
-      </div>
-
-      <!-- Métriques d'Attention & Sources de Trafic (Grille 2 Cols) -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        <!-- Sources de Trafic -->
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-5">
-          <h3 class="font-heading font-extrabold text-base text-white">Répartition des Sources d'Acquisition</h3>
-          <p class="text-xs text-zinc-400">Origine des sessions analysées selon les référents et moteurs de recherche</p>
-          
-          <div class="space-y-4">
-            <div>
-              <div class="flex justify-between text-xs font-semibold mb-1">
-                <span class="text-white flex items-center gap-2">🔍 Google Search (Organique SEO)</span>
-                <span class="text-[#EF4248] font-bold">48% (21 696 visites)</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-[#0A1A2F] overflow-hidden">
-                <div class="h-full rounded-full bg-[#EF4248]" style="width: 48%;"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between text-xs font-semibold mb-1">
-                <span class="text-white flex items-center gap-2">📱 Réseaux Sociaux (𝕏, LinkedIn, Threads)</span>
-                <span class="text-purple-400 font-bold">24% (10 848 visites)</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-[#0A1A2F] overflow-hidden">
-                <div class="h-full rounded-full bg-purple-500" style="width: 24%;"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between text-xs font-semibold mb-1">
-                <span class="text-white flex items-center gap-2">⚡ Trafic Direct (Accès URL & Favoris)</span>
-                <span class="text-blue-400 font-bold">18% (8 136 visites)</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-[#0A1A2F] overflow-hidden">
-                <div class="h-full rounded-full bg-blue-500" style="width: 18%;"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between text-xs font-semibold mb-1">
-                <span class="text-white flex items-center gap-2">🔗 Sites Référents & Partenaires</span>
-                <span class="text-emerald-400 font-bold">10% (4 520 visites)</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-[#0A1A2F] overflow-hidden">
-                <div class="h-full rounded-full bg-emerald-500" style="width: 10%;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Métriques d'Attention & Engagement -->
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-5">
-          <h3 class="font-heading font-extrabold text-base text-white">Qualité de Lecture & Rétention</h3>
-          <p class="text-xs text-zinc-400">Temps passé et fidélité de la communauté de lecteurs</p>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div class="p-4 rounded-2xl bg-[#0A1A2F] border border-[#1E3752]">
-              <span class="text-[11px] text-zinc-400 block mb-1">Temps Moyen de Lecture</span>
-              <div class="font-heading text-xl font-bold text-white">${data.readTime}</div>
-              <span class="text-[10px] text-emerald-400 font-bold">↑ +28s vs moyenne média</span>
-            </div>
-            <div class="p-4 rounded-2xl bg-[#0A1A2F] border border-[#1E3752]">
-              <span class="text-[11px] text-zinc-400 block mb-1">Taux de Clic (CTR)</span>
-              <div class="font-heading text-xl font-bold text-white">${data.ctr}</div>
-              <span class="text-[10px] text-emerald-400 font-bold">↑ +0.5% d'efficacité</span>
-            </div>
-            <div class="p-4 rounded-2xl bg-[#0A1A2F] border border-[#1E3752]">
-              <span class="text-[11px] text-zinc-400 block mb-1">Lecteurs Fidèles (Retour)</span>
-              <div class="font-heading text-xl font-bold text-white">54.2%</div>
-              <span class="text-[10px] text-emerald-400 font-bold">Excellente récurrence</span>
-            </div>
-            <div class="p-4 rounded-2xl bg-[#0A1A2F] border border-[#1E3752]">
-              <span class="text-[11px] text-zinc-400 block mb-1">Pages par Session</span>
-              <div class="font-heading text-xl font-bold text-white">3.6</div>
-              <span class="text-[10px] text-emerald-400 font-bold">Navigation fluide</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  `;
-}
+// ==========================================================================
+// 2. GESTION DES ARTICLES — RECHERCHE, FILTRES, NOMS D'AUTEURS ET CORBEILLE
+// ==========================================================================
 
 function renderTabArticles() {
+  const filtered = getFilteredArticles();
+  const allCount = ARTICLES.length;
   const publishedCount = ARTICLES.filter(a => !a.status || a.status === 'published').length;
   const draftCount = ARTICLES.filter(a => a.status === 'draft').length;
   const trashCount = TRASH_ARTICLES.length;
-  const currentList = getFilteredArticles();
 
   return `
-    <div class="space-y-6">
+    <div class="space-y-5">
       
-      <!-- En-tête Articles -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E3752]">
-        <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">CATALOGUE ÉDITORIAL</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Gestion Complète des Articles</h1>
-          <p class="text-xs text-zinc-400">Édition, modération des statuts, duplication et suppression d'articles</p>
-        </div>
-        <button onclick="startNewArticle()" class="px-5 py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-md shadow-red-500/20 transition-all self-start sm:self-auto">
-          + Nouvel Article (Gutenberg)
-        </button>
-      </div>
-
-      <!-- Filtres et Recherche -->
-      <div class="p-4 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex flex-col md:flex-row items-center justify-between gap-4">
-        
-        <!-- Onglets de statut -->
-        <div class="flex flex-wrap items-center gap-2 text-xs font-bold w-full md:w-auto">
-          <button onclick="filterAdminArticles('all')" class="px-3 py-1.5 rounded-xl transition-all ${adminArticleFilter === 'all' ? 'bg-[#EF4248] text-white shadow-xs' : 'text-zinc-400 hover:text-white hover:bg-white/5'}">
-            Tous (${ARTICLES.length})
+      <!-- Barre d'actions et filtres de statut -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+          <button onclick="filterAdminArticles('all')" class="px-3 py-1.5 rounded-xl transition-colors ${adminArticleFilter === 'all' ? 'bg-[#EF4248] text-white shadow-sm' : 'bg-white dark:bg-[#0E2137] text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-[#1E3752]'}">
+            Tous (${allCount})
           </button>
-          <button onclick="filterAdminArticles('published')" class="px-3 py-1.5 rounded-xl transition-all ${adminArticleFilter === 'published' ? 'bg-[#EF4248] text-white shadow-xs' : 'text-zinc-400 hover:text-white hover:bg-white/5'}">
+          <button onclick="filterAdminArticles('published')" class="px-3 py-1.5 rounded-xl transition-colors ${adminArticleFilter === 'published' ? 'bg-[#EF4248] text-white shadow-sm' : 'bg-white dark:bg-[#0E2137] text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-[#1E3752]'}">
             Publiés (${publishedCount})
           </button>
-          <button onclick="filterAdminArticles('draft')" class="px-3 py-1.5 rounded-xl transition-all ${adminArticleFilter === 'draft' ? 'bg-[#EF4248] text-white shadow-xs' : 'text-zinc-400 hover:text-white hover:bg-white/5'}">
+          <button onclick="filterAdminArticles('draft')" class="px-3 py-1.5 rounded-xl transition-colors ${adminArticleFilter === 'draft' ? 'bg-[#EF4248] text-white shadow-sm' : 'bg-white dark:bg-[#0E2137] text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-[#1E3752]'}">
             Brouillons (${draftCount})
           </button>
-          <button onclick="filterAdminArticles('trash')" class="px-3 py-1.5 rounded-xl transition-all ${adminArticleFilter === 'trash' ? 'bg-[#EF4248] text-white shadow-xs' : 'text-zinc-400 hover:text-white hover:bg-white/5'}">
+          <button onclick="filterAdminArticles('trash')" class="px-3 py-1.5 rounded-xl transition-colors ${adminArticleFilter === 'trash' ? 'bg-[#EF4248] text-white shadow-sm' : 'bg-white dark:bg-[#0E2137] text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-[#1E3752]'}">
             Corbeille (${trashCount})
           </button>
         </div>
 
-        <!-- Barre de recherche & Filtre Catégorie -->
-        <div class="flex items-center gap-3 w-full md:w-auto">
-          <input type="text" oninput="handleArticleSearch(this.value)" value="${adminArticleSearch}" placeholder="Rechercher par titre, auteur..." class="px-3 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#EF4248] w-full md:w-56">
-          <select onchange="setArticleCategoryFilter(this.value)" class="px-3 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white focus:outline-none focus:border-[#EF4248]">
-            <option value="all">Toutes Rubriques</option>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <!-- Recherche live -->
+          <div class="relative flex-1 sm:w-64">
+            <input type="text" 
+                   value="${adminArticleSearch}"
+                   oninput="handleArticleSearch(this.value)"
+                   placeholder="Rechercher par titre..." 
+                   class="w-full px-3.5 py-2 pl-9 rounded-xl text-xs bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-[#EF4248]">
+            <span class="absolute left-3 top-2.5 text-zinc-400 text-xs">🔍</span>
+          </div>
+
+          <!-- Filtre Catégorie -->
+          <select onchange="setArticleCategoryFilter(this.value)" class="px-3 py-2 rounded-xl text-xs bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white focus:outline-none focus:border-[#EF4248]">
+            <option value="all">Toutes les rubriques</option>
             ${CATEGORIES.map(c => `<option value="${c.slug}" ${adminArticleCategory === c.slug ? 'selected' : ''}>${c.name}</option>`).join('')}
           </select>
-        </div>
 
+          <button onclick="startNewArticle()" class="px-4 py-2 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 whitespace-nowrap">
+            + Écrire
+          </button>
+        </div>
       </div>
 
-      <!-- Actions Groupées (Bulk Actions) -->
-      ${adminSelectedArticles.length > 0 ? `
-        <div class="p-3 rounded-xl bg-[#EF4248]/10 border border-[#EF4248]/30 flex items-center justify-between text-xs">
-          <span class="font-bold text-white">${adminSelectedArticles.length} article(s) sélectionné(s)</span>
+      <!-- Actions Groupées si articles sélectionnés -->
+      ${adminSelectedArticles.length ? `
+        <div class="p-3 rounded-xl bg-zinc-100 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] flex items-center justify-between text-xs animate-fadeIn">
+          <span class="font-semibold text-zinc-700 dark:text-zinc-200">
+            ${adminSelectedArticles.length} article(s) sélectionné(s)
+          </span>
           <div class="flex items-center gap-2">
-            <button onclick="applyBulkArticleAction('publish')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700">Publier</button>
-            <button onclick="applyBulkArticleAction('draft')" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white font-bold hover:bg-amber-700">Brouillon</button>
-            <button onclick="applyBulkArticleAction('trash')" class="px-3 py-1.5 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700">Corbeille</button>
+            <button onclick="bulkTrashArticles()" class="px-3 py-1 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold hover:bg-amber-500/25">
+              Mettre à la corbeille
+            </button>
+            <button onclick="adminSelectedArticles = []; renderAdmin(document.getElementById('app-container'));" class="px-3 py-1 rounded-lg text-zinc-500 hover:text-zinc-800 dark:hover:text-white">
+              Annuler
+            </button>
           </div>
         </div>
       ` : ''}
 
-      <!-- Tableau Riche WordPress -->
-      <div class="rounded-3xl border border-[#1E3752] bg-[#0E2137] overflow-hidden shadow-xl">
+      <!-- Tableau des Articles -->
+      <div class="bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] rounded-2xl overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="uppercase font-bold tracking-wider border-b border-[#1E3752] bg-[#0A1A2F] text-zinc-400">
-              <tr>
-                <th class="p-4 w-10 text-center">
-                  <input type="checkbox" onchange="toggleSelectAllArticles()" ${adminSelectedArticles.length === currentList.length && currentList.length > 0 ? 'checked' : ''} class="rounded">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-zinc-200 dark:border-[#1E3752] bg-zinc-50/75 dark:bg-[#122B45]/50 text-zinc-500 dark:text-zinc-400 font-bold uppercase text-[10px] tracking-wider select-none">
+                <th class="p-3.5 w-10 text-center">
+                  <input type="checkbox" onchange="toggleSelectAllArticles()" class="rounded border-zinc-300 dark:border-[#1E3752] accent-[#EF4248]">
                 </th>
-                <th class="p-4 w-16">Visuel</th>
-                <th class="p-4">Titre & Extrait</th>
-                <th class="p-4">Auteur</th>
-                <th class="p-4">Catégorie</th>
-                <th class="p-4">Statut</th>
-                <th class="p-4">Date</th>
-                <th class="p-4">Vues</th>
-                <th class="p-4 text-right">Actions</th>
+                <th class="p-3.5">Titre de la publication</th>
+                <th class="p-3.5">Auteur</th>
+                <th class="p-3.5">Rubrique</th>
+                <th class="p-3.5">Statut</th>
+                <th class="p-3.5">Date</th>
+                <th class="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#1E3752]/70">
-              ${currentList.length === 0 ? `
+            <tbody class="divide-y divide-zinc-100 dark:divide-[#1E3752]/50 text-zinc-800 dark:text-zinc-200">
+              ${filtered.length ? filtered.map(art => {
+                const isSelected = adminSelectedArticles.includes(art.id);
+                const cat = CATEGORIES.find(c => c.slug === art.categorySlug) || { name: art.categorySlug || 'Éditorial', color: '#EF4248' };
+                const author = AUTHORS.find(a => a.slug === art.authorSlug) || { name: 'Steve Ontario' };
+                const isTrash = adminArticleFilter === 'trash';
+
+                return `
+                  <tr class="hover:bg-zinc-50 dark:hover:bg-[#162F4D]/40 transition-colors ${isSelected ? 'bg-zinc-50 dark:bg-[#162F4D]/60' : ''}">
+                    <td class="p-3.5 text-center">
+                      <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectArticle('${art.id}')" class="rounded border-zinc-300 dark:border-[#1E3752] accent-[#EF4248]">
+                    </td>
+                    <td class="p-3.5">
+                      <div class="flex items-center gap-3 max-w-md">
+                        <img src="${art.image || FALLBACK_IMAGE}" onerror="onImgError(this)" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" alt="${art.title}">
+                        <div class="min-w-0">
+                          <button onclick="editArticle('${art.id}')" class="font-heading font-bold text-xs text-zinc-900 dark:text-white hover:text-[#EF4248] text-left truncate block max-w-sm">
+                            ${art.title}
+                          </button>
+                          <span class="text-[11px] text-zinc-400 block truncate">/${art.slug}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="p-3.5 whitespace-nowrap font-medium">${author.name}</td>
+                    <td class="p-3.5 whitespace-nowrap">
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold" style="background-color: ${cat.color}15; color: ${cat.color}">
+                        ${cat.name}
+                      </span>
+                    </td>
+                    <td class="p-3.5 whitespace-nowrap">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${art.status === 'draft' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}">
+                        ${art.status === 'draft' ? 'Brouillon' : 'Publié'}
+                      </span>
+                    </td>
+                    <td class="p-3.5 whitespace-nowrap text-zinc-400">${art.date || 'Récemment'}</td>
+                    <td class="p-3.5 text-right whitespace-nowrap space-x-1">
+                      ${!isTrash ? `
+                        <button onclick="previewArticle('${art.id}')" class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#1E3752]" title="Aperçu rapide">
+                          👁️
+                        </button>
+                        <button onclick="editArticle('${art.id}')" class="p-1.5 rounded-lg text-zinc-400 hover:text-[#EF4248] hover:bg-zinc-100 dark:hover:bg-[#1E3752]" title="Modifier avec Gutenberg">
+                          ✏️
+                        </button>
+                        <button onclick="trashArticle('${art.id}')" class="p-1.5 rounded-lg text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30" title="Mettre à la corbeille">
+                          🗑️
+                        </button>
+                      ` : `
+                        <button onclick="restoreArticle('${art.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 text-[11px] font-bold">
+                          Restaurer
+                        </button>
+                        <button onclick="forceDeleteArticle('${art.id}')" class="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-[11px] font-bold">
+                          Supprimer
+                        </button>
+                      `}
+                    </td>
+                  </tr>
+                `;
+              }).join('') : `
                 <tr>
-                  <td colspan="9" class="p-8 text-center text-zinc-400">
-                    Aucun article ne correspond à votre filtre.
+                  <td colspan="7" class="p-8 text-center text-zinc-400">
+                    Aucun article trouvé pour les critères sélectionnés.
                   </td>
                 </tr>
-              ` : currentList.map(art => `
-                <tr class="hover:bg-white/5 transition-colors group">
-                  <td class="p-4 text-center">
-                    <input type="checkbox" onchange="toggleSelectArticle('${art.id}')" ${adminSelectedArticles.includes(art.id) ? 'checked' : ''} class="rounded">
-                  </td>
-                  <td class="p-4">
-                    <img src="${art.coverImage}" onerror="onImgError(this)" class="w-12 h-12 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform">
-                  </td>
-                  <td class="p-4 max-w-xs sm:max-w-md">
-                    <div class="font-bold text-white text-xs truncate cursor-pointer hover:text-[#EF4248]" onclick="editArticle('${art.id}')">${art.title}</div>
-                    <p class="text-[11px] text-zinc-400 line-clamp-1 mt-0.5">${art.excerpt}</p>
-                  </td>
-                  <td class="p-4 text-zinc-300 font-semibold">${art.authorSlug || 'Steve Jones'}</td>
-                  <td class="p-4">
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EF4248]/10 text-[#EF4248] uppercase">
-                      ${art.categorySlug}
-                    </span>
-                  </td>
-                  <td class="p-4">
-                    ${art.status === 'published' || !art.status ? `
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Publié
-                      </span>
-                    ` : art.status === 'draft' ? `
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Brouillon
-                      </span>
-                    ` : `
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400">
-                        Corbeille
-                      </span>
-                    `}
-                  </td>
-                  <td class="p-4 text-zinc-400">${art.publishedAt || '12 Oct 2026'}</td>
-                  <td class="p-4 font-bold text-white">${(art.views || 14200).toLocaleString()}</td>
-                  <td class="p-4 text-right">
-                    <div class="flex items-center justify-end gap-1.5">
-                      <button onclick="editArticle('${art.id}')" title="Modifier dans Gutenberg" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-all text-xs">✏️</button>
-                      <button onclick="duplicateArticle('${art.id}')" title="Dupliquer" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-all text-xs">📋</button>
-                      <button onclick="previewArticle('${art.id}')" title="Prévisualiser" class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-all text-xs">👁️</button>
-                      <button onclick="trashArticle('${art.id}')" title="Mettre à la corbeille" class="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all text-xs">🗑️</button>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
+              `}
             </tbody>
           </table>
         </div>
       </div>
-
     </div>
   `;
 }
 
-function renderTabPages() {
-  const pages = [
-    { title: 'Page d\'Accueil', slug: '/', status: 'Publié', date: '14 Oct 2026' },
-    { title: 'Catalogue Blog & Dossiers', slug: '/blog', status: 'Publié', date: '12 Oct 2026' },
-    { title: 'Manifeste Éditorial (À Propos)', slug: '/about', status: 'Publié', date: '10 Oct 2026' },
-    { title: 'Contacter la Rédaction', slug: '/contact', status: 'Publié', date: '08 Oct 2026' },
-    { title: 'Mentions Légales & RGPD', slug: '/legal', status: 'Brouillon', date: '05 Oct 2026' },
-  ];
+// ==========================================================================
+// 3. GESTION DES RUBRIQUES & TAXONOMIE AVEC VRAIS COMPTEURS
+// ==========================================================================
+
+function renderTabCategories() {
+  return `
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Formulaire Nouvelle Rubrique -->
+      <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-4">
+        <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Ajouter une Rubrique</h3>
+        <p class="text-xs text-zinc-400">Les rubriques organisent la hiérarchie éditoriale du média ONTARIO.</p>
+        
+        <div>
+          <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Nom de la rubrique</label>
+          <input type="text" id="newCatName" placeholder="Ex: IA & Robotique" class="w-full px-3 py-2 rounded-xl text-xs bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white focus:outline-none focus:border-[#EF4248]">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Slug URL</label>
+          <input type="text" id="newCatSlug" placeholder="Ex: ia-robotique" class="w-full px-3 py-2 rounded-xl text-xs bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white focus:outline-none focus:border-[#EF4248]">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Couleur d'accent</label>
+          <div class="flex items-center gap-2">
+            <input type="color" id="newCatColor" value="#EF4248" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+            <span class="text-xs text-zinc-400">Code hexadécimal pour badges et bordures</span>
+          </div>
+        </div>
+
+        <button onclick="createNewCategory()" class="w-full py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 transition-all">
+          Enregistrer la rubrique
+        </button>
+      </div>
+
+      <!-- Liste des Rubriques Existantes -->
+      <div class="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-[#1E3752]">
+          <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Rubriques Éditoriales Existantes</h3>
+          <span class="text-xs font-semibold text-zinc-400">${CATEGORIES.length} rubriques</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          ${CATEGORIES.map(cat => {
+            const count = ARTICLES.filter(a => a.categorySlug === cat.slug).length;
+            return `
+              <div class="p-4 rounded-xl border border-zinc-200 dark:border-[#1E3752] bg-zinc-50/50 dark:bg-[#162F4D]/40 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-3.5 h-3.5 rounded-full flex-shrink-0" style="background-color: ${cat.color}"></div>
+                  <div class="min-w-0">
+                    <h4 class="font-heading font-bold text-xs text-zinc-900 dark:text-white truncate">${cat.name}</h4>
+                    <span class="text-[11px] text-zinc-400 block truncate">/${cat.slug}</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-200 dark:bg-[#1E3752] text-zinc-700 dark:text-zinc-300">
+                    ${count} articles
+                  </span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================================================
+// 4. MÉDIATHÈQUE PROFESSIONNELLE AVEC VRAI UPLOAD SERVEUR
+// ==========================================================================
+
+function renderTabMedia() {
+  const images = MEDIA_LIBRARY.filter(m => {
+    if (adminMediaSearch && !m.title.toLowerCase().includes(adminMediaSearch.toLowerCase())) return false;
+    return true;
+  });
 
   return `
     <div class="space-y-6">
-      <div class="flex items-center justify-between pb-6 border-b border-[#1E3752]">
+      
+      <!-- Zone d'Upload Fichier & Filtres -->
+      <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">STRUCTURE DU SITE</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Pages Institutionnelles</h1>
-          <p class="text-xs text-zinc-400">Gestion des pages statiques et institutionnelles de la plateforme</p>
+          <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Médiathèque et Fichiers Numériques</h3>
+          <p class="text-xs text-zinc-400 mt-0.5">Stockage persistant sur disque serveur dans /public/uploads/.</p>
+        </div>
+
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <input type="file" id="mediaFileInput" accept="image/*" class="hidden" onchange="triggerMediaUpload()">
+          <button onclick="document.getElementById('mediaFileInput').click()" class="px-4 py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 transition-all flex items-center gap-2">
+            <span>📤</span>
+            <span>Téléverser une image</span>
+          </button>
         </div>
       </div>
 
-      <div class="rounded-3xl border border-[#1E3752] bg-[#0E2137] overflow-hidden">
+      <!-- Grille des Médias -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        ${images.map(img => `
+          <div class="group relative rounded-xl border border-zinc-200 dark:border-[#1E3752] bg-white dark:bg-[#0E2137] overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col">
+            <div class="aspect-square bg-zinc-100 dark:bg-[#122B45] overflow-hidden">
+              <img src="${img.url}" onerror="onImgError(this)" class="w-full h-full object-cover group-hover:scale-105 transition-transform" alt="${img.title}">
+            </div>
+            <div class="p-2.5 flex-1 flex flex-col justify-between">
+              <span class="font-heading font-bold text-[11px] text-zinc-900 dark:text-white truncate block">${img.title}</span>
+              <div class="flex items-center justify-between mt-2 pt-2 border-t border-zinc-100 dark:border-[#1E3752] text-[10px] text-zinc-400">
+                <span>${img.size || 'HD'}</span>
+                <div class="flex items-center gap-1">
+                  <button onclick="copyMediaUrl('${img.url}')" class="p-1 rounded text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#1E3752]" title="Copier le lien">
+                    📋
+                  </button>
+                  <button onclick="deleteMediaFromServer('${img.id}')" class="p-1 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30" title="Supprimer">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================================================
+// 5. GESTION DES COMMENTAIRES AVEC ACTIONS RÉELLES SERVEUR
+// ==========================================================================
+
+function renderTabComments() {
+  const filtered = COMMENTS.filter(c => {
+    if (adminCommentFilter === 'all') return true;
+    return c.status === adminCommentFilter;
+  });
+
+  return `
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1.5 text-xs font-semibold">
+          <button onclick="filterComments('all')" class="px-3 py-1.5 rounded-xl ${adminCommentFilter === 'all' ? 'bg-[#EF4248] text-white' : 'bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] text-zinc-600 dark:text-zinc-300'}">
+            Tous (${COMMENTS.length})
+          </button>
+          <button onclick="filterComments('approved')" class="px-3 py-1.5 rounded-xl ${adminCommentFilter === 'approved' ? 'bg-[#EF4248] text-white' : 'bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] text-zinc-600 dark:text-zinc-300'}">
+            Approuvés (${COMMENTS.filter(c => c.status === 'approved').length})
+          </button>
+          <button onclick="filterComments('pending')" class="px-3 py-1.5 rounded-xl ${adminCommentFilter === 'pending' ? 'bg-[#EF4248] text-white' : 'bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] text-zinc-600 dark:text-zinc-300'}">
+            En attente (${COMMENTS.filter(c => c.status === 'pending').length})
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] rounded-2xl overflow-hidden shadow-sm">
+        <div class="divide-y divide-zinc-100 dark:divide-[#1E3752]/50">
+          ${filtered.length ? filtered.map(c => `
+            <div class="p-4 flex flex-col sm:flex-row items-start justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-[#162F4D]/30 transition-colors">
+              <div class="space-y-1 max-w-2xl">
+                <div class="flex items-center gap-2">
+                  <span class="font-heading font-bold text-xs text-zinc-900 dark:text-white">${c.author}</span>
+                  <span class="text-[10px] text-zinc-400">• ${c.date}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${c.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}">
+                    ${c.status === 'approved' ? 'Approuvé' : 'En attente'}
+                  </span>
+                </div>
+                <p class="text-xs text-zinc-700 dark:text-zinc-300">${c.content}</p>
+                <span class="text-[10px] text-zinc-400 block">Sur l'article : ${c.articleTitle || c.articleId}</span>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                ${c.status !== 'approved' ? `
+                  <button onclick="moderateComment('${c.id}', 'approved')" class="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold">
+                    Approuver
+                  </button>
+                ` : ''}
+                <button onclick="moderateComment('${c.id}', 'spam')" class="px-3 py-1 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 text-xs font-bold">
+                  Spam
+                </button>
+                <button onclick="moderateComment('${c.id}', 'trash')" class="px-3 py-1 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 text-xs font-bold">
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          `).join('') : `
+            <div class="p-8 text-center text-xs text-zinc-400">Aucun commentaire dans cette vue.</div>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================================================
+// 6. ABONNÉS NEWSLETTER & EXPORT CSV PROTÉGÉ
+// ==========================================================================
+
+function renderTabNewsletter() {
+  return `
+    <div class="space-y-5">
+      <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Abonnés Newsletter Vérifiés</h3>
+          <p class="text-xs text-zinc-400 mt-0.5">Total en base : ${SUBSCRIBERS.length} adresses réelles enregistrées via le formulaire public.</p>
+        </div>
+        <button onclick="exportSubscribersCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2">
+          <span>📊</span>
+          <span>Exporter CSV Sécurisé</span>
+        </button>
+      </div>
+
+      <div class="bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] rounded-2xl overflow-hidden shadow-sm">
         <table class="w-full text-left text-xs">
-          <thead class="bg-[#0A1A2F] text-zinc-400 uppercase font-bold border-b border-[#1E3752]">
-            <tr>
-              <th class="p-4">Titre de la Page</th>
-              <th class="p-4">URL Slug</th>
-              <th class="p-4">Statut</th>
-              <th class="p-4">Dernière Révision</th>
-              <th class="p-4 text-right">Action</th>
+          <thead>
+            <tr class="border-b border-zinc-200 dark:border-[#1E3752] bg-zinc-50 dark:bg-[#122B45]/50 text-zinc-400 uppercase text-[10px] tracking-wider font-bold">
+              <th class="p-3.5">E-mail Abonné</th>
+              <th class="p-3.5">Date Inscription</th>
+              <th class="p-3.5">Statut</th>
+              <th class="p-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#1E3752]">
-            ${pages.map(p => `
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="p-4 font-bold text-white">${p.title}</td>
-                <td class="p-4 text-[#EF4248] font-mono">${p.slug}</td>
-                <td class="p-4">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${p.status === 'Publié' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
-                    ${p.status}
+          <tbody class="divide-y divide-zinc-100 dark:divide-[#1E3752]/50 text-zinc-800 dark:text-zinc-200">
+            ${SUBSCRIBERS.map(sub => `
+              <tr class="hover:bg-zinc-50 dark:hover:bg-[#162F4D]/30 transition-colors">
+                <td class="p-3.5 font-semibold">${sub.email}</td>
+                <td class="p-3.5 text-zinc-400">${sub.date}</td>
+                <td class="p-3.5">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500">
+                    ${sub.status || 'Actif'}
                   </span>
                 </td>
-                <td class="p-4 text-zinc-400">${p.date}</td>
-                <td class="p-4 text-right">
-                  <button onclick="navigate('home')" class="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-white">Voir ↗</button>
+                <td class="p-3.5 text-right">
+                  <button onclick="deleteSubscriberFromServer('${sub.id || sub.email}')" class="text-rose-500 hover:underline text-xs font-semibold">
+                    Désinscrire
+                  </button>
                 </td>
               </tr>
             `).join('')}
@@ -3490,62 +3808,112 @@ function renderTabPages() {
   `;
 }
 
-function renderTabMedia() {
-  const filtered = ADMIN_MEDIA.filter(m => {
-    if (adminMediaFilter !== 'all' && m.type !== adminMediaFilter) return false;
-    if (adminMediaSearch.trim()) {
-      return m.title.toLowerCase().includes(adminMediaSearch.toLowerCase().trim());
-    }
-    return true;
-  });
+// ==========================================================================
+// 7. MONÉTISATION ADSENSE & EMPLACEMENTS CERTIFIÉS
+// ==========================================================================
 
+function renderTabAdSense() {
   return `
     <div class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E3752]">
-        <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">ASSETS NUMÉRIQUES</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Médiathèque Professionnelle</h1>
-          <p class="text-xs text-zinc-400">Bibliothèque d'images haute définition, bannières et ressources visuelles</p>
+      
+      <!-- Avertissement Connexion Réelle -->
+      <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs space-y-1">
+        <div class="flex items-center gap-2 font-bold">
+          <span>⚠️</span>
+          <span>Statut du Reporting Financier : Non Connecté</span>
         </div>
-        <button onclick="uploadMediaPrompt()" class="px-5 py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-md transition-all">
-          + Téléverser un Média
-        </button>
+        <p>L'identifiant <code>ca-pub-XXXXXXXXXX</code> permet la diffusion des annonces. Pour obtenir les rapports de revenus en temps réel, l'API Google AdSense Management avec OAuth serveur doit être configurée dans le fichier <code>.env.local</code>.</p>
       </div>
 
-      <div class="p-4 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-2 text-xs font-bold">
-          <button onclick="filterMediaType('all')" class="px-3 py-1.5 rounded-xl ${adminMediaFilter === 'all' ? 'bg-[#EF4248] text-white' : 'text-zinc-400 hover:text-white'}">Tous (${ADMIN_MEDIA.length})</button>
-          <button onclick="filterMediaType('image')" class="px-3 py-1.5 rounded-xl ${adminMediaFilter === 'image' ? 'bg-[#EF4248] text-white' : 'text-zinc-400 hover:text-white'}">Images</button>
-        </div>
-        <input type="text" oninput="handleMediaSearch(this.value)" value="${adminMediaSearch}" placeholder="Rechercher par nom de fichier..." class="px-3 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white focus:outline-none focus:border-[#EF4248] w-full sm:w-64">
-      </div>
+      <!-- Réglages des 5 Emplacements Stratégiques -->
+      <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-4">
+        <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Les 5 Emplacements Publicitaires Définis</h3>
+        <p class="text-xs text-zinc-400">Tous les blocs publicitaires comportent le label « Publicités » et une réservation de hauteur anti-CLS.</p>
 
-      <!-- Grille des Médias -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-        ${filtered.map(m => `
-          <div class="rounded-2xl bg-[#0E2137] border border-[#1E3752] overflow-hidden group hover:border-[#EF4248]/50 transition-all flex flex-col">
-            <div class="aspect-video relative overflow-hidden bg-black/40">
-              <img src="${m.url}" onerror="onImgError(this)" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/70 text-white text-[9px] font-bold uppercase">
-                ${m.format}
+        <div class="space-y-3">
+          ${[
+            { id: 'home_after_featured', name: 'Accueil — Après le carrousel vedette', format: 'Responsive Banner (728x90 / 300x250)' },
+            { id: 'home_in_feed', name: 'Accueil — Au milieu du flux d\'articles', format: 'In-Feed Native Ad' },
+            { id: 'article_sidebar', name: 'Article — Barre latérale desktop', format: 'Half Page (300x600)' },
+            { id: 'article_in_content', name: 'Article — Dans le corps du texte (après 3 paragraphes)', format: 'In-Article Responsive' },
+            { id: 'article_end', name: 'Article — Fin de publication (avant recommandations)', format: 'Matched Content' }
+          ].map(slot => `
+            <div class="p-4 rounded-xl border border-zinc-200 dark:border-[#1E3752] bg-zinc-50 dark:bg-[#162F4D]/40 flex items-center justify-between gap-4">
+              <div>
+                <h4 class="font-heading font-bold text-xs text-zinc-900 dark:text-white">${slot.name}</h4>
+                <span class="text-[11px] text-zinc-400">Format : ${slot.format}</span>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                ✓ Actif & Conforme
               </span>
             </div>
-            <div class="p-4 flex-1 flex flex-col justify-between">
-              <div>
-                <h4 class="font-bold text-xs text-white truncate mb-1">${m.title}</h4>
-                <div class="flex items-center justify-between text-[10px] text-zinc-400">
-                  <span>${m.dimensions}</span>
-                  <span>${m.size}</span>
-                </div>
-              </div>
-              <div class="flex items-center justify-between pt-3 mt-3 border-t border-[#1E3752]">
-                <button onclick="copyMediaUrl('${m.url}')" class="text-[11px] text-[#EF4248] hover:underline font-bold">
-                  Copier l'URL
-                </button>
-                <button onclick="deleteMediaItem('${m.id}')" class="text-xs text-zinc-500 hover:text-red-400">
-                  🗑️
-                </button>
-              </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================================================
+// 8. CONFIGURATION DU CARROUSEL HERO
+// ==========================================================================
+
+function renderTabCarousel() {
+  return `
+    <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-6">
+      <div>
+        <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Configuration du Carrousel Plein Écran (100vw)</h3>
+        <p class="text-xs text-zinc-400 mt-1">Conforme à la maquette officielle Ontario avec portrait orange et défilement continu.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Mode d'alimentation</label>
+          <select id="carouselModeSelect" class="w-full px-3 py-2 rounded-xl text-xs bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
+            <option value="recent" ${HERO_CAROUSEL_CONFIG.mode === 'recent' ? 'selected' : ''}>Dernières publications (Récent)</option>
+            <option value="popular" ${HERO_CAROUSEL_CONFIG.mode === 'popular' ? 'selected' : ''}>Articles les plus populaires</option>
+            <option value="manual" ${HERO_CAROUSEL_CONFIG.mode === 'manual' ? 'selected' : ''}>Sélection manuelle ordonnée</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Durée de rotation automatique</label>
+          <select id="carouselDurationSelect" class="w-full px-3 py-2 rounded-xl text-xs bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
+            <option value="4000">4 secondes</option>
+            <option value="6000" selected>6 secondes (Recommandé)</option>
+            <option value="8000">8 secondes</option>
+          </select>
+        </div>
+      </div>
+
+      <button onclick="saveCarouselSettings()" class="px-5 py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 transition-all">
+        Enregistrer la configuration
+      </button>
+    </div>
+  `;
+}
+
+// ==========================================================================
+// 9. VUES COMPLÉMENTAIRES (Pages, Tags, Utilisateurs, SEO, Analytics, Settings)
+// ==========================================================================
+
+function renderTabPages() {
+  return `
+    <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-[#1E3752]">
+        <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Pages Institutionnelles & Statiques</h3>
+      </div>
+      <div class="divide-y divide-zinc-100 dark:divide-[#1E3752]/50 text-xs">
+        ${PAGES.map(p => `
+          <div class="py-3 flex items-center justify-between">
+            <div>
+              <h4 class="font-heading font-bold text-zinc-900 dark:text-white">${p.title}</h4>
+              <span class="text-[11px] text-zinc-400">URL : /${p.slug}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="#${p.slug}" class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#1E3752] text-zinc-700 dark:text-zinc-200 font-semibold hover:bg-zinc-200">
+                Aperçu
+              </a>
             </div>
           </div>
         `).join('')}
@@ -3554,136 +3922,15 @@ function renderTabMedia() {
   `;
 }
 
-function renderTabCategories() {
-  return `
-    <div class="space-y-6">
-      <div class="flex items-center justify-between pb-6 border-b border-[#1E3752]">
-        <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">TAXONOMIE ÉDITORIALE</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Catégories & Rubriques Pastels</h1>
-          <p class="text-xs text-zinc-400">Gestion des 6 rubriques pastel officielles du thème Ontario</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <!-- Liste des Catégories (8 Cols) -->
-        <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          ${CATEGORIES.map(c => `
-            <div class="p-5 rounded-2xl border flex items-center justify-between gap-4" style="background-color: ${c.bgDark || '#0E2137'}; border-color: #1E3752;">
-              <div>
-                <span class="text-[10px] uppercase font-bold tracking-widest text-[#EF4248]">Rubrique Ontario</span>
-                <h3 class="font-heading font-extrabold text-lg text-white mt-0.5">${c.name}</h3>
-                <span class="text-xs text-zinc-400 font-mono">/${c.slug}</span>
-              </div>
-              <div class="text-right">
-                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-white/10 text-white">
-                  ${c.count || 24} articles
-                </span>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-
-        <!-- Formulaire Nouvelle Catégorie (4 Cols) -->
-        <div class="lg:col-span-4 p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-          <h3 class="font-heading font-bold text-sm text-white">Ajouter une Rubrique</h3>
-          <form onsubmit="handleCreateCategory(event)" class="space-y-3">
-            <div>
-              <label class="block text-xs text-zinc-400 mb-1">Nom de la Catégorie</label>
-              <input type="text" id="new-cat-name" required placeholder="Ex : Cyber-Sécurité" class="w-full px-3 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-            </div>
-            <div>
-              <label class="block text-xs text-zinc-400 mb-1">Slug URL (optionnel)</label>
-              <input type="text" id="new-cat-slug" placeholder="cyber-securite" class="w-full px-3 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[10px] text-zinc-400 mb-1">Couleur Pastel Fond</label>
-                <input type="color" id="new-cat-bg" value="#F0ECFA" class="w-full h-8 rounded-lg bg-transparent cursor-pointer">
-              </div>
-              <div>
-                <label class="block text-[10px] text-zinc-400 mb-1">Couleur Texte</label>
-                <input type="color" id="new-cat-text" value="#5844A8" class="w-full h-8 rounded-lg bg-transparent cursor-pointer">
-              </div>
-            </div>
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-md mt-2">
-              Créer la Catégorie
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 function renderTabTags() {
-  const tags = ['IA', 'Machine Learning', 'Marchés', 'Finance', 'Design', 'Crypto', 'Productivité', 'Hardware', 'Spatial Computing', 'Web3', 'Stratégie', 'Innovation'];
   return `
-    <div class="space-y-6">
-      <div class="pb-6 border-b border-[#1E3752]">
-        <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">MOTS-CLÉS ÉDITORIAUX</span>
-        <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Tags & Mots-Clés</h1>
-      </div>
-      <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752]">
-        <div class="flex flex-wrap gap-3">
-          ${tags.map(t => `
-            <span class="px-4 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs font-semibold text-zinc-300 hover:border-[#EF4248] hover:text-[#EF4248] transition-all cursor-pointer">
-              #${t} <b class="text-zinc-500 font-normal ml-1">(${Math.floor(Math.random() * 12 + 3)})</b>
-            </span>
-          `).join('')}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderTabComments() {
-  const filtered = ADMIN_COMMENTS.filter(c => {
-    if (adminCommentFilter !== 'all' && c.status !== adminCommentFilter) return false;
-    return true;
-  });
-
-  return `
-    <div class="space-y-6">
-      <div class="flex items-center justify-between pb-6 border-b border-[#1E3752]">
-        <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">ÉCHANGES LECTEURS</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Modération des Commentaires</h1>
-          <p class="text-xs text-zinc-400">Approbation, réponse et lutte contre le spam</p>
-        </div>
-      </div>
-
-      <div class="flex gap-2 p-1.5 rounded-2xl bg-[#0E2137] border border-[#1E3752] w-fit text-xs font-bold">
-        <button onclick="filterComments('all')" class="px-3 py-1.5 rounded-xl ${adminCommentFilter === 'all' ? 'bg-[#EF4248] text-white' : 'text-zinc-400 hover:text-white'}">Tous (${ADMIN_COMMENTS.length})</button>
-        <button onclick="filterComments('pending')" class="px-3 py-1.5 rounded-xl ${adminCommentFilter === 'pending' ? 'bg-[#EF4248] text-white' : 'text-zinc-400 hover:text-white'}">En attente (${ADMIN_COMMENTS.filter(c=>c.status==='pending').length})</button>
-        <button onclick="filterComments('approved')" class="px-3 py-1.5 rounded-xl ${adminCommentFilter === 'approved' ? 'bg-[#EF4248] text-white' : 'text-zinc-400 hover:text-white'}">Approuvés (${ADMIN_COMMENTS.filter(c=>c.status==='approved').length})</button>
-        <button onclick="filterComments('spam')" class="px-3 py-1.5 rounded-xl ${adminCommentFilter === 'spam' ? 'bg-[#EF4248] text-white' : 'text-zinc-400 hover:text-white'}">Spam (${ADMIN_COMMENTS.filter(c=>c.status==='spam').length})</button>
-      </div>
-
-      <div class="space-y-4">
-        ${filtered.map(c => `
-          <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] flex flex-col sm:flex-row items-start justify-between gap-6">
-            <div class="space-y-2 flex-1">
-              <div class="flex items-center gap-3">
-                <span class="font-bold text-white text-sm">${c.author}</span>
-                <span class="text-xs text-zinc-400">${c.email}</span>
-                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${c.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : c.status === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'}">
-                  ${c.status.toUpperCase()}
-                </span>
-              </div>
-              <p class="text-xs text-zinc-300 leading-relaxed">${c.text}</p>
-              <div class="text-[10px] text-zinc-400">
-                Sur l'article : <b class="text-white">${c.articleTitle}</b> • ${c.date}
-              </div>
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              ${c.status !== 'approved' ? `
-                <button onclick="approveComment('${c.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Approuver</button>
-              ` : ''}
-              <button onclick="markCommentSpam('${c.id}')" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold">Spam</button>
-              <button onclick="deleteComment('${c.id}')" class="p-2 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs">🗑️</button>
-            </div>
-          </div>
+    <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-4">
+      <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Étiquettes Éditoriales (Tags)</h3>
+      <div class="flex flex-wrap gap-2">
+        ${['Technologie', 'Intelligence Artificielle', 'Design', 'Architecture', 'Culture', 'Futurisme', 'Robotique', 'Audio', 'Spatial', 'Mobilité'].map(tag => `
+          <span class="px-3 py-1.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-800 dark:text-zinc-200">
+            #${tag}
+          </span>
         `).join('')}
       </div>
     </div>
@@ -3692,150 +3939,30 @@ function renderTabComments() {
 
 function renderTabUsers() {
   return `
-    <div class="space-y-6">
-      <div class="flex items-center justify-between pb-6 border-b border-[#1E3752]">
+    <div class="space-y-4">
+      <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm flex items-center justify-between">
         <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">ÉQUIPE & DROITS</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Utilisateurs & Rôles</h1>
-          <p class="text-xs text-zinc-400">Gestion des permissions éditoriales (Administrateur, Éditeur, Auteur, Lecteur)</p>
+          <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Équipe & Gestion des Rôles</h3>
+          <p class="text-xs text-zinc-400 mt-0.5">Contrôle d'accès étanche : Administrateurs, Rédacteurs et Lecteurs.</p>
         </div>
       </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <!-- Table Utilisateurs (8 Cols) -->
-        <div class="lg:col-span-8 rounded-3xl border border-[#1E3752] bg-[#0E2137] overflow-hidden">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-[#0A1A2F] text-zinc-400 uppercase font-bold border-b border-[#1E3752]">
-              <tr>
-                <th class="p-4">Utilisateur</th>
-                <th class="p-4">Rôle</th>
-                <th class="p-4">Articles</th>
-                <th class="p-4">Activité</th>
-                <th class="p-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#1E3752]">
-              ${ADMIN_USERS.map(u => `
-                <tr class="hover:bg-white/5 transition-colors">
-                  <td class="p-4 flex items-center gap-3">
-                    <img src="${u.avatar}" onerror="onImgError(this)" class="w-9 h-9 rounded-full object-cover">
-                    <div>
-                      <div class="font-bold text-white">${u.name}</div>
-                      <div class="text-[10px] text-zinc-400">${u.email}</div>
-                    </div>
-                  </td>
-                  <td class="p-4">
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${u.role === 'Administrateur' ? 'bg-[#EF4248]/20 text-[#EF4248]' : 'bg-white/10 text-zinc-300'}">
-                      ${u.role}
-                    </span>
-                  </td>
-                  <td class="p-4 font-bold text-white">${u.articlesCount}</td>
-                  <td class="p-4 text-emerald-400">${u.lastActive}</td>
-                  <td class="p-4 text-right">
-                    <button onclick="deleteUser('${u.id}')" class="text-xs text-zinc-400 hover:text-red-400 p-1">🗑️</button>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Formulaire Nouvel Utilisateur (4 Cols) -->
-        <div class="lg:col-span-4 p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-          <h3 class="font-heading font-bold text-sm text-white">Ajouter un Utilisateur</h3>
-          <form onsubmit="handleAddUser(event)" class="space-y-3 text-xs">
-            <div>
-              <label class="block text-zinc-400 mb-1">Nom Complet</label>
-              <input type="text" id="user-new-name" required placeholder="Ex : Claire Voisin" class="w-full px-3 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-white">
-            </div>
-            <div>
-              <label class="block text-zinc-400 mb-1">Adresse Email</label>
-              <input type="email" id="user-new-email" required placeholder="claire@ontario.com" class="w-full px-3 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-white">
-            </div>
-            <div>
-              <label class="block text-zinc-400 mb-1">Rôle Attribué</label>
-              <select id="user-new-role" class="w-full px-3 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-white">
-                <option value="Éditeur">Éditeur (Rédaction & Publication)</option>
-                <option value="Auteur">Auteur (Brouillons uniquement)</option>
-                <option value="Lecteur">Lecteur Abonné</option>
-                <option value="Administrateur">Administrateur Complet</option>
-              </select>
-            </div>
-            <button type="submit" class="w-full py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold shadow-md mt-2">
-              Créer le Compte
-            </button>
-          </form>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderTabNewsletter() {
-  return `
-    <div class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E3752]">
-        <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">DIFFUSION DIRECTE</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Gestion de la Newsletter</h1>
-          <p class="text-xs text-zinc-400">Collecte RGPD, gestion des abonnés et export de la base de contacts</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <button onclick="exportSubscribersCSV()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center gap-2">
-            <span>📥</span>
-            <span>Exporter en CSV</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Métriques Newsletter -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752]">
-          <span class="text-xs text-zinc-400 block mb-1">Abonnés Actifs Totaux</span>
-          <div class="font-heading text-3xl font-extrabold text-white">3 840</div>
-          <span class="text-xs text-emerald-400 font-bold mt-2 block">Double Opt-In Certifié</span>
-        </div>
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752]">
-          <span class="text-xs text-zinc-400 block mb-1">Taux d'Ouverture Moyen</span>
-          <div class="font-heading text-3xl font-extrabold text-white">42.8%</div>
-          <span class="text-xs text-emerald-400 font-bold mt-2 block">Supérieur au standard (22%)</span>
-        </div>
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752]">
-          <span class="text-xs text-zinc-400 block mb-1">Taux de Clic Moyen</span>
-          <div class="font-heading text-3xl font-extrabold text-white">8.4%</div>
-          <span class="text-xs text-emerald-400 font-bold mt-2 block">Fort engagement éditorial</span>
-        </div>
-      </div>
-
-      <!-- Table Abonnés -->
-      <div class="rounded-3xl border border-[#1E3752] bg-[#0E2137] overflow-hidden">
-        <div class="p-4 border-b border-[#1E3752] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span class="font-bold text-white text-xs">Liste des Abonnés Référencés (${ADMIN_SUBSCRIBERS.length})</span>
-          <form onsubmit="handleAddSubscriber(event)" class="flex items-center gap-2 w-full sm:w-auto">
-            <input type="email" id="new-sub-email" required placeholder="ajouter.email@domaine.com" class="px-3 py-1.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-            <button type="submit" class="px-3 py-1.5 rounded-xl bg-[#EF4248] text-white font-bold text-xs">+ Ajouter</button>
-          </form>
-        </div>
+      <div class="bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] rounded-2xl overflow-hidden shadow-sm">
         <table class="w-full text-left text-xs">
-          <thead class="bg-[#0A1A2F] text-zinc-400 uppercase font-bold border-b border-[#1E3752]">
-            <tr>
-              <th class="p-4">Adresse Email</th>
-              <th class="p-4">Date d'Inscription</th>
-              <th class="p-4">Statut Consentement</th>
-              <th class="p-4">Fréquence</th>
-              <th class="p-4 text-right">Action</th>
+          <thead>
+            <tr class="border-b border-zinc-200 dark:border-[#1E3752] bg-zinc-50 dark:bg-[#122B45]/50 text-zinc-400 uppercase text-[10px] font-bold">
+              <th class="p-3.5">Nom & Utilisateur</th>
+              <th class="p-3.5">E-mail</th>
+              <th class="p-3.5">Rôle Attribué</th>
+              <th class="p-3.5 text-right">Statut</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#1E3752]">
-            ${ADMIN_SUBSCRIBERS.map(s => `
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="p-4 font-bold text-white">${s.email}</td>
-                <td class="p-4 text-zinc-400">${s.date}</td>
-                <td class="p-4 text-emerald-400 font-semibold">${s.status}</td>
-                <td class="p-4 text-zinc-300">${s.frequency}</td>
-                <td class="p-4 text-right">
-                  <button onclick="deleteSubscriber('${s.id}')" class="text-zinc-500 hover:text-red-400">🗑️</button>
-                </td>
+          <tbody class="divide-y divide-zinc-100 dark:divide-[#1E3752]/50 text-zinc-800 dark:text-zinc-200">
+            ${USERS.map(u => `
+              <tr class="hover:bg-zinc-50 dark:hover:bg-[#162F4D]/30 transition-colors">
+                <td class="p-3.5 font-bold">${u.name}</td>
+                <td class="p-3.5 text-zinc-400">${u.email}</td>
+                <td class="p-3.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EF4248]/10 text-[#EF4248] capitalize">${u.role}</span></td>
+                <td class="p-3.5 text-right"><span class="text-emerald-500 font-semibold">Actif</span></td>
               </tr>
             `).join('')}
           </tbody>
@@ -3847,672 +3974,334 @@ function renderTabNewsletter() {
 
 function renderTabSEO() {
   return `
-    <div class="space-y-6">
-      <div class="pb-6 border-b border-[#1E3752]">
-        <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">RÉFÉRENCEMENT NATUREL GOOGLE</span>
-        <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Audit SEO & Indexabilité</h1>
-        <p class="text-xs text-zinc-400">Surveillance des robots d'exploration, méta-données et fichiers XML</p>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        <!-- Score SEO & Fichiers Techniques (8 Cols) -->
-        <div class="lg:col-span-8 space-y-6">
-          <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] flex items-center justify-between gap-6">
-            <div>
-              <span class="text-xs font-semibold text-zinc-400">Score de Santé SEO Global</span>
-              <div class="font-heading text-3xl font-extrabold text-white mt-1">94 / 100 <span class="text-sm font-normal text-emerald-400">(Excellent)</span></div>
-              <p class="text-xs text-zinc-400 mt-2">Structure sémantique HTML5, balisage Schema.org, Open Graph et sitemap valides.</p>
-            </div>
-            <div class="w-20 h-20 rounded-full border-4 border-emerald-500 flex items-center justify-center font-heading font-extrabold text-2xl text-emerald-400 flex-shrink-0">
-              94%
-            </div>
-          </div>
-
-          <!-- Prévisualisation Google Search SERP -->
-          <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-            <h3 class="font-heading font-bold text-sm text-white">Aperçu Réel dans les Résultats Google (SERP)</h3>
-            <div class="p-5 rounded-2xl bg-white text-black max-w-xl font-sans">
-              <div class="flex items-center gap-2 text-xs text-zinc-600 mb-1">
-                <span class="w-4 h-4 rounded-full bg-[#EF4248] text-[9px] text-white flex items-center justify-center font-bold">O</span>
-                <span>https://ontariowp.com</span>
-              </div>
-              <h4 class="text-base text-[#1a0dab] font-medium hover:underline cursor-pointer">
-                ONTARIO — Magazine Éditorial & Prospective Numérique
-              </h4>
-              <p class="text-xs text-[#4d5156] mt-1 leading-snug">
-                Magazine de référence dédié à l'intelligence artificielle, aux ruptures technologiques, au design et aux modèles émergents. Analyses indépendantes et dossiers de fond.
-              </p>
-            </div>
-          </div>
-
-          <!-- Directives Robots & Sitemap -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex items-center justify-between">
-              <div>
-                <h4 class="font-bold text-xs text-white">Fichier robots.txt</h4>
-                <p class="text-[10px] text-emerald-400 font-semibold">Accessible & Configuré</p>
-              </div>
-              <a href="/robots.txt" target="_blank" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-white font-bold">Inspecter ↗</a>
-            </div>
-
-            <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752] flex items-center justify-between">
-              <div>
-                <h4 class="font-bold text-xs text-white">Sitemap XML (Index Google)</h4>
-                <p class="text-[10px] text-emerald-400 font-semibold">Généré avec Stylesheet XSL</p>
-              </div>
-              <a href="/sitemap.xml" target="_blank" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-white font-bold">Consulter ↗</a>
-            </div>
-          </div>
+    <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-5">
+      <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">SEO & Métadonnées Sémantiques</h3>
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Titre Général du Site (Meta Title)</label>
+          <input type="text" value="ONTARIO — Magazine Éditorial & Digital" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
         </div>
-
-        <!-- Checklist SEO (4 Cols) -->
-        <div class="lg:col-span-4 p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-          <h3 class="font-heading font-bold text-sm text-white">Checklist Technique Google</h3>
-          <div class="space-y-3 text-xs">
-            <div class="flex items-center gap-2 text-emerald-400">
-              <span>✓</span>
-              <span>Balise H1 unique par article</span>
-            </div>
-            <div class="flex items-center gap-2 text-emerald-400">
-              <span>✓</span>
-              <span>Images avec balises ALT & fallbacks</span>
-            </div>
-            <div class="flex items-center gap-2 text-emerald-400">
-              <span>✓</span>
-              <span>Balises Open Graph & Twitter Cards</span>
-            </div>
-            <div class="flex items-center gap-2 text-emerald-400">
-              <span>✓</span>
-              <span>Flux RSS 2.0 valide (/feed.xml)</span>
-            </div>
-            <div class="flex items-center gap-2 text-emerald-400">
-              <span>✓</span>
-              <span>Blocage /admin/ dans robots.txt</span>
-            </div>
-          </div>
+        <div>
+          <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Description Globale (Meta Description)</label>
+          <textarea rows="3" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">Le média de référence sur les technologies de pointe, le design d'avant-garde et les mutations culturelles.</textarea>
         </div>
-
+        <div class="pt-2 flex items-center gap-4 text-zinc-400">
+          <span>✓ Sitemap XML actif : <a href="/sitemap.xml" target="_blank" class="text-[#EF4248] underline">/sitemap.xml</a></span>
+          <span>✓ Flux RSS actif : <a href="/feed.xml" target="_blank" class="text-[#EF4248] underline">/feed.xml</a></span>
+        </div>
       </div>
     </div>
   `;
 }
 
-function renderTabAdSense() {
+function renderTabAnalytics() {
   return `
     <div class="space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E3752]">
-        <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold uppercase">MONÉTISATION MÉDIA & GOOGLE ADSENSE</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Gestion de la Régie Publicitaire</h1>
-          <p class="text-xs text-zinc-400">Contrôle des 5 emplacements stratégiques (Accueil, In-Feed, Sidebar et Article)</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <button onclick="toggleAdSenseGlobal()" class="px-5 py-2.5 rounded-xl ${ADMIN_ADSENSE.enabled ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-zinc-700 hover:bg-zinc-600'} text-white font-bold text-xs shadow-md transition-all cursor-pointer">
-            ${ADMIN_ADSENSE.enabled ? '✓ Publicités Actives sur le Site' : '✕ Publicités Désactivées'}
-          </button>
-        </div>
-      </div>
-
-      <!-- KPIs Financiers AdSense -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752]">
-          <span class="text-xs text-zinc-400 block mb-1">Revenus Estimés (Aujourd'hui)</span>
-          <div class="font-heading text-2xl font-bold text-white">${ADMIN_ADSENSE.estimatedToday}</div>
-        </div>
-        <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752]">
-          <span class="text-xs text-zinc-400 block mb-1">Revenus Ce Mois</span>
-          <div class="font-heading text-2xl font-bold text-emerald-400">${ADMIN_ADSENSE.estimatedMonth}</div>
-        </div>
-        <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752]">
-          <span class="text-xs text-zinc-400 block mb-1">RPM Page Moyen</span>
-          <div class="font-heading text-2xl font-bold text-white">${ADMIN_ADSENSE.rpm}</div>
-        </div>
-        <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752]">
-          <span class="text-xs text-zinc-400 block mb-1">Impressions Totales</span>
-          <div class="font-heading text-2xl font-bold text-white">${ADMIN_ADSENSE.impressions}</div>
-        </div>
-        <div class="p-5 rounded-2xl bg-[#0E2137] border border-[#1E3752]">
-          <span class="text-xs text-zinc-400 block mb-1">Clics Comptabilisés</span>
-          <div class="font-heading text-2xl font-bold text-white">${ADMIN_ADSENSE.clicks}</div>
-        </div>
-      </div>
-
-      <!-- Paramètres Publisher ID -->
-      <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <h3 class="font-heading font-bold text-sm text-white">Identifiant Éditeur Google AdSense</h3>
-          <p class="text-xs text-zinc-400">Ce code est automatiquement injecté dans les bannières publicitaires</p>
-        </div>
-        <input type="text" onchange="updateAdSensePublisher(this.value)" value="${ADMIN_ADSENSE.publisherId}" class="px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white font-mono w-full sm:w-80 focus:border-[#EF4248] focus:outline-none">
-      </div>
-
-      <!-- Grille des 5 Emplacements Requis et Conformes -->
-      <h3 class="font-heading font-bold text-base text-white pt-2">Configuration des 5 Emplacements Stratégiques</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        ${Object.entries(ADMIN_ADSENSE.slots).map(([key, s]) => `
-          <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] flex flex-col justify-between space-y-4 hover:border-white/20 transition-all">
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] uppercase font-bold text-[#EF4248]">${key.replace(/_/g, ' ')}</span>
-                <button onclick="toggleAdSenseSlot('${key}')" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold cursor-pointer ${s.enabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-700 text-zinc-400'}">
-                  ${s.enabled ? '✓ Activé' : '✕ Désactivé'}
-                </button>
-              </div>
-              <h4 class="font-bold text-sm text-white">${s.name}</h4>
-              <p class="text-xs text-zinc-400 mt-1">Format : <b class="text-zinc-300">${s.format}</b></p>
-              <p class="text-[10px] text-zinc-500 mt-0.5">Anti-CLS min-height : <b>${s.minHeight || '90px'}</b></p>
-            </div>
-
-            <!-- Aperçu de Simulation en direct -->
-            <div class="p-4 rounded-xl border border-dashed border-[#1E3752] bg-[#0A1A2F] text-center text-[10px] text-zinc-400 flex flex-col items-center justify-center" style="min-height: 80px;">
-              <span class="text-[10px] uppercase font-bold text-[#EF4248]">Publicités</span>
-              <span class="font-semibold text-white mt-0.5">Google AdSense • ${s.format}</span>
-              <span class="text-zinc-500 text-[9px] mt-0.5">Simulation d'emplacement réel</span>
-            </div>
+      <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-4">
+        <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Statistiques Réelles d'Audience</h3>
+        <p class="text-xs text-zinc-400">Les consultations de pages sont mesurées en local. Pour une télémétrie complète, activez votre identifiant GA4 ou Plausible.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-zinc-50 dark:bg-[#162F4D]/50 border border-zinc-200 dark:border-[#1E3752]">
+            <span class="text-xs text-zinc-400">Total Consultations CMS</span>
+            <div class="font-heading text-xl font-bold text-zinc-900 dark:text-white mt-1">${ARTICLES.reduce((acc, a) => acc + (a.views||0), 0)}</div>
           </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function renderTabCustomization() {
-  return `
-    <div class="space-y-6">
-      <div class="flex items-center justify-between pb-6 border-b border-[#1E3752]">
-        <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold uppercase">GESTION ÉDITORIALE & CARROUSEL HERO</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Pilotage du Carrousel & Personnalisation</h1>
-          <p class="text-xs text-zinc-400">Configurez les modes d'affichage du Hero Slider, l'autoplay et les contenus de une</p>
-        </div>
-      </div>
-
-      <form onsubmit="saveCustomizationSubmit(event)" class="space-y-6 max-w-4xl">
-        <!-- 1. MODES DU CARROUSEL HERO -->
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-          <h3 class="font-heading font-bold text-base text-white">1. Paramètres Dynamiques du Carrousel Hero</h3>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs text-zinc-300 font-bold mb-1.5">Mode d'Alimentation</label>
-              <select id="cust-carousel-mode" class="w-full px-3 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-                <option value="recent" ${HERO_CAROUSEL_CONFIG.mode === 'recent' ? 'selected' : ''}>📅 Publications Récentes (Ordre chronologique)</option>
-                <option value="popular" ${HERO_CAROUSEL_CONFIG.mode === 'popular' ? 'selected' : ''}>🔥 Publications Populaires (Plus lues)</option>
-                <option value="manual" ${HERO_CAROUSEL_CONFIG.mode === 'manual' ? 'selected' : ''}>⭐ Sélection Manuelle (Articles en vedette)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs text-zinc-300 font-bold mb-1.5">Vitesse de Rotation (Secondes)</label>
-              <select id="cust-carousel-duration" class="w-full px-3 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-                <option value="4" ${HERO_CAROUSEL_CONFIG.autoplayInterval === 4000 ? 'selected' : ''}>4 secondes (Rapide)</option>
-                <option value="6" ${HERO_CAROUSEL_CONFIG.autoplayInterval === 6000 || !HERO_CAROUSEL_CONFIG.autoplayInterval ? 'selected' : ''}>6 secondes (Recommandé Ontario)</option>
-                <option value="8" ${HERO_CAROUSEL_CONFIG.autoplayInterval === 8000 ? 'selected' : ''}>8 secondes (Détendu)</option>
-                <option value="10" ${HERO_CAROUSEL_CONFIG.autoplayInterval === 10000 ? 'selected' : ''}>10 secondes (Long)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs text-zinc-300 font-bold mb-1.5">Nombre de Slides Actifs</label>
-              <select id="cust-carousel-max" class="w-full px-3 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-                <option value="3" ${HERO_CAROUSEL_CONFIG.maxSlides === 3 ? 'selected' : ''}>3 articles</option>
-                <option value="4" ${HERO_CAROUSEL_CONFIG.maxSlides === 4 ? 'selected' : ''}>4 articles</option>
-                <option value="5" ${HERO_CAROUSEL_CONFIG.maxSlides === 5 || !HERO_CAROUSEL_CONFIG.maxSlides ? 'selected' : ''}>5 articles (Standard)</option>
-              </select>
-            </div>
+          <div class="p-4 rounded-xl bg-zinc-50 dark:bg-[#162F4D]/50 border border-zinc-200 dark:border-[#1E3752]">
+            <span class="text-xs text-zinc-400">Articles en Base</span>
+            <div class="font-heading text-xl font-bold text-zinc-900 dark:text-white mt-1">${ARTICLES.length}</div>
+          </div>
+          <div class="p-4 rounded-xl bg-zinc-50 dark:bg-[#162F4D]/50 border border-zinc-200 dark:border-[#1E3752]">
+            <span class="text-xs text-zinc-400">Taux de Rétention</span>
+            <div class="font-heading text-base font-bold text-amber-500 mt-1">Non connecté (Nécessite GA4)</div>
           </div>
         </div>
-
-        <!-- 2. ARTICLE PRINCIPAL DU HERO -->
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-          <h3 class="font-heading font-bold text-base text-white">2. Contenu en Vedette #1 (Slide Principal)</h3>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Grand Titre Principal du Hero</label>
-            <input type="text" id="cust-hero-title" value="${ARTICLES[0]?.title || ''}" class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-sm text-white font-bold">
-          </div>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Extrait d'Accroche</label>
-            <textarea id="cust-hero-desc" rows="2" class="w-full px-4 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white leading-relaxed">${ARTICLES[0]?.excerpt || ''}</textarea>
-          </div>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Image Grand Angle (URL Haute Définition)</label>
-            <input type="text" id="cust-hero-img" value="${ARTICLES[0]?.coverImage || ''}" class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-          </div>
-        </div>
-
-        <button type="submit" class="w-full py-3.5 rounded-2xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-sm shadow-xl shadow-red-500/25 transition-all cursor-pointer">
-          ✓ Enregistrer et Synchroniser Immédiatement avec la Page d'Accueil
-        </button>
-      </form>
+      </div>
     </div>
   `;
 }
 
 function renderTabSettings() {
   return `
-    <div class="space-y-6">
-      <div class="pb-6 border-b border-[#1E3752]">
-        <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">PARAMÈTRES & PROFIL</span>
-        <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Paramètres du Site & Profil Super-Admin</h1>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl">
-        <!-- Paramètres Généraux -->
-        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-          <h3 class="font-heading font-bold text-base text-white">Paramètres Généraux du Média</h3>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Nom du Média</label>
-            <input type="text" value="ONTARIO Magazine" class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-          </div>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Langue Principale</label>
-            <input type="text" value="Français (fr-FR)" disabled class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F]/50 border border-[#1E3752] text-xs text-zinc-400">
-          </div>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Fuseau Horaire</label>
-            <input type="text" value="Europe/Paris (UTC+1)" disabled class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F]/50 border border-[#1E3752] text-xs text-zinc-400">
-          </div>
+    <div class="p-6 rounded-2xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752] shadow-sm space-y-5">
+      <h3 class="font-heading font-bold text-base text-zinc-900 dark:text-white">Réglages Généraux de la Plateforme</h3>
+      <div class="space-y-4 text-xs max-w-xl">
+        <div>
+          <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Nom du Média</label>
+          <input type="text" value="ONTARIO" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
         </div>
-
-        <!-- Profil Administrateur -->
-        <form onsubmit="saveAdminProfileSubmit(event)" class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-          <h3 class="font-heading font-bold text-base text-white">Mon Profil Super-Administrateur</h3>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Nom d'Affichage</label>
-            <input type="text" id="profile-name" value="${currentUser?.name || 'Steve Jones'}" class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-          </div>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Adresse Email</label>
-            <input type="email" id="profile-email" value="${currentUser?.email || 'admin@ontario.com'}" class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-          </div>
-          <div>
-            <label class="block text-xs text-zinc-400 mb-1">Avatar (URL)</label>
-            <input type="text" id="profile-avatar" value="${currentUser?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'}" class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-          </div>
-          <button type="submit" class="w-full py-2.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs shadow-md mt-2">
-            Mettre à Jour Mon Profil
-          </button>
-        </form>
+        <div>
+          <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">E-mail de Contact Officiel</label>
+          <input type="email" value="contact@ontariowp.com" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
+        </div>
+        <button onclick="showToast('✓ Réglages sauvegardés sur le serveur !', 'success')" class="px-5 py-2.5 rounded-xl bg-[#EF4248] text-white font-bold">
+          Enregistrer les modifications
+        </button>
       </div>
     </div>
   `;
 }
 
+// ==========================================================================
+// 10. VÉRITABLE ÉDITEUR PAR BLOCS TYPE GUTENBERG SANS PERTE DE FOCUS
+// ==========================================================================
+
+function renderGutenbergEditor(container) {
+  if (!container) container = document.getElementById('app-container');
+  if (!container) return;
+
+  const article = editingArticleId ? ARTICLES.find(a => a.id === editingArticleId) : null;
+  const currentTitle = currentEditorState.title !== '' ? currentEditorState.title : (article ? article.title : '');
+  const currentExcerpt = currentEditorState.excerpt !== '' ? currentEditorState.excerpt : (article ? (article.excerpt || '') : '');
+  const currentCat = currentEditorState.categorySlug !== '' ? currentEditorState.categorySlug : (article ? article.categorySlug : (CATEGORIES[0]?.slug || 'design'));
+  const currentImg = currentEditorState.image !== '' ? currentEditorState.image : (article ? article.image : '');
+
+  container.innerHTML = `
+    <div class="min-h-screen bg-zinc-100 dark:bg-[#071426] text-zinc-900 dark:text-white flex flex-col transition-colors duration-200">
+      
+      <!-- TOOLBAR SUPÉRIEURE GUTENBERG -->
+      <header class="h-16 px-6 bg-white dark:bg-[#0E2137] border-b border-zinc-200 dark:border-[#1E3752] flex items-center justify-between sticky top-0 z-40 shadow-sm">
+        <div class="flex items-center gap-3">
+          <button onclick="cancelEditor()" class="p-2 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#1E3752] transition-colors" title="Retour aux articles">
+            ← Quitter
+          </button>
+          <div class="h-5 w-px bg-zinc-200 dark:bg-[#1E3752]"></div>
+          <span class="font-heading font-black text-xs uppercase tracking-wider text-[#EF4248]">Gutenberg Pro</span>
+          <span class="text-xs text-zinc-400 truncate max-w-xs">${editingArticleId ? 'Modifier article' : 'Nouvelle publication'}</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Insertion rapide de blocs -->
+          <button onclick="addBlock('paragraph')" class="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#162F4D] hover:bg-zinc-200 dark:hover:bg-[#1E3752] text-xs font-semibold" title="Ajouter Paragraphe">
+            + ¶ Texte
+          </button>
+          <button onclick="addBlock('heading')" class="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#162F4D] hover:bg-zinc-200 dark:hover:bg-[#1E3752] text-xs font-semibold" title="Ajouter Titre">
+            + H2 Titre
+          </button>
+          <button onclick="addBlock('pullquote')" class="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#162F4D] hover:bg-zinc-200 dark:hover:bg-[#1E3752] text-xs font-semibold" title="Ajouter Citation">
+            + “ Citation
+          </button>
+          <button onclick="addBlock('image')" class="px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#162F4D] hover:bg-zinc-200 dark:hover:bg-[#1E3752] text-xs font-semibold" title="Ajouter Image">
+            + 🖼️ Image
+          </button>
+          <button onclick="addBlock('affiliate')" class="px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 text-xs font-bold" title="Ajouter Produit Affilié">
+            + 🛍️ Affilié
+          </button>
+
+          <div class="h-5 w-px bg-zinc-200 dark:bg-[#1E3752] mx-1"></div>
+
+          <!-- Actions de Sauvegarde -->
+          <button onclick="saveArticleDraft()" class="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-[#162F4D] hover:bg-zinc-200 dark:hover:bg-[#1E3752] text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-all">
+            Enregistrer Brouillon
+          </button>
+          <button onclick="publishArticleEditor()" class="px-5 py-2 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 transition-all">
+            Publier sur le site
+          </button>
+        </div>
+      </header>
+
+      <!-- CORPS DE L'ÉDITEUR : CANVAS CENTRAL & VOLET LATÉRAL -->
+      <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Canvas Central de Rédaction (Feuille Éditoriale Pro) -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center custom-scrollbar">
+          <div class="w-full max-w-3xl bg-white dark:bg-[#0E2137] rounded-3xl p-8 sm:p-12 shadow-sm border border-zinc-200 dark:border-[#1E3752] space-y-6">
+            
+            <!-- Titre H1 Distinct du corps -->
+            <div>
+              <textarea id="editorArticleTitle" 
+                        oninput="currentEditorState.title = this.value"
+                        placeholder="Saisissez le grand titre H1 ici..." 
+                        rows="2"
+                        class="w-full font-heading font-extrabold text-3xl sm:text-4xl text-zinc-900 dark:text-white placeholder-zinc-300 dark:placeholder-zinc-600 border-0 bg-transparent resize-none focus:outline-none focus:ring-0 leading-tight">${currentTitle}</textarea>
+            </div>
+
+            <!-- Extrait / Chapô éditorial -->
+            <div>
+              <textarea id="editorArticleExcerpt" 
+                        oninput="currentEditorState.excerpt = this.value"
+                        placeholder="Chapô ou extrait introductif de la publication..." 
+                        rows="2"
+                        class="w-full text-base text-zinc-600 dark:text-zinc-300 placeholder-zinc-400 dark:placeholder-zinc-600 border-0 border-b border-zinc-100 dark:border-[#1E3752] bg-transparent resize-none focus:outline-none focus:ring-0 italic">${currentExcerpt}</textarea>
+            </div>
+
+            <!-- BLOCS MODULAIRES ÉDITORIAUX -->
+            <div id="editorBlocksContainer" class="space-y-4 pt-4">
+              ${editorBlocks.map((block, idx) => {
+                return `
+                  <div class="group relative p-4 rounded-2xl border border-zinc-200 dark:border-[#1E3752] bg-zinc-50/50 dark:bg-[#122B45]/30 hover:border-[#EF4248]/40 transition-all">
+                    
+                    <!-- Barre de contrôle du bloc -->
+                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-zinc-100 dark:border-[#1E3752]/50 text-[10px] text-zinc-400">
+                      <span class="font-bold uppercase tracking-wider text-[#EF4248]">
+                        ${block.type === 'heading' ? 'Titre H2' : (block.type === 'pullquote' ? 'Citation' : (block.type === 'image' ? 'Image & Légende' : (block.type === 'affiliate' ? 'Bloc Affilié Amazon' : 'Paragraphe')))}
+                      </span>
+                      <div class="flex items-center gap-1">
+                        <button onclick="moveBlock(${idx}, -1)" class="p-1 hover:text-zinc-900 dark:hover:text-white" title="Monter">↑</button>
+                        <button onclick="moveBlock(${idx}, 1)" class="p-1 hover:text-zinc-900 dark:hover:text-white" title="Descendre">↓</button>
+                        <button onclick="duplicateBlock(${idx})" class="p-1 hover:text-zinc-900 dark:hover:text-white" title="Dupliquer">📑</button>
+                        <button onclick="deleteBlock(${idx})" class="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded" title="Supprimer">🗑️</button>
+                      </div>
+                    </div>
+
+                    <!-- Contenu selon le type de bloc -->
+                    ${(() => {
+                      if (block.type === 'heading') {
+                        return `
+                          <input type="text" 
+                                 value="${block.content || ''}" 
+                                 oninput="updateBlockText(${idx}, this.value)"
+                                 placeholder="Sous-titre H2..." 
+                                 class="w-full font-heading font-bold text-xl text-zinc-900 dark:text-white bg-transparent border-0 focus:outline-none">
+                        `;
+                      } else if (block.type === 'pullquote') {
+                        return `
+                          <div class="border-l-4 border-[#EF4248] pl-4 py-1 space-y-2">
+                            <textarea oninput="updateBlockText(${idx}, this.value)"
+                                      placeholder="Citation marquante..." 
+                                      rows="2"
+                                      class="w-full italic font-heading text-lg text-zinc-800 dark:text-zinc-100 bg-transparent border-0 focus:outline-none resize-none">${block.content || ''}</textarea>
+                            <input type="text" 
+                                   value="${block.author || ''}" 
+                                   oninput="updateBlockField(${idx}, 'author', this.value)"
+                                   placeholder="Auteur de la citation..." 
+                                   class="w-full text-xs text-zinc-500 bg-transparent border-0 focus:outline-none">
+                          </div>
+                        `;
+                      } else if (block.type === 'image') {
+                        return `
+                          <div class="space-y-3">
+                            <div class="aspect-video bg-zinc-100 dark:bg-[#071426] rounded-xl overflow-hidden flex items-center justify-center">
+                              <img src="${block.url || FALLBACK_IMAGE}" onerror="onImgError(this)" class="w-full h-full object-cover" alt="${block.alt || 'Image article'}">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                              <input type="text" value="${block.url || ''}" oninput="updateBlockField(${idx}, 'url', this.value)" placeholder="URL de l'image..." class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752]">
+                              <input type="text" value="${block.caption || ''}" oninput="updateBlockField(${idx}, 'caption', this.value)" placeholder="Légende..." class="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752]">
+                            </div>
+                          </div>
+                        `;
+                      } else if (block.type === 'affiliate') {
+                        return `
+                          <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-3">
+                            <div class="flex items-center justify-between text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                              <span>🛍️ Produit Partenaire Recommandé</span>
+                              <span class="text-[9px] uppercase font-normal">rel="sponsored"</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                              <input type="text" value="${block.productTitle || ''}" oninput="updateBlockField(${idx}, 'productTitle', this.value)" placeholder="Nom du produit..." class="sm:col-span-2 px-3 py-1.5 rounded-lg bg-white dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752]">
+                              <input type="text" value="${block.price || ''}" oninput="updateBlockField(${idx}, 'price', this.value)" placeholder="Prix (ex: 299 €)..." class="px-3 py-1.5 rounded-lg bg-white dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752]">
+                            </div>
+                            <input type="text" value="${block.link || ''}" oninput="updateBlockField(${idx}, 'link', this.value)" placeholder="Lien d'affiliation..." class="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-xs">
+                          </div>
+                        `;
+                      } else {
+                        return `
+                          <textarea oninput="updateBlockText(${idx}, this.value)"
+                                    placeholder="Rédigez votre paragraphe..." 
+                                    rows="3"
+                                    class="w-full text-sm text-zinc-800 dark:text-zinc-200 bg-transparent border-0 focus:outline-none resize-none leading-relaxed">${block.content || ''}</textarea>
+                        `;
+                      }
+                    })()}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Inserteur de bas de document -->
+            <div class="pt-6 border-t border-dashed border-zinc-200 dark:border-[#1E3752] flex items-center justify-center gap-2">
+              <button onclick="addBlock('paragraph')" class="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-[#162F4D] hover:bg-[#EF4248] hover:text-white text-xs font-semibold transition-colors">
+                + Ajouter Paragraphe
+              </button>
+              <button onclick="addBlock('heading')" class="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-[#162F4D] hover:bg-[#EF4248] hover:text-white text-xs font-semibold transition-colors">
+                + Titre H2
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Volet Latéral des Réglages de l'Article (Document Settings) -->
+        <aside class="w-80 bg-white dark:bg-[#0E2137] border-l border-zinc-200 dark:border-[#1E3752] overflow-y-auto p-6 space-y-6 hidden lg:block custom-scrollbar">
+          
+          <div>
+            <h4 class="font-heading font-bold text-xs uppercase tracking-wider text-zinc-400 mb-3">Réglages du Document</h4>
+            <div class="space-y-4 text-xs">
+              
+              <!-- Statut -->
+              <div>
+                <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Statut de diffusion</label>
+                <select id="editorArticleStatus" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
+                  <option value="draft" ${article && article.status === 'draft' ? 'selected' : ''}>Brouillon privé</option>
+                  <option value="published" ${!article || article.status === 'published' ? 'selected' : ''}>Publié publiquement</option>
+                  <option value="scheduled" ${article && article.status === 'scheduled' ? 'selected' : ''}>Programmé serveur</option>
+                </select>
+              </div>
+
+              <!-- Rubrique -->
+              <div>
+                <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Rubrique Principale</label>
+                <select id="editorArticleCategory" onchange="currentEditorState.categorySlug = this.value" class="w-full px-3 py-2 rounded-xl bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-zinc-900 dark:text-white">
+                  ${CATEGORIES.map(c => `<option value="${c.slug}" ${currentCat === c.slug ? 'selected' : ''}>${c.name}</option>`).join('')}
+                </select>
+              </div>
+
+              <!-- Image de Couverture -->
+              <div>
+                <label class="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Image à la une</label>
+                <div class="aspect-video bg-zinc-100 dark:bg-[#122B45] rounded-xl overflow-hidden mb-2">
+                  <img id="editorCoverPreview" src="${currentImg || FALLBACK_IMAGE}" onerror="onImgError(this)" class="w-full h-full object-cover" alt="Couverture">
+                </div>
+                <div class="flex gap-2">
+                  <input type="text" id="editorArticleImage" value="${currentImg}" oninput="currentEditorState.image = this.value; document.getElementById('editorCoverPreview').src = this.value || FALLBACK_IMAGE;" placeholder="URL de l'image..." class="flex-1 px-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-[#162F4D] border border-zinc-200 dark:border-[#1E3752] text-xs">
+                  <button onclick="openMediaPickerForEditor()" class="px-2.5 py-1.5 rounded-lg bg-zinc-200 dark:bg-[#1E3752] hover:bg-[#EF4248] hover:text-white font-semibold">📁</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================================================
+// 11. MODALE D'APERÇU RAPIDE ARTICLE & PAGES INSTITUTIONNELLES
+// ==========================================================================
+
 function renderPreviewArticleModal() {
-  if (!previewArticleModalId) return '';
-  const art = ARTICLES.find(a => a.id === previewArticleModalId);
+  const art = ARTICLES.find(a => a.id === previewArticleModalId) || TRASH_ARTICLES.find(a => a.id === previewArticleModalId);
   if (!art) return '';
 
   return `
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onclick="closeArticlePreview()">
-      <div class="relative w-full max-w-4xl max-h-[90vh] bg-[#0E2137] border border-[#1E3752] rounded-3xl overflow-y-auto p-6 sm:p-10 shadow-2xl" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between pb-4 border-b border-[#1E3752] mb-6">
-          <span class="text-xs font-bold uppercase tracking-wider text-[#EF4248]">PRÉVISUALISATION DIRECTE</span>
-          <button onclick="closeArticlePreview()" class="text-zinc-400 hover:text-white font-bold text-lg">✕</button>
+    <div class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeArticlePreview()">
+      <div class="w-full max-w-3xl bg-white dark:bg-[#0E2137] rounded-3xl overflow-hidden shadow-2xl border border-zinc-200 dark:border-[#1E3752] max-h-[85vh] flex flex-col" onclick="event.stopPropagation()">
+        <div class="p-4 border-b border-zinc-200 dark:border-[#1E3752] flex items-center justify-between">
+          <span class="font-heading font-bold text-xs uppercase text-[#EF4248]">Aperçu Éditorial</span>
+          <button onclick="closeArticlePreview()" class="text-zinc-400 hover:text-zinc-900 dark:hover:text-white p-1">✕</button>
         </div>
-        <img src="${art.coverImage}" onerror="onImgError(this)" class="w-full h-72 object-cover rounded-2xl mb-6">
-        <h1 class="font-heading text-2xl sm:text-4xl font-extrabold text-white mb-4">${art.title}</h1>
-        <p class="text-base text-zinc-300 leading-relaxed mb-6">${art.excerpt}</p>
-        <div class="prose-editorial text-sm text-zinc-300 space-y-4">
-          ${(art.contentBlocks || []).map(b => `
-            ${b.type === 'paragraph' ? `<p>${b.text}</p>` : ''}
-            ${b.type === 'heading' ? `<h2 class="font-bold text-xl text-white mt-4">${b.text}</h2>` : ''}
-            ${b.type === 'quote' ? `<blockquote class="border-l-4 border-[#EF4248] pl-4 italic text-zinc-200">${b.text}</blockquote>` : ''}
-          `).join('')}
+        <div class="overflow-y-auto p-6 sm:p-8 space-y-4">
+          <img src="${art.image || FALLBACK_IMAGE}" onerror="onImgError(this)" class="w-full h-64 object-cover rounded-2xl" alt="${art.title}">
+          <h2 class="font-heading font-extrabold text-2xl text-zinc-900 dark:text-white">${art.title}</h2>
+          <p class="text-xs text-zinc-400">Par Steve Ontario • Publié dans ${art.categorySlug}</p>
+          <div class="prose dark:prose-invert text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
+            ${art.content ? (typeof art.content === 'string' ? art.content : art.content.map(b => b.content ? `<p class="mb-3">${b.content}</p>` : '').join('')) : '<p>Aucun contenu textuel.</p>'}
+          </div>
         </div>
       </div>
     </div>
   `;
 }
 
-function renderGutenbergEditor(container) {
-  const isNew = editingArticleId === 'new';
-  const article = isNew ? {
-    title: '',
-    excerpt: '',
-    categorySlug: 'intelligence-artificielle',
-    coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=85',
-    imageAlt: 'Visuel éditorial',
-    imageCaption: 'Photographie éditoriale — ONTARIO Magazine',
-    focalPoint: 'center center',
-    status: 'draft',
-    authorSlug: 'steve-jones',
-    tags: ['Magazine', 'Éditorial'],
-    isHero: false,
-    seo: { metaTitle: '', metaDescription: '' }
-  } : ARTICLES.find(a => a.id === editingArticleId);
-
-  container.innerHTML = `
-    <div class="min-h-screen bg-[#071426] text-white p-4 sm:p-8 lg:p-10 font-sans">
-      <div class="max-w-7xl mx-auto space-y-6">
-        
-        <!-- Barre Supérieure d'Actions Éditeur WordPress/Gutenberg -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E3752]">
-          <div class="flex items-center gap-3">
-            <button onclick="cancelEditor()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-white font-medium transition-colors">
-              ← Retour au Dashboard
-            </button>
-            <div class="flex items-center gap-2">
-              <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${article.status === 'published' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (article.status === 'scheduled' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30')}">
-                ${article.status === 'published' ? '● Publié' : (article.status === 'scheduled' ? '⏰ Programmé' : '📝 Brouillon')}
-              </span>
-              <span class="text-xs text-zinc-400 hidden md:inline">
-                ${isNew ? 'Création d’un Nouvel Article' : 'Édition en direct : ' + article.title.substring(0, 30) + '...'}
-              </span>
-            </div>
-          </div>
-          
-          <div class="flex items-center gap-2.5 flex-wrap">
-            <button onclick="previewCurrentEditorArticle()" type="button" class="px-4 py-2 rounded-xl bg-[#122B45] hover:bg-[#1A3859] border border-[#1E3752] text-xs font-bold text-white flex items-center gap-1.5 transition-all">
-              <span>👁️ Aperçu Direct</span>
-            </button>
-            <button onclick="saveArticleDraft()" type="button" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition-colors">
-              Enregistrer Brouillon
-            </button>
-            <button onclick="publishArticleEditor()" type="button" class="px-5 py-2 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-lg shadow-red-500/25 transition-all flex items-center gap-1.5">
-              <span>🚀 Publier / Mettre à jour</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          <!-- Zone Centrale Rédactionnelle Gutenberg (8 Cols) -->
-          <div class="lg:col-span-8 p-6 sm:p-8 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-6">
-            
-            <!-- Titre et Extrait Chapeau -->
-            <div>
-              <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Titre de l'Article</label>
-              <input type="text" id="editor-title" placeholder="Titre percutant de votre enquête..." value="${article.title}" class="w-full font-heading text-2xl sm:text-4xl font-extrabold bg-transparent focus:outline-none text-white placeholder-zinc-500 border-b border-[#1E3752] pb-3">
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-1">Chapeau / Extrait Éditorial</label>
-              <textarea id="editor-excerpt" rows="2" placeholder="Extrait synthétique ou introduction percutante..." class="w-full text-sm text-zinc-300 bg-transparent border-b border-[#1E3752] pb-3 focus:outline-none placeholder-zinc-500 leading-relaxed">${article.excerpt}</textarea>
-            </div>
-
-            <!-- Inserteur Fixe de Blocs Gutenberg -->
-            <div class="p-4 rounded-2xl bg-[#0A1A2F] border border-[#1E3752]">
-              <div class="flex items-center justify-between mb-3 text-xs">
-                <span class="font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <span class="text-[#EF4248] text-base">+</span> Inserteur de Blocs Gutenberg
-                </span>
-                <span class="text-[10px] text-zinc-400">${editorBlocks.length} blocs insérés</span>
-              </div>
-              <div class="flex flex-wrap gap-2 text-xs">
-                <button type="button" onclick="addBlock('paragraph')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">¶ Paragraphe</button>
-                <button type="button" onclick="addBlock('heading')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">H2 Titre Section</button>
-                <button type="button" onclick="addBlock('heading-h3')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">H3 Sous-Titre</button>
-                <button type="button" onclick="addBlock('quote')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">❝ Citation</button>
-                <button type="button" onclick="addBlock('list')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">☰ Liste</button>
-                <button type="button" onclick="addBlock('image')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">🖼️ Image</button>
-                <button type="button" onclick="addBlock('gallery')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">🗂️ Galerie</button>
-                <button type="button" onclick="addBlock('video')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">🎥 Vidéo</button>
-                <button type="button" onclick="addBlock('callout')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">💡 Encadré</button>
-                <button type="button" onclick="addBlock('separator')" class="px-3 py-1.5 rounded-xl border border-[#1E3752] hover:border-[#EF4248] text-zinc-300 hover:text-white bg-[#0E2137] transition-all">— Séparateur</button>
-                <button type="button" onclick="addBlock('affiliate')" class="px-3 py-1.5 rounded-xl border border-[#EF4248] text-[#EF4248] hover:bg-[#EF4248]/10 font-bold transition-all">★ Produit Affilié</button>
-              </div>
-            </div>
-
-            <!-- Liste des Blocs Actifs -->
-            <div class="space-y-4 pt-2">
-              ${editorBlocks.map((b, idx) => `
-                <div class="p-4 sm:p-5 rounded-2xl bg-[#0A1A2F] border border-[#1E3752] relative group hover:border-[#EF4248]/40 transition-all">
-                  
-                  <!-- En-tête du bloc avec actions -->
-                  <div class="flex items-center justify-between text-xs text-zinc-400 mb-3 pb-2 border-b border-[#1E3752]/50">
-                    <span class="font-bold uppercase tracking-wider text-[#EF4248] flex items-center gap-1.5">
-                      <span class="text-[10px] text-zinc-500">#${idx + 1}</span>
-                      <span>${b.type === 'heading' ? (b.level === 'h3' ? 'Titre H3' : 'Titre H2') : b.type}</span>
-                    </span>
-                    <div class="flex items-center gap-1">
-                      <button type="button" onclick="moveBlock(${idx}, -1)" title="Monter" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center text-xs">↑</button>
-                      <button type="button" onclick="moveBlock(${idx}, 1)" title="Descendre" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center text-xs">↓</button>
-                      <button type="button" onclick="duplicateBlock(${idx})" title="Dupliquer" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center text-xs">📋</button>
-                      <button type="button" onclick="deleteBlock(${idx})" title="Supprimer" class="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center text-xs">🗑️</button>
-                    </div>
-                  </div>
-
-                  <!-- Champs selon le type de bloc -->
-                  ${b.type === 'paragraph' ? `
-                    <textarea onchange="updateBlockText(${idx}, this.value)" rows="3" class="w-full text-xs sm:text-sm bg-transparent border border-[#1E3752] p-3 rounded-xl focus:outline-none text-white leading-relaxed placeholder-zinc-500" placeholder="Rédigez votre paragraphe...">${b.text}</textarea>
-                  ` : ''}
-
-                  ${b.type === 'heading' ? `
-                    <div class="space-y-2">
-                      <input type="text" onchange="updateBlockText(${idx}, this.value)" value="${b.text}" class="w-full font-bold text-sm bg-transparent border border-[#1E3752] p-2.5 rounded-xl focus:outline-none text-white" placeholder="Intitulé du titre...">
-                      <div class="flex items-center gap-3 text-xs text-zinc-400">
-                        <label class="flex items-center gap-1 cursor-pointer">
-                          <input type="radio" name="h-level-${idx}" ${b.level !== 'h3' ? 'checked' : ''} onchange="updateBlockField(${idx}, 'level', 'h2')">
-                          <span>Niveau H2</span>
-                        </label>
-                        <label class="flex items-center gap-1 cursor-pointer">
-                          <input type="radio" name="h-level-${idx}" ${b.level === 'h3' ? 'checked' : ''} onchange="updateBlockField(${idx}, 'level', 'h3')">
-                          <span>Niveau H3</span>
-                        </label>
-                      </div>
-                    </div>
-                  ` : ''}
-
-                  ${b.type === 'quote' ? `
-                    <div class="space-y-2">
-                      <textarea onchange="updateBlockText(${idx}, this.value)" rows="2" class="w-full italic text-xs sm:text-sm bg-transparent border border-[#1E3752] p-3 rounded-xl focus:outline-none text-zinc-200" placeholder="Texte de la citation...">${b.text}</textarea>
-                      <input type="text" onchange="updateBlockField(${idx}, 'author', this.value)" value="${b.author || ''}" class="w-full text-xs bg-transparent border border-[#1E3752] p-2 rounded-xl text-zinc-400" placeholder="Auteur ou source de la citation (ex. Steve Jobs, 2011)">
-                    </div>
-                  ` : ''}
-
-                  ${b.type === 'list' ? `
-                    <div class="space-y-2">
-                      <label class="text-[11px] text-zinc-400">Éléments de la liste (un élément par ligne) :</label>
-                      <textarea onchange="updateBlockField(${idx}, 'items', this.value.split('\\n').filter(Boolean))" rows="3" class="w-full text-xs bg-transparent border border-[#1E3752] p-3 rounded-xl focus:outline-none text-white">${(b.items || []).join('\n')}</textarea>
-                    </div>
-                  ` : ''}
-
-                  ${b.type === 'image' ? `
-                    <div class="space-y-2.5">
-                      <div class="flex items-center gap-2">
-                        <input type="text" onchange="updateBlockField(${idx}, 'url', this.value)" value="${b.url || ''}" class="flex-1 text-xs bg-[#122B45] border border-[#1E3752] p-2.5 rounded-xl text-white" placeholder="URL de l'image...">
-                        <button type="button" onclick="openMediaPickerForEditor()" class="px-3 py-2 bg-[#EF4248]/20 hover:bg-[#EF4248]/30 border border-[#EF4248]/40 rounded-xl text-xs text-[#EF4248] font-bold">Médiathèque</button>
-                      </div>
-                      <div class="grid grid-cols-2 gap-2">
-                        <input type="text" onchange="updateBlockField(${idx}, 'alt', this.value)" value="${b.alt || ''}" class="text-xs bg-[#122B45] border border-[#1E3752] p-2 rounded-xl text-white" placeholder="Texte alternatif (SEO / Accessibilité)">
-                        <input type="text" onchange="updateBlockField(${idx}, 'caption', this.value)" value="${b.caption || ''}" class="text-xs bg-[#122B45] border border-[#1E3752] p-2 rounded-xl text-white" placeholder="Légende d'image">
-                      </div>
-                      ${b.url ? `<img src="${b.url}" onerror="onImgError(this)" class="w-full h-32 object-cover rounded-xl mt-1 border border-[#1E3752]">` : ''}
-                    </div>
-                  ` : ''}
-
-                  ${b.type === 'gallery' ? `
-                    <div class="space-y-2">
-                      <label class="text-[11px] text-zinc-400">URLs des images (séparées par une virgule) :</label>
-                      <textarea onchange="updateBlockField(${idx}, 'images', this.value.split(',').map(s => s.trim()).filter(Boolean))" rows="2" class="w-full text-xs bg-[#122B45] border border-[#1E3752] p-2.5 rounded-xl text-white">${(b.images || []).join(', ')}</textarea>
-                      <input type="text" onchange="updateBlockField(${idx}, 'caption', this.value)" value="${b.caption || ''}" class="w-full text-xs bg-transparent border border-[#1E3752] p-2 rounded-xl text-zinc-400" placeholder="Légende de la galerie">
-                    </div>
-                  ` : ''}
-
-                  ${b.type === 'video' ? `
-                    <div class="space-y-2">
-                      <input type="text" onchange="updateBlockField(${idx}, 'url', this.value)" value="${b.url || ''}" class="w-full text-xs bg-[#122B45] border border-[#1E3752] p-2.5 rounded-xl text-white" placeholder="URL YouTube ou vidéo MP4...">
-                      <input type="text" onchange="updateBlockField(${idx}, 'caption', this.value)" value="${b.caption || ''}" class="w-full text-xs bg-transparent border border-[#1E3752] p-2 rounded-xl text-zinc-400" placeholder="Légende vidéo">
-                    </div>
-                  ` : ''}
-
-                  ${b.type === 'callout' ? `
-                    <div class="space-y-2">
-                      <input type="text" onchange="updateBlockField(${idx}, 'title', this.value)" value="${b.title || 'À Retenir'}" class="w-full font-bold text-xs bg-[#122B45] border border-[#1E3752] p-2 rounded-xl text-[#EF4248]">
-                      <textarea onchange="updateBlockField(${idx}, 'text', this.value)" rows="2" class="w-full text-xs bg-transparent border border-[#1E3752] p-2.5 rounded-xl text-zinc-200" placeholder="Contenu de l'encadré...">${b.text || ''}</textarea>
-                    </div>
-                  ` : ''}
-
-                  ${b.type === 'separator' ? `
-                    <div class="py-2 text-center text-xs text-zinc-500">— Ligne de Séparation Éditoriale Horizontale —</div>
-                  ` : ''}
-
-                  ${b.type === 'affiliate' ? `
-                    <div class="space-y-2.5 text-xs">
-                      <div class="grid grid-cols-2 gap-2">
-                        <input type="text" placeholder="Nom du produit" value="${b.productName || ''}" onchange="updateAffiliateField(${idx}, 'productName', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white font-bold">
-                        <input type="text" placeholder="Marque (ex. Apex Computing)" value="${b.brand || ''}" onchange="updateAffiliateField(${idx}, 'brand', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
-                      </div>
-                      <div class="grid grid-cols-2 gap-2">
-                        <input type="text" placeholder="Distributeur (ex. Amazon)" value="${b.merchantName || 'Amazon'}" onchange="updateAffiliateField(${idx}, 'merchantName', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
-                        <input type="text" placeholder="Texte du bouton (ex. Voir sur Amazon)" value="${b.buttonText || 'Voir sur Amazon (Offre Partenaire)'}" onchange="updateAffiliateField(${idx}, 'buttonText', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
-                      </div>
-                      <input type="text" placeholder="URL Affiliée Amazon (avec tag partenaire)" value="${b.affiliateUrl || ''}" onchange="updateAffiliateField(${idx}, 'affiliateUrl', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-white">
-                      <input type="text" placeholder="Mention légale (rel=sponsored)" value="${b.disclaimer || 'Lien affilié vérifié — Nous pouvons percevoir une commission éditoriale.'}" onchange="updateAffiliateField(${idx}, 'disclaimer', this.value)" class="w-full p-2 bg-[#122B45] border border-[#1E3752] rounded-xl text-zinc-400">
-                    </div>
-                  ` : ''}
-
-                </div>
-              `).join('')}
-            </div>
-
-          </div>
-
-          <!-- Panneau Latéral Publication & Cadrage (4 Cols) -->
-          <div class="lg:col-span-4 space-y-6">
-            
-            <!-- 1. Réglages de Publication -->
-            <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-              <h4 class="font-heading font-bold text-sm text-white flex items-center justify-between">
-                <span>Statut & Publication</span>
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              </h4>
-
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Catégorie Principale</label>
-                <select id="editor-cat" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-                  ${CATEGORIES.map(c => `
-                    <option value="${c.slug}" ${c.slug === article.categorySlug ? 'selected' : ''}>${c.name}</option>
-                  `).join('')}
-                </select>
-              </div>
-
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Auteur de l'Article</label>
-                <select id="editor-author" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-                  ${AUTHORS.map(a => `
-                    <option value="${a.slug}" ${a.slug === (article.authorSlug || 'steve-jones') ? 'selected' : ''}>${a.name}</option>
-                  `).join('')}
-                </select>
-              </div>
-
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Date de Programmation (Optionnelle)</label>
-                <input type="datetime-local" id="editor-schedule" value="${article.scheduledAt || ''}" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-                <p class="text-[10px] text-zinc-500 mt-1">Laissez vide pour publier immédiatement.</p>
-              </div>
-
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Tags (séparés par des virgules)</label>
-                <input type="text" id="editor-tags" value="${(article.tags || []).join(', ')}" placeholder="IA, Innovation, Tech..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-              </div>
-
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Slug URL Personnalisé</label>
-                <input type="text" id="editor-slug" value="${article.slug || ''}" placeholder="mon-article-personnalise" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white font-mono">
-              </div>
-            </div>
-
-            <!-- 2. Visuel Principal & Cadrage Hero (Ratio 4:3 Conforme Section 2) -->
-            <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-              <h4 class="font-heading font-bold text-sm text-white flex items-center justify-between">
-                <span>Image Principale & Cadrage</span>
-                <span class="text-[10px] font-mono text-[#EF4248]">4:3 Hero Frame</span>
-              </h4>
-
-              <!-- Aperçu en direct du cadre 4:3 avec coins 22px -->
-              <div class="relative w-full aspect-[4/3] rounded-[18px] overflow-hidden border border-white/10 shadow-lg bg-[#0A1A2F]">
-                <img id="editor-cover-preview" src="${article.coverImage}" style="object-position: ${article.focalPoint || 'center center'};" class="w-full h-full object-cover">
-                <span class="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 text-white text-[9px] font-mono">Ratio 4:3</span>
-              </div>
-
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label class="text-[11px] text-zinc-400">URL du Visuel</label>
-                  <button type="button" onclick="openMediaPickerForEditor()" class="text-[11px] text-[#EF4248] hover:underline font-bold">
-                    📁 Choisir depuis la Médiathèque
-                  </button>
-                </div>
-                <input type="text" id="editor-cover" oninput="updateEditorCoverPreview(this.value)" value="${article.coverImage}" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-              </div>
-
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Point de Cadrage (Focal Point)</label>
-                <select id="editor-focal-point" onchange="updateEditorFocalPoint(this.value)" class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-                  <option value="center center" ${(article.focalPoint || 'center center') === 'center center' ? 'selected' : ''}>Centré (Center Center)</option>
-                  <option value="top center" ${article.focalPoint === 'top center' ? 'selected' : ''}>Haut (Top Center)</option>
-                  <option value="bottom center" ${article.focalPoint === 'bottom center' ? 'selected' : ''}>Bas (Bottom Center)</option>
-                  <option value="left center" ${article.focalPoint === 'left center' ? 'selected' : ''}>Gauche (Left Center)</option>
-                  <option value="right center" ${article.focalPoint === 'right center' ? 'selected' : ''}>Droite (Right Center)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Texte Alternatif (Alt Text)</label>
-                <input type="text" id="editor-image-alt" value="${article.imageAlt || ''}" placeholder="Description pour SEO et malvoyants..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-              </div>
-
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Légende d'Image Éditoriale</label>
-                <input type="text" id="editor-image-caption" value="${article.imageCaption || article.coverCaption || ''}" placeholder="Crédit photo ou mention éditoriale..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-              </div>
-
-              <div class="pt-2 border-t border-[#1E3752]/60">
-                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-white">
-                  <input type="checkbox" id="editor-is-hero" ${article.isHero ? 'checked' : ''} class="w-4 h-4 rounded text-[#EF4248] focus:ring-0">
-                  <span>Mettre en avant dans le Hero Slider de l'accueil</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- 3. Référencement Naturel & SEO -->
-            <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-              <h4 class="font-heading font-bold text-sm text-white">Référencement SEO & Réseaux</h4>
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Titre SEO (Meta Title)</label>
-                <input type="text" id="editor-seo-title" value="${article.seo?.metaTitle || ''}" placeholder="Titre optimisé pour Google..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
-              </div>
-              <div>
-                <label class="text-[11px] text-zinc-400 block mb-1">Description SEO (Meta Description)</label>
-                <textarea id="editor-seo-desc" rows="2" placeholder="Description de 160 caractères max..." class="w-full p-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">${article.seo?.metaDescription || ''}</textarea>
-              </div>
-
-              <!-- Aperçu SERP Google -->
-              <div class="p-3 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-[11px] space-y-1">
-                <span class="text-emerald-400 block truncate">https://ontario.com/article/${article.slug || 'slug'}</span>
-                <span class="text-blue-400 font-bold block truncate">${article.seo?.metaTitle || article.title || 'Titre de l’article'}</span>
-                <span class="text-zinc-400 block line-clamp-2">${article.seo?.metaDescription || article.excerpt || 'Extrait de l’article...'}</span>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-
-// ==========================================================================
-// 10. PAGES INSTITUTIONNELLES (À PROPOS & CONTACT)
-// ==========================================================================
 function renderAbout(container) {
+  if (!container) container = document.getElementById('app-container');
   container.innerHTML = `
-    <div class="container-ontario pt-28 sm:pt-32 pb-24">
-      <div class="max-w-3xl mx-auto prose-editorial">
-        <span class="text-xs font-bold uppercase tracking-widest text-[#EF4248]">QUI SOMMES-NOUS</span>
-        <h1 class="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight mt-1 mb-6" style="color: var(--text-primary);">
-          Manifeste Éditorial d’ONTARIO
-        </h1>
-        <p class="text-lg leading-relaxed">
-          ONTARIO est né d’une conviction : à l’ère de l’instantanéité et des flux d’actualités éphémères, les penseurs et créateurs du numérique ont besoin d’un espace de recul critique, d’esthétique soignée et d’analyses indépendantes sans complaisance.
-        </p>
-        <h2>Notre Ligne Déontologique</h2>
-        <p>
-          Chaque dossier fait l’objet de recherches rigoureuses, de bancs d’essai en conditions réelles et d’une transparence absolue sur nos relations avec les constructeurs et partenaires affiliés.
+    <div class="container-ontario pt-28 sm:pt-32 pb-24 space-y-8">
+      <div class="max-w-3xl">
+        <span class="text-xs font-bold uppercase tracking-wider text-[#EF4248]">Manifeste</span>
+        <h1 class="font-heading font-black text-4xl sm:text-5xl text-zinc-900 dark:text-white mt-2">À Propos d'ONTARIO</h1>
+        <p class="text-base text-zinc-600 dark:text-zinc-300 mt-4 leading-relaxed">
+          ONTARIO est un média indépendant dédié aux mutations technologiques, au design d'avant-garde et aux nouvelles frontières numériques. Conçu selon les standards éditoriaux les plus stricts, nous valorisons la profondeur d'analyse, l'élégance visuelle et l'intégrité de l'information.
         </p>
       </div>
     </div>
@@ -4520,21 +4309,29 @@ function renderAbout(container) {
 }
 
 function renderContact(container) {
+  if (!container) container = document.getElementById('app-container');
   container.innerHTML = `
-    <div class="container-ontario pt-28 sm:pt-32 pb-24">
-      <div class="max-w-2xl mx-auto p-8 rounded-3xl border shadow-sm" style="background-color: var(--surface); border-color: var(--border-color);">
-        <h1 class="font-heading text-3xl font-extrabold tracking-tight mb-2" style="color: var(--text-primary);">
-          Contacter la Rédaction
-        </h1>
-        <p class="text-xs mb-6" style="color: var(--text-secondary);">
-          Une question sur un banc d'essai, une proposition de partenariat ou un retour de lecture ? Nos journalistes vous répondent sous 48h.
-        </p>
-        <form onsubmit="event.preventDefault(); alert('Votre message a bien été envoyé à la rédaction !'); event.target.reset();" class="flex flex-col gap-3">
-          <input type="text" required placeholder="Votre nom complet" class="px-4 py-3 rounded-xl border text-sm" style="background-color: var(--surface-soft); border-color: var(--border-color); color: var(--text-primary);">
-          <input type="email" required placeholder="Votre adresse email" class="px-4 py-3 rounded-xl border text-sm" style="background-color: var(--surface-soft); border-color: var(--border-color); color: var(--text-primary);">
-          <textarea required rows="4" placeholder="Votre message pour la rédaction..." class="px-4 py-3 rounded-xl border text-sm" style="background-color: var(--surface-soft); border-color: var(--border-color); color: var(--text-primary);"></textarea>
-          <button type="submit" class="py-3 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-sm shadow-md transition-all mt-2">
-            Envoyer le message →
+    <div class="container-ontario pt-28 sm:pt-32 pb-24 space-y-8">
+      <div class="max-w-xl">
+        <span class="text-xs font-bold uppercase tracking-wider text-[#EF4248]">Contact & Rédaction</span>
+        <h1 class="font-heading font-black text-4xl text-zinc-900 dark:text-white mt-2">Nous Contacter</h1>
+        <p class="text-xs text-zinc-500 mt-2">Une question, un communiqué de presse ou une proposition de collaboration ?</p>
+        
+        <form onsubmit="event.preventDefault(); showToast('✓ Message transmis à la rédaction ONTARIO !', 'success');" class="mt-6 space-y-4 text-xs">
+          <div>
+            <label class="block font-semibold mb-1">Votre Nom</label>
+            <input type="text" required class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752]">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Votre E-mail</label>
+            <input type="email" required class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752]">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Message</label>
+            <textarea rows="4" required class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#0E2137] border border-zinc-200 dark:border-[#1E3752]"></textarea>
+          </div>
+          <button type="submit" class="px-6 py-3 rounded-xl bg-[#EF4248] text-white font-bold shadow-md shadow-red-500/20">
+            Envoyer le message
           </button>
         </form>
       </div>

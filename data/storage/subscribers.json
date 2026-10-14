@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sub-1791988447965",
+    "email": "test.qa.1791988447959@ontario-test.fr",
+    "status": "confirmed",
+    "createdAt": "2026-10-14T14:34:07.965Z"
+  },
+  {
+    "id": "sub-1",
+    "email": "clara.dupont@media-agency.fr",
+    "status": "confirmed",
+    "createdAt": "2026-03-20"
+  },
+  {
+    "id": "sub-2",
+    "email": "marc.leroy@techstudio.com",
+    "status": "confirmed",
+    "createdAt": "2026-03-22"
+  },
+  {
+    "id": "sub-3",
+    "email": "elena.rostova@design-lab.io",
+    "status": "confirmed",
+    "createdAt": "2026-03-24"
+  },
+  {
+    "id": "sub-4",
+    "email": "alex.vance@creative-ventures.net",
+    "status": "pending",
+    "createdAt": "2026-03-25"
+  },
+  {
+    "id": "sub-5",
+    "email": "thomas.morel@startup-foundry.co",
+    "status": "confirmed",
+    "createdAt": "2026-03-26"
+  }
+]

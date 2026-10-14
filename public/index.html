@@ -4,6 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ONTARIO — Média Numérique & Magazine Éditorial</title>
+    <!-- Anti-FOUC Theme Initialization (Exécuté immédiatement avant le premier rendu) -->
+  <script>
+    (function() {
+      try {
+        var pref = localStorage.getItem('ontario-theme-preference') || localStorage.getItem('ontario-theme') || 'system';
+        var isDark = pref === 'dark' || (pref === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var root = document.documentElement;
+        if (isDark) {
+          root.classList.add('dark');
+          root.setAttribute('data-theme', 'dark');
+        } else {
+          root.classList.remove('dark');
+          root.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <meta name="description" content="Magazine éditorial d’analyses approfondies, prospectives technologiques, intelligence artificielle et bancs d’essai indépendants.">
 
   <!-- Polices Google Fonts officielles : Space Grotesk (Titres) & Inter (Corps de lecture) -->
