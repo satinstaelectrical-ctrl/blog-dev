@@ -30,125 +30,94 @@ export function ArticleCardFeatured({ articles }: { articles: Article[] }) {
   }, [articles.length]);
 
   return (
-    <section className="relative w-full bg-[#071426] text-white pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 overflow-hidden">
-      {/* Fond décoratif subtil et atténué bleu nuit (ne parasite pas la lecture) */}
-      <div className="absolute inset-0 pointer-events-none opacity-40">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-900/20 blur-3xl" />
-        <div className="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full bg-purple-900/15 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-[#EF4248]/5 blur-3xl" />
+    <section className="relative w-full min-h-[640px] sm:min-h-[720px] lg:min-h-[820px] h-[86vh] max-h-[940px] bg-[#071426] text-white overflow-hidden select-none">
+      {/* Arrière-plan Photographique Grand Angle avec Transition Douce */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <img
+          key={current.id}
+          src={current.coverImage}
+          alt={current.imageAlt || current.title}
+          loading="eager"
+          fetchPriority="high"
+          style={{ objectPosition: current.focalPoint || 'center center' }}
+          className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out scale-100 hover:scale-105 filter brightness-[0.92] contrast-[1.05]"
+        />
+
+        {/* Masque Dégradé Editorial Profond */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#071426] via-[#071426]/60 to-black/60 sm:via-[#071426]/40 pointer-events-none" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#071426]/95 via-[#071426]/75 to-transparent sm:w-3/4 lg:w-3/5 pointer-events-none" />
       </div>
 
-      <div className="site-container container-media relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-14 items-center">
-          
-          {/* Colonne Gauche : Texte Éditorial Majeur (~7 colonnes) */}
-          <div className="lg:col-span-7 flex flex-col justify-center text-left">
-            {/* Pastille Catégorie Pill Translucide */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-bold uppercase tracking-wider mb-4 w-fit">
-              <span className="w-2 h-2 rounded-full bg-[#EF4248]" />
-              <span className="text-white/95">{current.category?.name || 'TECH / AI'}</span>
+      {/* Contenu Éditorial Inférieur Gauche Aligné sur le Conteneur Ontario (1376px) */}
+      <div className="absolute bottom-10 sm:bottom-14 lg:bottom-16 inset-x-0 z-20">
+        <div className="site-container container-media">
+          <div className="max-w-3xl flex flex-col items-start text-left">
+            {/* Badges de Catégories (Pills Translucides comme dans la capture) */}
+            <div className="flex items-center gap-2 mb-3.5 flex-wrap">
+              <span className="px-3.5 py-1 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/25 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-xs transition-all">
+                {current.category?.name || 'AI'}
+              </span>
+              <span className="px-3.5 py-1 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-[11px] font-extrabold uppercase tracking-wider text-white/90 shadow-xs transition-all">
+                TECHNOLOGY
+              </span>
             </div>
 
             {/* Grand Titre H1 Éditorial */}
-            <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl xl:text-[52px] font-extrabold tracking-tight leading-[1.12] mb-5">
+            <h1 className="font-heading text-3xl sm:text-5xl lg:text-[56px] xl:text-[62px] font-extrabold text-white tracking-tight leading-[1.08] mb-3.5 drop-shadow-lg">
               <Link href={`/article/${current.slug}`} className="hover:text-zinc-200 transition-colors">
                 {current.title}
               </Link>
             </h1>
 
-            {/* Métadonnées & Auteur */}
-            <div className="flex items-center gap-3 text-xs sm:text-sm text-zinc-300 mb-5 flex-wrap">
-              <Link href={`/author/${current.author?.slug || 'steve-jones'}`} className="flex items-center gap-2 font-medium hover:text-white">
-                <img
-                  src={current.author?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'}
-                  alt={current.author?.name || 'Steve Jones'}
-                  className="w-6 h-6 rounded-full object-cover border border-white/20"
-                />
-                <span>Par <b className="text-white font-semibold">{current.author?.name || 'Steve Jones'}</b></span>
-              </Link>
-              <span>•</span>
-              <time dateTime={current.publishedAt}>{formatDateFr(current.publishedAt)}</time>
-              <span>•</span>
-              <span>⏱️ {current.readingTime} min</span>
+            {/* Ligne Métadonnées Auteur & Date conforme à la capture: "Steve Jones on Mar 24, 2026" */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-300 font-medium mb-3.5">
+              <span className="text-white font-semibold">{current.author?.name || 'Steve Jones'}</span>
+              <span>on</span>
+              <span>{formatDateFr(current.publishedAt)}</span>
             </div>
 
-            {/* Extrait fluide et lisible */}
-            <p className="text-sm sm:text-base text-zinc-300 leading-relaxed mb-6 sm:mb-8 line-clamp-3 max-w-xl">
+            {/* Extrait fluide et soigné */}
+            <p className="text-sm sm:text-base text-zinc-300/95 leading-relaxed max-w-2xl line-clamp-2 sm:line-clamp-3 mb-6 font-normal drop-shadow-xs">
               {current.excerpt}
             </p>
 
-            {/* Actions & Flèches de navigation Slider Hero */}
-            <div className="flex items-center gap-4 flex-wrap">
-              <Link
-                href={`/article/${current.slug}`}
-                className="px-6 sm:px-7 py-3 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs sm:text-sm font-bold transition-all shadow-lg shadow-[#EF4248]/25 flex items-center gap-2 group"
+            {/* Commandes Circulaires du Carrousel Flèche Gauche & Flèche Droite conformes à la capture */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                onClick={handlePrev}
+                aria-label="Article précédent"
+                className="w-11 h-11 rounded-full border border-white/35 bg-black/40 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-md hover:scale-105 active:scale-95 group shadow-xl"
               >
-                <span>Lire l'article complet</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
-              </Link>
+                <ChevronLeftIcon size={16} />
+              </button>
+              <button
+                onClick={handleNext}
+                aria-label="Article suivant"
+                className="w-11 h-11 rounded-full border border-white/35 bg-black/40 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-md hover:scale-105 active:scale-95 group shadow-xl"
+              >
+                <ChevronRightIcon size={16} />
+              </button>
 
-              {articles.length > 1 && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handlePrev}
-                    aria-label="Article précédent"
-                    className="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer"
-                  >
-                    <ChevronLeftIcon size={16} />
-                  </button>
-                  <button
-                    onClick={handleNext}
-                    aria-label="Article suivant"
-                    className="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer"
-                  >
-                    <ChevronRightIcon size={16} />
-                  </button>
-                  <span className="text-xs font-mono font-medium text-zinc-400 ml-1.5">
-                    0{currentIndex + 1} / 0{articles.length}
-                  </span>
+              {/* Indicateur Numérique & Puces */}
+              <div className="flex items-center gap-2.5 ml-2">
+                <span className="text-xs font-mono font-bold text-white/90">
+                  0{currentIndex + 1} / 0{articles.length}
+                </span>
+                <div className="hidden sm:flex items-center gap-1.5 ml-1">
+                  {articles.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentIndex(idx)}
+                      aria-label={`Slide ${idx + 1}`}
+                      className={`h-1 rounded-full transition-all cursor-pointer ${
+                        idx === currentIndex ? 'w-6 bg-[#EF4248]' : 'w-2 bg-white/30 hover:bg-white/60'
+                      }`}
+                    />
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
           </div>
-
-          {/* Colonne Droite : Frame Photo 4:3 avec angles 22px, bordure fine, ombre discrète (~5 colonnes) */}
-          <div className="lg:col-span-5 w-full flex flex-col">
-            <Link
-              href={`/article/${current.slug}`}
-              className="relative w-full aspect-[4/3] rounded-[22px] overflow-hidden border border-white/10 shadow-2xl shadow-black/50 bg-[#0E2137] group block"
-            >
-              {/* Skeleton de chargement sous-jacent */}
-              <div className="absolute inset-0 bg-[#0E2137] animate-pulse flex items-center justify-center text-zinc-500 text-xs">
-                <span>Chargement du visuel...</span>
-              </div>
-
-              {/* Photographie éditoriale haute définition avec point de cadrage configurable */}
-              <img
-                key={current.id}
-                src={current.coverImage}
-                alt={current.imageAlt || current.title}
-                loading="eager"
-                fetchPriority="high"
-                style={{ objectPosition: current.focalPoint || 'center center' }}
-                className="relative z-10 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-              />
-
-              {/* Légende d'image optionnelle au bas du cadre */}
-              {(current.coverCaption || current.excerpt) && (
-                <div className="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 pt-6 text-[11px] text-zinc-300">
-                  <p className="line-clamp-1 italic">{current.coverCaption || 'Photographie éditoriale — ONTARIO Magazine'}</p>
-                </div>
-              )}
-
-              {/* Badge interactif coin supérieur droit */}
-              <div className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/15 text-[10px] font-bold text-white uppercase tracking-wider">
-                À la Une
-              </div>
-            </Link>
-
-
-          </div>
-
         </div>
       </div>
     </section>

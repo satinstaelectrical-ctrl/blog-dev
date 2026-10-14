@@ -91,21 +91,57 @@
       letter-spacing: -0.025em;
     }
 
-    /* Header Capsule Flottant Fidèle Ontario */
+    /* Header Capsule Flottant Fidèle Ontario (Identique à la capture) */
     .header-floating-pill {
       border-radius: var(--radius-pill);
-      background: rgba(255, 255, 255, 0.90);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.15);
+      background: rgba(18, 24, 36, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: #ffffff;
     }
 
     html.dark .header-floating-pill {
-      background: rgba(14, 33, 55, 0.90);
-      border: 1px solid rgba(40, 68, 94, 0.75);
-      box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+      background: rgba(11, 20, 32, 0.90);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* Ticker Marquee Continu et Fluide */
+    @keyframes tickerMarquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .ticker-wrapper {
+      overflow: hidden;
+      width: 100%;
+    }
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      animation: tickerMarquee 38s linear infinite;
+    }
+    .ticker-track:hover {
+      animation-play-state: paused;
+    }
+
+    /* Barre de progression Autoplay Carrousel */
+    @keyframes heroProgress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+    .animate-hero-progress {
+      animation: heroProgress linear infinite;
+    }
+
+    /* Animations d'entrée pour le Carrousel Hero */
+    @keyframes heroSlideFadeIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero-slide-enter {
+      animation: heroSlideFadeIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     /* Conteneur Partagé Officiel Ontario — Aligné sur les repères x=216 et x=1592 (1376px) */
@@ -186,68 +222,69 @@
             <span class="font-heading text-lg">O</span>
             <span class="absolute w-2 h-2 rounded-full bg-white top-1.5 right-1.5"></span>
           </div>
-          <span class="font-heading font-extrabold text-xl tracking-tight leading-none" style="color: var(--text-primary);">
+          <span class="font-heading font-extrabold text-xl tracking-tight leading-none text-white">
             ONTARIO
           </span>
         </a>
 
         <!-- Navigation Centrale Desktop -->
-        <nav class="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-semibold" style="color: var(--text-secondary);">
-          <button onclick="navigate('home')" class="nav-item hover:text-[#EF4248] transition-colors text-[#EF4248] font-bold" data-target="home">
+        <nav class="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-semibold text-white/90">
+          <button onclick="navigate('home')" class="nav-item hover:text-[#EF4248] transition-colors text-white font-bold" data-target="home">
             Accueil
           </button>
           <div class="relative group">
-            <button onclick="navigate('blog')" class="nav-item flex items-center gap-1 hover:text-[#EF4248] transition-colors py-2" data-target="blog">
+            <button onclick="navigate('blog')" class="nav-item flex items-center gap-1 hover:text-[#EF4248] transition-colors py-2 text-white/90" data-target="blog">
               <span>Blog</span>
               <svg class="w-3.5 h-3.5 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <!-- Dropdown Blog & Catégories -->
             <div class="absolute top-full left-0 hidden group-hover:block w-56 pt-2 z-50">
-              <div class="rounded-2xl p-2 shadow-xl border" style="background-color: var(--surface); border-color: var(--border-color);">
-                <button onclick="navigate('blog')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/10 hover:text-[#EF4248] transition-colors">Tous les articles</button>
-                <div class="my-1 border-t" style="border-color: var(--border-color);"></div>
-                <button onclick="navigateCategory('intelligence-artificielle')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/10 hover:text-[#EF4248] transition-colors">Intelligence Artificielle</button>
-                <button onclick="navigateCategory('technologie')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/10 hover:text-[#EF4248] transition-colors">Technologie</button>
-                <button onclick="navigateCategory('lifestyle')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/10 hover:text-[#EF4248] transition-colors">Lifestyle & Design</button>
-                <button onclick="navigateCategory('culture')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/10 hover:text-[#EF4248] transition-colors">Culture Digitale</button>
-                <button onclick="navigateCategory('guides')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/10 hover:text-[#EF4248] transition-colors">Guides & Tutoriels</button>
-                <button onclick="navigateCategory('comparatifs')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/10 hover:text-[#EF4248] transition-colors">Comparatifs & Tests</button>
+              <div class="rounded-2xl p-2 shadow-xl border bg-[#0E2137] border-white/10 text-white">
+                <button onclick="navigate('blog')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/20 hover:text-[#EF4248] transition-colors">Tous les articles</button>
+                <div class="my-1 border-t border-white/10"></div>
+                <button onclick="navigateCategory('intelligence-artificielle')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/20 hover:text-[#EF4248] transition-colors">Intelligence Artificielle</button>
+                <button onclick="navigateCategory('technologie')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/20 hover:text-[#EF4248] transition-colors">Technologie</button>
+                <button onclick="navigateCategory('lifestyle')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/20 hover:text-[#EF4248] transition-colors">Lifestyle & Design</button>
+                <button onclick="navigateCategory('culture')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/20 hover:text-[#EF4248] transition-colors">Culture Digitale</button>
+                <button onclick="navigateCategory('guides')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/20 hover:text-[#EF4248] transition-colors">Guides & Tutoriels</button>
+                <button onclick="navigateCategory('comparatifs')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-[#EF4248]/20 hover:text-[#EF4248] transition-colors">Comparatifs & Tests</button>
               </div>
             </div>
           </div>
-          <button onclick="navigateCategory('intelligence-artificielle')" class="nav-item hover:text-[#EF4248] transition-colors">IA & Tech</button>
-          <button onclick="navigateCategory('guides')" class="nav-item hover:text-[#EF4248] transition-colors">Guides</button>
-          <button onclick="navigate('about')" class="nav-item hover:text-[#EF4248] transition-colors" data-target="about">À Propos</button>
-          <button onclick="navigate('contact')" class="nav-item hover:text-[#EF4248] transition-colors" data-target="contact">Contact</button>
+          <button onclick="navigateCategory('intelligence-artificielle')" class="nav-item hover:text-[#EF4248] transition-colors text-white/90">IA & Tech</button>
+          <button onclick="navigateCategory('guides')" class="nav-item hover:text-[#EF4248] transition-colors text-white/90">Guides</button>
+          <button onclick="navigate('about')" class="nav-item hover:text-[#EF4248] transition-colors text-white/90" data-target="about">À Propos</button>
+          <button onclick="navigate('contact')" class="nav-item hover:text-[#EF4248] transition-colors text-white/90" data-target="contact">Contact</button>
         </nav>
 
         <!-- Actions Droite -->
         <div class="flex items-center gap-2 sm:gap-3">
           <!-- Recherche Spotlight -->
-          <button onclick="openSearchModal()" aria-label="Rechercher" class="p-2 sm:p-2.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors" style="color: var(--text-primary);">
+          <button onclick="openSearchModal()" aria-label="Rechercher" class="p-2 sm:p-2.5 rounded-full hover:bg-white/10 transition-colors text-white">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </button>
 
-          <!-- Sélecteur Thème Bleu Nuit / Clair -->
-          <button onclick="toggleDarkMode()" id="theme-btn" aria-label="Mode sombre" class="p-2 sm:p-2.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors" style="color: var(--text-primary);">
-            <svg id="theme-icon-moon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-            <svg id="theme-icon-sun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          <!-- Sélecteur Thème Capsule Pilule Conforme à la capture -->
+          <button onclick="toggleDarkMode()" id="theme-btn" aria-label="Mode sombre/clair" class="px-2.5 py-1 rounded-full bg-black/40 hover:bg-black/60 border border-white/20 transition-all flex items-center gap-1.5 text-white cursor-pointer shadow-xs" title="Changer de thème">
+            <span class="text-xs">☀️</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#EF4248]"></span>
+            <span class="text-xs">🌙</span>
           </button>
 
-          <!-- Bouton Compte Lecteur (Navigation vers page dédiée /login, Zéro popup) -->
-          <button onclick="navigate('login')" id="user-btn" aria-label="Compte lecteur" class="p-2 sm:p-2.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-xs font-semibold flex items-center gap-1.5" style="color: var(--text-primary);">
+          <!-- Bouton Compte Lecteur -->
+          <button onclick="navigate('login')" id="user-btn" aria-label="Compte lecteur" class="p-2 sm:p-2.5 rounded-full hover:bg-white/10 transition-colors text-xs font-semibold flex items-center gap-1.5 text-white">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <span id="user-badge" class="hidden sm:inline">Lecteur</span>
           </button>
 
           <!-- Bouton Accès Direct CMS Administrateur -->
-          <button onclick="navigate('admin')" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full bg-[#EF4248]/15 hover:bg-[#EF4248] text-[#EF4248] hover:text-white border border-[#EF4248]/30 transition-all cursor-pointer">
+          <button onclick="navigate('admin')" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full bg-[#EF4248]/25 hover:bg-[#EF4248] text-white border border-[#EF4248]/40 transition-all cursor-pointer">
             <span class="w-1.5 h-1.5 rounded-full bg-[#EF4248] animate-pulse"></span>
             <span>CMS Admin</span>
           </button>
 
-          <!-- Bouton CTA Newsletter Pilule Noir/Rouge conforme Ontario -->
-          <a href="#newsletter-section" class="hidden md:inline-flex text-xs font-bold px-5 py-2.5 rounded-full bg-[#17191D] dark:bg-white text-white dark:text-[#17191D] hover:bg-[#EF4248] dark:hover:bg-[#EF4248] dark:hover:text-white transition-all shadow-sm">
+          <!-- Bouton S'abonner / Buy Now conforme Ontario -->
+          <a href="#newsletter-section" class="hidden md:inline-flex text-xs font-bold px-4 py-2 rounded-full bg-white/10 hover:bg-[#EF4248] text-white border border-white/20 hover:border-transparent transition-all shadow-sm">
             S'abonner
           </a>
 

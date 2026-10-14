@@ -26,7 +26,7 @@ export const ARTICLES: Article[] = [
     title: 'Next Gen Marketing: Innovative Strategies',
     slug: 'next-gen-marketing-innovative-strategies',
     excerpt: 'In a city where ambition meets innovation, our agency’s story found its beginning. With one small idea, we created a space where creativity and generative models work side by side to transform modern business narratives.',
-    coverImage: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=2000&q=90',
+    coverImage: '/images/hero_ontario_orange.jpg',
     coverCaption: 'Next Gen Creative Studio — Stratégie digitale et convergence IA',
     category: catAI,
     author: authorSteve,

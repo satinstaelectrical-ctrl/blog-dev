@@ -70,30 +70,31 @@ const AUTHORS = [
 
 // 3. ARTICLES ÉDITORIAUX EXACTEMENT CONFORMES AUX CAPTURES ONTARIO (Image A & Image B)
 let ARTICLES = [
-  // --- HERO & FEATURED SLIDER ---
+  // --- HERO & FEATURED SLIDER (5 ARTICLES CARROUSEL MAJEURS CONFORMES CAPTURE) ---
   {
     id: 'art-hero-1',
     title: 'Next Gen Marketing: Innovative Strategies',
     frenchTitle: 'Next Gen Marketing : Stratégies Innovantes & Ruptures Numériques',
     slug: 'next-gen-marketing-innovative-strategies',
-    excerpt: 'Dans un écosystème où l’attention est devenue la denrée la plus disputée, les modèles algorithmiques génératifs et les expériences immersives redéfinissent la relation entre marques et communautés.',
-    coverImage: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=2000&q=90',
-    imageAlt: 'Équipe de directeurs créatifs et stratèges dans un studio technologique Next Gen Marketing',
-    imageCaption: 'Photographie éditoriale — Créativité générative et spatial design',
+    excerpt: 'In the heart of a bustling city, where innovation meets opportunity, the story of our digital agency began. Like all great journeys, it started with a single, audacious idea...',
+    coverImage: '/images/hero_ontario_orange.jpg',
+    imageAlt: 'Next Gen Marketing portrait créatif futuriste dans un casque spatial transparent',
+    imageCaption: 'Photographie éditoriale — Next Gen Marketing & Spatial Innovation',
     focalPoint: 'center center',
     categorySlug: 'intelligence-artificielle',
-    categoryBadge: 'TECH / AI',
+    categoryBadge: 'AI',
+    secondaryBadge: 'TECHNOLOGY',
     authorSlug: 'steve-jones',
     readingTime: 6,
-    publishedAt: '26 Mars 2026',
+    publishedAt: 'Mar 24, 2026',
     status: 'published',
     isHero: true,
     isFeatured: true,
-    views: 24800,
-    likes: 1420,
+    views: 28400,
+    likes: 1890,
     tags: ['Marketing', 'IA', 'Innovation', 'Stratégie'],
     contentBlocks: [
-      { type: 'paragraph', text: 'L’étincelle qui a propulsé notre rédaction est née de l’observation des bouleversements sans précédent survenus dans l’arbitrage de l’attention. Derrière les flux de données brutes se cachent les nouvelles dynamiques de consommation.' },
+      { type: 'paragraph', text: 'In the heart of a bustling city, where innovation meets opportunity, the story of our digital agency began. Like all great journeys, it started with a single, audacious idea: transforming how brands connect with audiences in a hyper-connected world.' },
       { type: 'heading', level: 'h2', text: 'La convergence entre spatial computing et synthèse algorithmique' },
       { type: 'paragraph', text: 'Nous ne sommes plus à l’ère des bannières passives. Les marques qui dominent désormais conçoivent des univers narratifs persistants capables de s’adapter en temps réel aux réactions émotionnelles du lecteur.' },
       { type: 'quote', text: '« Le véritable luxe de demain ne résidera pas dans l’accès à l’information, mais dans la clarté et la pertinence de sa mise en scène. »' },
@@ -110,6 +111,114 @@ let ARTICLES = [
         disclaimer: 'Lien affilié vérifié — Nous pouvons percevoir une commission éditoriale sans surcoût pour vous.'
       },
       { type: 'paragraph', text: 'Ce banc d’essai démontre que la fluidité matérielle conditionne directement l’agilité des équipes créatives face aux exigences de publication multi-formats.' }
+    ]
+  },
+  {
+    id: 'art-hero-2',
+    title: 'AI Motion Techniques in Abstract Digital Design',
+    frenchTitle: 'Techniques de Motion IA dans le Design Numérique Abstrait',
+    slug: 'ai-motion-techniques-abstract-digital-design',
+    excerpt: 'Exploring the intersection of generative motion systems, spatial interface computing, and the new visual language transforming interactive media.',
+    coverImage: '/images/hero_ontario_cyber.jpg',
+    imageAlt: 'Portrait cyberpunk contemporain et vision cybernétique',
+    imageCaption: 'Photographie éditoriale — Cybernétique & Spatial Interface',
+    focalPoint: 'center center',
+    categorySlug: 'intelligence-artificielle',
+    categoryBadge: 'AI',
+    secondaryBadge: 'MOTION',
+    authorSlug: 'kate-johnson',
+    readingTime: 5,
+    publishedAt: 'Mar 25, 2026',
+    status: 'published',
+    isHero: true,
+    isFeatured: true,
+    views: 24200,
+    likes: 1640,
+    tags: ['AI', 'Motion', 'Digital Design', 'Cyber'],
+    contentBlocks: [
+      { type: 'paragraph', text: 'Exploring the intersection of generative motion systems, spatial interface computing, and the new visual language transforming interactive media.' },
+      { type: 'heading', level: 'h2', text: 'Cinématique générative et immersion volumétrique' },
+      { type: 'paragraph', text: 'Les algorithmes de rendu temps réel brisent les contraintes des timelines linéaires pour créer des compositions vivantes qui réagissent au regard.' }
+    ]
+  },
+  {
+    id: 'art-hero-3',
+    title: 'Organic Shapes in Modern Digital Architecture',
+    frenchTitle: 'Formes Organiques dans l’Architecture Numérique Moderne',
+    slug: 'organic-shapes-modern-digital-architecture',
+    excerpt: 'How biomorphic curves, parametric simulation, and ambient twilight illumination are reshaping contemporary public spaces and cultural institutions.',
+    coverImage: '/images/hero_ontario_arch.jpg',
+    imageAlt: 'Pavillon architectural fluide et organique illuminé au crépuscule',
+    imageCaption: 'Photographie éditoriale — Architecture Paramétrique & Lumière Ambiante',
+    focalPoint: 'center center',
+    categorySlug: 'business',
+    categoryBadge: 'BUSINESS',
+    secondaryBadge: 'ARCHITECTURE',
+    authorSlug: 'thomas-laurent',
+    readingTime: 7,
+    publishedAt: 'Mar 26, 2026',
+    status: 'published',
+    isHero: true,
+    isFeatured: true,
+    views: 21900,
+    likes: 1350,
+    tags: ['Architecture', 'Parametric', 'Design', 'Innovation'],
+    contentBlocks: [
+      { type: 'paragraph', text: 'How biomorphic curves, parametric simulation, and ambient twilight illumination are reshaping contemporary public spaces and cultural institutions.' },
+      { type: 'heading', level: 'h2', text: 'L’enveloppe réactive et la géométrie continue' },
+      { type: 'paragraph', text: 'La disparition des angles droits au profit de surfaces gauches calculées par ordinateur marque l’avènement d’un nouvel humanisme spatial.' }
+    ]
+  },
+  {
+    id: 'art-hero-4',
+    title: 'Transparent Structures in Digital Architecture',
+    frenchTitle: 'Structures Transparentes dans l’Architecture Numérique',
+    slug: 'transparent-structures-in-digital-architecture',
+    excerpt: 'A deep dive into transparent lightweight materials, structural envelopes, and algorithmic daylight distribution for next-generation urban developments.',
+    coverImage: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=2000&q=90',
+    imageAlt: 'Structures architecturales transparentes et géométrie spatiale',
+    imageCaption: 'Photographie éditoriale — Structures Transparentes & Urbanisme',
+    focalPoint: 'center center',
+    categorySlug: 'digital',
+    categoryBadge: 'DIGITAL',
+    secondaryBadge: 'STRUCTURES',
+    authorSlug: 'thomas-laurent',
+    readingTime: 6,
+    publishedAt: 'Mar 27, 2026',
+    status: 'published',
+    isHero: true,
+    isFeatured: true,
+    views: 19400,
+    likes: 1120,
+    tags: ['Digital', 'Structures', 'Urbanisme', 'Tech'],
+    contentBlocks: [
+      { type: 'paragraph', text: 'A deep dive into transparent lightweight materials, structural envelopes, and algorithmic daylight distribution for next-generation urban developments.' }
+    ]
+  },
+  {
+    id: 'art-hero-5',
+    title: 'Colorful Packaging in Contemporary Crypto Branding',
+    frenchTitle: 'Packaging Coloré dans le Branding Crypto Contemporain',
+    slug: 'colorful-packaging-in-contemporary-crypto-branding',
+    excerpt: 'Reinventing cryptographic identity through vibrant gradients, tactile packaging design, and accessible consumer touchpoints.',
+    coverImage: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=2000&q=90',
+    imageAlt: 'Design contemporain de packaging et identité visuelle colorée',
+    imageCaption: 'Photographie éditoriale — Branding Crypto & Design Tactile',
+    focalPoint: 'center center',
+    categorySlug: 'crypto',
+    categoryBadge: 'CRYPTO',
+    secondaryBadge: 'BRANDING',
+    authorSlug: 'kate-johnson',
+    readingTime: 5,
+    publishedAt: 'Mar 28, 2026',
+    status: 'published',
+    isHero: true,
+    isFeatured: true,
+    views: 18100,
+    likes: 980,
+    tags: ['Crypto', 'Branding', 'Design', 'Color'],
+    contentBlocks: [
+      { type: 'paragraph', text: 'Reinventing cryptographic identity through vibrant gradients, tactile packaging design, and accessible consumer touchpoints.' }
     ]
   },
 
@@ -992,10 +1101,10 @@ function renderHome(container) {
 
   container.innerHTML = `
     <div class="w-full">
-      <!-- 1. HERO ÉDITORIAL 2-COLONNES ONTARIO — TEXTE MAJEUR À GAUCHE & VRAIE IMAGE ÉDITORIALE DANS FRAME 4:3 À DROITE -->
+      <!-- 1. HERO CARROUSEL FULL-BLEED 100VW ÉDITORIAL IMMERSIF (CONFORME EXACTEMENT À LA CAPTURE FOURNIE) -->
       <section 
         id="hero-carousel-section"
-        class="relative w-full bg-[#071426] text-white pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 overflow-hidden select-none"
+        class="relative w-full min-h-[640px] sm:min-h-[720px] lg:min-h-[820px] h-[86vh] max-h-[940px] bg-[#071426] text-white overflow-hidden select-none"
         onmouseenter="heroAutoplayPaused = true;"
         onmouseleave="heroAutoplayPaused = false;"
         onfocusin="heroAutoplayPaused = true;"
@@ -1003,147 +1112,167 @@ function renderHome(container) {
         ontouchstart="handleHeroTouchStart(event)"
         ontouchend="handleHeroTouchEnd(event)"
       >
-        <!-- Fond décoratif subtil et atténué bleu nuit (ne parasite pas la lecture) -->
-        <div class="absolute inset-0 pointer-events-none opacity-40">
-          <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-900/20 blur-3xl"></div>
-          <div class="absolute top-1/2 right-0 w-[500px] h-[500px] rounded-full bg-purple-900/15 blur-3xl"></div>
-          <div class="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-[#EF4248]/5 blur-3xl"></div>
+        <!-- Arrière-plan Photographique Grand Angle avec Transition Douce & Effet Ken Burns Dynamique -->
+        <div class="absolute inset-0 z-0 overflow-hidden">
+          <img 
+            key="${heroArticle.id}"
+            src="${heroArticle.coverImage}" 
+            alt="${heroArticle.imageAlt || heroArticle.title}" 
+            loading="eager" 
+            fetchpriority="high"
+            style="object-position: ${heroArticle.focalPoint || 'center center'};"
+            onerror="onImgError(this)"
+            class="w-full h-full object-cover transition-transform duration-[1200ms] ease-out scale-100 hover:scale-105 filter brightness-[0.92] contrast-[1.05]"
+          >
+          
+          <!-- Masque Dégradé Editorial Profond (Protection du Header Flottant et Contraste Parfait à Gauche) -->
+          <div class="absolute inset-0 z-10 bg-gradient-to-t from-[#071426] via-[#071426]/60 to-black/60 sm:via-[#071426]/40 pointer-events-none"></div>
+          <div class="absolute inset-0 z-10 bg-gradient-to-r from-[#071426]/95 via-[#071426]/75 to-transparent sm:w-3/4 lg:w-3/5 pointer-events-none"></div>
         </div>
 
-        <div class="site-container container-ontario relative z-10">
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 xl:gap-14 items-center">
-            
-            <!-- Colonne Gauche : Texte Éditorial Majeur (~7 colonnes) -->
-            <div class="lg:col-span-7 flex flex-col justify-center text-left">
-              <!-- Pastille Catégorie Pill Translucide -->
-              <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-bold uppercase tracking-wider mb-4 w-fit">
-                <span class="w-2 h-2 rounded-full bg-[#EF4248]"></span>
-                <span class="text-white/95">${heroArticle.categoryBadge || 'TECH / AI'}</span>
+        <!-- Contenu Éditorial Inférieur Gauche Aligné sur le Conteneur Ontario (1376px) -->
+        <div class="absolute bottom-10 sm:bottom-14 lg:bottom-16 inset-x-0 z-20">
+          <div class="site-container container-ontario">
+            <div class="max-w-3xl flex flex-col items-start text-left hero-slide-enter">
+              
+              <!-- Badges de Catégories (Pills Translucides comme dans la capture) -->
+              <div class="flex items-center gap-2 mb-3.5 flex-wrap">
+                <span class="px-3.5 py-1 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/25 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-xs transition-all cursor-pointer" onclick="navigateCategory('${heroArticle.categorySlug || 'intelligence-artificielle'}')">
+                  ${heroArticle.categoryBadge || 'AI'}
+                </span>
+                <span class="px-3.5 py-1 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-[11px] font-extrabold uppercase tracking-wider text-white/90 shadow-xs transition-all cursor-pointer" onclick="navigateCategory('${heroArticle.categorySlug || 'technologie'}')">
+                  ${heroArticle.secondaryBadge || 'TECHNOLOGY'}
+                </span>
+                ${heroArticle.views && heroArticle.views > 20000 ? `
+                  <span class="px-3 py-1 rounded-full bg-[#EF4248]/85 backdrop-blur-md text-white text-[10px] font-extrabold uppercase tracking-wider shadow-xs">
+                    ★ POPULAIRE
+                  </span>
+                ` : ''}
               </div>
 
               <!-- Grand Titre H1 Éditorial -->
-              <h1 onclick="navigateArticle('${heroArticle.slug}')" class="font-heading text-3xl sm:text-4xl lg:text-5xl xl:text-[52px] font-extrabold tracking-tight leading-[1.12] mb-5 cursor-pointer hover:text-zinc-200 transition-colors">
+              <h1 onclick="navigateArticle('${heroArticle.slug}')" class="font-heading text-3xl sm:text-5xl lg:text-[56px] xl:text-[62px] font-extrabold text-white tracking-tight leading-[1.08] mb-3.5 cursor-pointer hover:text-zinc-200 transition-colors drop-shadow-lg">
                 ${heroArticle.title}
               </h1>
 
-              <!-- Métadonnées & Auteur -->
-              <div class="flex items-center gap-3 text-xs sm:text-sm text-zinc-300 mb-5 flex-wrap">
-                <div class="flex items-center gap-2">
-                  <img src="${authorHero.avatar}" alt="${authorHero.name}" class="w-6 h-6 rounded-full object-cover border border-white/20">
-                  <span>Par <b class="text-white font-semibold">${authorHero.name}</b></span>
-                </div>
-                <span>•</span>
-                <span>${heroArticle.publishedAt}</span>
-                <span>•</span>
-                <span>⏱️ ${heroArticle.readingTime} min</span>
+              <!-- Ligne Métadonnées Auteur & Date conforme à la capture: "Steve Jones on Mar 24, 2026" -->
+              <div class="flex items-center gap-2 text-xs sm:text-sm text-zinc-300 font-medium mb-3.5">
+                <span class="text-white font-semibold cursor-pointer hover:underline" onclick="navigateArticle('${heroArticle.slug}')">${authorHero.name}</span>
+                <span>on</span>
+                <span>${heroArticle.publishedAt || 'Mar 24, 2026'}</span>
               </div>
 
-              <!-- Extrait fluide et lisible -->
-              <p class="text-sm sm:text-base text-zinc-300 leading-relaxed mb-6 sm:mb-8 line-clamp-3 max-w-xl">
+              <!-- Extrait fluide et soigné -->
+              <p class="text-sm sm:text-base text-zinc-300/95 leading-relaxed max-w-2xl line-clamp-2 sm:line-clamp-3 mb-6 font-normal drop-shadow-xs">
                 ${heroArticle.excerpt}
               </p>
 
-              <!-- Actions & Flèches de navigation Slider Hero -->
-              <div class="flex items-center gap-4 flex-wrap">
-                <button onclick="navigateArticle('${heroArticle.slug}')" class="px-6 sm:px-7 py-3 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs sm:text-sm font-bold transition-all shadow-lg shadow-[#EF4248]/25 flex items-center gap-2 group cursor-pointer">
-                  <span>Lire l'article complet</span>
-                  <span class="transition-transform group-hover:translate-x-1">→</span>
+              <!-- Commandes Circulaires du Carrousel Flèche Gauche & Flèche Droite conformes à la capture -->
+              <div class="flex items-center gap-3 flex-wrap">
+                <button onclick="prevHeroSlide(event)" aria-label="Article précédent" class="w-11 h-11 rounded-full border border-white/35 bg-black/40 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-md hover:scale-105 active:scale-95 group shadow-xl">
+                  <svg class="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 19-7-7 7-7"/></svg>
                 </button>
-                
-                ${heroArticles.length > 1 ? `
-                  <div class="flex items-center gap-2">
-                    <button onclick="prevHeroSlide(event)" aria-label="Article précédent" class="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">‹</button>
-                    <button onclick="nextHeroSlide(event)" aria-label="Article suivant" class="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">›</button>
-                    <span class="text-xs font-mono font-medium text-zinc-400 ml-1">0${heroSliderIndex + 1} / 0${heroArticles.length}</span>
-                    
-                    <!-- Bouton Pause / Reprise Autoplay -->
-                    <button 
-                      onclick="toggleHeroPlayPause(event)" 
-                      aria-label="${heroAutoplayPausedByUser ? 'Reprendre la rotation' : 'Mettre en pause'}" 
-                      class="w-8 h-8 rounded-full border border-white/20 bg-white/5 hover:bg-white/20 text-white flex items-center justify-center text-[10px] ml-1 transition-all cursor-pointer"
-                      title="${heroAutoplayPausedByUser ? 'Reprendre la rotation automatique' : 'Pause rotation'}"
-                    >
-                      ${heroAutoplayPausedByUser ? '▶' : '⏸'}
-                    </button>
+                <button onclick="nextHeroSlide(event)" aria-label="Article suivant" class="w-11 h-11 rounded-full border border-white/35 bg-black/40 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer backdrop-blur-md hover:scale-105 active:scale-95 group shadow-xl">
+                  <svg class="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>
+                </button>
 
-                    <!-- Indicateurs de position par points -->
-                    <div class="hidden sm:flex items-center gap-1.5 ml-2">
-                      ${heroArticles.map((_, idx) => `
-                        <button 
-                          onclick="goToHeroSlide(${idx}, event)" 
-                          aria-label="Slide ${idx + 1}" 
-                          class="h-1.5 rounded-full transition-all cursor-pointer ${idx === heroSliderIndex ? 'w-5 bg-[#EF4248]' : 'w-1.5 bg-white/30 hover:bg-white/60'}"
-                        ></button>
-                      `).join('')}
-                    </div>
+                <!-- Indicateur Numérique & Puces -->
+                <div class="flex items-center gap-2.5 ml-2">
+                  <span class="text-xs font-mono font-bold text-white/90">0${heroSliderIndex + 1} / 0${heroArticles.length}</span>
+                  <div class="hidden sm:flex items-center gap-1.5 ml-1">
+                    ${heroArticles.map((_, idx) => `
+                      <button onclick="goToHeroSlide(${idx}, event)" aria-label="Slide ${idx + 1}" class="h-1 rounded-full transition-all cursor-pointer ${idx === heroSliderIndex ? 'w-6 bg-[#EF4248]' : 'w-2 bg-white/30 hover:bg-white/60'}"></button>
+                    `).join('')}
                   </div>
-                ` : ''}
-              </div>
-            </div>
-
-            <!-- Colonne Droite : Frame Photo 4:3 avec angles 22px, bordure fine, ombre discrète (~5 colonnes) -->
-            <div class="lg:col-span-5 w-full flex flex-col">
-              <div class="relative w-full aspect-[4/3] rounded-[22px] overflow-hidden border border-white/10 shadow-2xl shadow-black/50 bg-[#0E2137] group cursor-pointer" onclick="navigateArticle('${heroArticle.slug}')">
-                
-                <!-- Skeleton de chargement sous-jacent -->
-                <div class="absolute inset-0 bg-[#0E2137] animate-pulse flex items-center justify-center text-zinc-500 text-xs">
-                  <span>Chargement du visuel...</span>
                 </div>
 
-                <!-- Photographie éditoriale haute définition avec point de cadrage configurable -->
-                <img 
-                  src="${heroArticle.coverImage}" 
-                  alt="${heroArticle.imageAlt || heroArticle.title}" 
-                  loading="eager" 
-                  fetchpriority="high"
-                  style="object-position: ${heroArticle.focalPoint || 'center center'};"
-                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=85'; this.parentElement.classList.add('img-loaded');"
-                  onload="this.parentElement.classList.add('img-loaded');"
-                  class="relative z-10 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                <!-- Bouton Pause / Lecture Autoplay -->
+                <button 
+                  onclick="toggleHeroPlayPause(event)" 
+                  aria-label="${heroAutoplayPausedByUser ? 'Reprendre le carrousel' : 'Pause carrousel'}" 
+                  class="w-8 h-8 rounded-full border border-white/20 bg-black/40 hover:bg-white/20 text-white flex items-center justify-center text-xs ml-2 transition-all cursor-pointer backdrop-blur-sm"
+                  title="${heroAutoplayPausedByUser ? 'Reprendre la rotation automatique (6s)' : 'Mettre en pause'}"
                 >
+                  ${heroAutoplayPausedByUser ? '▶' : '⏸'}
+                </button>
 
-                <!-- Légende d'image UNIQUE intégrée en bas du cadre (zéro doublon sous le cadre) -->
-                ${(heroArticle.imageCaption || heroArticle.coverCaption) ? `
-                  <div class="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 pt-6 text-[11px] text-zinc-300">
-                    <p class="line-clamp-1 italic">${heroArticle.imageCaption || heroArticle.coverCaption}</p>
-                  </div>
-                ` : ''}
-
-                <!-- Badge interactif coin supérieur droit -->
-                <div class="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/15 text-[10px] font-bold text-white uppercase tracking-wider">
-                  À la Une
-                </div>
+                <!-- Mode Carrousel Actif (Populaire / Récent) -->
+                <span class="hidden md:inline-flex text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-white/10 text-zinc-300 border border-white/10 ml-2">
+                  Mode ${HERO_CAROUSEL_CONFIG.mode === 'popular' ? 'Populaire' : (HERO_CAROUSEL_CONFIG.mode === 'manual' ? 'Sélection' : 'Nouveautés')}
+                </span>
               </div>
-            </div>
 
+            </div>
+          </div>
+        </div>
+
+        <!-- Barre de progression animée du défilement automatique (6s) -->
+        ${(!heroAutoplayPaused && !heroAutoplayPausedByUser) ? `
+          <div class="absolute bottom-0 inset-x-0 h-1 bg-white/10 z-30 pointer-events-none">
+            <div class="h-full bg-[#EF4248] animate-hero-progress" style="animation-duration: ${HERO_CAROUSEL_CONFIG.autoplayInterval || 6000}ms;"></div>
+          </div>
+        ` : ''}
+      </section>
+
+      <!-- 2. BANDEAU HORIZONTAL TICKER BAR CONFORME CAPTURE EXACTE (Marquee Animé) -->
+      <section class="w-full border-b py-3.5 overflow-hidden select-none" style="background-color: #12161F; border-color: rgba(255, 255, 255, 0.08);">
+        <div class="ticker-wrapper flex items-center">
+          <div class="ticker-track flex items-center gap-8 whitespace-nowrap text-xs font-semibold">
+            <!-- Item 1: Crypto -->
+            <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="navigateArticle('colorful-packaging-in-contemporary-crypto-branding')">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                CRYPTO
+              </span>
+              <span class="text-zinc-200 hover:text-white">Colorful Packaging in Contemporary Crypto Branding</span>
+            </div>
+            <span class="text-zinc-600">•</span>
+
+            <!-- Item 2: Digital -->
+            <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="navigateArticle('transparent-structures-in-digital-architecture')">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                DIGITAL
+              </span>
+              <span class="text-zinc-200 hover:text-white">Transparent Structures in Digital Architecture</span>
+            </div>
+            <span class="text-zinc-600">•</span>
+
+            <!-- Item 3: AI -->
+            <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="navigateArticle('ai-motion-techniques-abstract-digital-design')">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30 text-[10px] font-bold uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-400"></span>
+                AI
+              </span>
+              <span class="text-zinc-200 hover:text-white">AI Motion Techniques in Abstract Digital Design</span>
+            </div>
+            <span class="text-zinc-600">•</span>
+
+            <!-- Item 4: Business -->
+            <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="navigateArticle('organic-shapes-modern-digital-architecture')">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-700/60 text-zinc-200 border border-zinc-600/50 text-[10px] font-bold uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                BUSINESS
+              </span>
+              <span class="text-zinc-200 hover:text-white">Organic Shapes in Modern Digital Architecture</span>
+            </div>
+            <span class="text-zinc-600">•</span>
+
+            <!-- Duplication pour boucle infinie fluide -->
+            <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onclick="navigateArticle('next-gen-marketing-innovative-strategies')">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-bold uppercase tracking-wider">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#EF4248]"></span>
+                TECH / AI
+              </span>
+              <span class="text-zinc-200 hover:text-white">Next Gen Marketing: Innovative Strategies</span>
+            </div>
+            <span class="text-zinc-600">•</span>
           </div>
         </div>
       </section>
 
-      <!-- EMPLACEMENT PUBLICITAIRE 1 : HOME_AFTER_FEATURED -->
-      ${renderAdBanner('home_after_featured', 'container-ontario')}
-
-      <!-- 2. BANDEAU HORIZONTAL TICKER BAR CONFORME ONTARIO -->
-      <section class="w-full border-b py-3" style="background-color: var(--surface-soft); border-color: var(--border-color);">
-        <div class="container-ontario">
-          <div class="flex items-center gap-6 overflow-x-auto no-scrollbar text-xs font-semibold whitespace-nowrap" style="color: var(--text-secondary);">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span class="hover:text-[#EF4248] cursor-pointer" onclick="navigateArticle('${ARTICLES[1].slug}')">ADVANCED TECHNIQUES IN ABSTRACT DIGITAL DESIGN</span>
-            </div>
-            <span class="text-zinc-400">•</span>
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-              <span class="hover:text-[#EF4248] cursor-pointer" onclick="navigateArticle('${ARTICLES[2].slug}')">ORGANIC SHAPES IN MODERN DIGITAL ARCHITECTURE</span>
-            </div>
-            <span class="text-zinc-400">•</span>
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-              <span class="hover:text-[#EF4248] cursor-pointer" onclick="navigateArticle('${ARTICLES[3].slug}')">HOLISTIC PACKAGING IN CONTEMPORARY SPATIAL BRANDING</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <!-- EMPLACEMENT PUBLICITAIRE 1 : HOME_AFTER_FEATURED (Conservé intact selon la consigne stricte) -->
+      ${renderAdBanner('home_after_featured', 'container-ontario mt-8 mb-4')}
 
       <!-- 3. RUBRIQUES PASTELS ÉPURÉES "BLOG CATEGORIES" CONFORME IMAGE A & CAPTURE 4 -->
       <section class="container-ontario mt-14 sm:mt-18">
