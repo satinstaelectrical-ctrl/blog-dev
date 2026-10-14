@@ -77,8 +77,8 @@ let ARTICLES = [
     frenchTitle: 'Next Gen Marketing : Stratégies Innovantes & Ruptures Numériques',
     slug: 'next-gen-marketing-innovative-strategies',
     excerpt: 'Dans un écosystème où l’attention est devenue la denrée la plus disputée, les modèles algorithmiques génératifs et les expériences immersives redéfinissent la relation entre marques et communautés.',
-    coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=2000&q=90',
-    imageAlt: 'Architecture créative Next Gen Marketing et design spatial',
+    coverImage: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=2000&q=90',
+    imageAlt: 'Équipe de directeurs créatifs et stratèges dans un studio technologique Next Gen Marketing',
     imageCaption: 'Photographie éditoriale — Créativité générative et spatial design',
     focalPoint: 'center center',
     categorySlug: 'intelligence-artificielle',
@@ -339,7 +339,120 @@ let ARTICLES = [
 // Corbeille pour le cycle de vie d'administration WordPress
 let TRASH_ARTICLES = [];
 
-// 4. ÉTAT GLOBAL DE L'APPLICATION
+// 4. RÉGIE PUBLICITAIRE GOOGLE ADSENSE & CMP CONFORME RGPD / TCF 2.2
+let ADMIN_ADSENSE = {
+  enabled: true,
+  publisherId: 'ca-pub-9842103487129034',
+  testMode: false,
+  estimatedToday: '42,80 €',
+  estimatedMonth: '1 480,50 €',
+  rpm: '4,25 €',
+  impressions: '84 500',
+  clicks: '2 120',
+  slots: {
+    home_after_featured: { 
+      name: 'Accueil — Après le Carrousel Hero', 
+      enabled: true, 
+      format: 'Bannière Leaderboard (728x90)',
+      minHeight: '90px'
+    },
+    home_in_feed: { 
+      name: 'Accueil — Flux Articles (In-Feed)', 
+      enabled: true, 
+      format: 'Grand Rectangle (336x280)',
+      minHeight: '280px'
+    },
+    article_sidebar: { 
+      name: 'Article — Colonne Latérale (Sidebar)', 
+      enabled: true, 
+      format: 'Demi-page Skyscraper (300x600)',
+      minHeight: '300px'
+    },
+    article_in_content: { 
+      name: 'Article — Cœur du Texte (In-Content)', 
+      enabled: true, 
+      format: 'Pavé Moyen (300x250)',
+      minHeight: '250px'
+    },
+    article_end: { 
+      name: 'Article — Fin de Corps (Avant Read Next)', 
+      enabled: true, 
+      format: 'Bannière Horizontale (728x90)',
+      minHeight: '90px'
+    }
+  }
+};
+
+function renderAdBanner(slotKey, extraClasses = '') {
+  if (!ADMIN_ADSENSE.enabled) return '';
+  const slot = ADMIN_ADSENSE.slots[slotKey];
+  if (!slot || !slot.enabled) return '';
+
+  return `
+    <div class="ad-placement-wrapper my-6 w-full ${extraClasses}" data-ad-slot="${slotKey}">
+      <div class="flex items-center justify-between text-[10px] uppercase font-bold text-zinc-400 mb-1 px-1">
+        <span>Publicités</span>
+        <span class="text-zinc-500 font-normal">Annonce Sponsorisée</span>
+      </div>
+      <div class="relative w-full rounded-2xl border border-dashed border-[#28445E]/40 dark:border-[#28445E]/60 bg-black/5 dark:bg-[#0A1A2F]/60 flex flex-col items-center justify-center p-4 overflow-hidden" style="min-height: ${slot.minHeight || '90px'};">
+        <ins class="adsbygoogle"
+             style="display:block; text-align:center;"
+             data-ad-layout="in-article"
+             data-ad-format="auto"
+             data-ad-client="${ADMIN_ADSENSE.publisherId}"
+             data-ad-slot="${slotKey}"></ins>
+        <div class="text-center pointer-events-none">
+          <span class="text-xs font-bold text-zinc-400 dark:text-zinc-500 tracking-wider">Google AdSense • ${slot.format}</span>
+          <span class="block text-[10px] text-zinc-400 dark:text-zinc-600 mt-0.5">Emplacement : ${slot.name}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function checkAndRenderCMP() {
+  const consent = localStorage.getItem('ontario_gdpr_consent');
+  if (consent) return;
+
+  const cmpEl = document.createElement('div');
+  cmpEl.id = 'ontario-cmp-banner';
+  cmpEl.className = 'fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-[100] p-5 rounded-3xl bg-[#0E2137] border border-[#28445E] shadow-2xl text-white font-sans animate-in slide-in-from-bottom duration-300';
+  cmpEl.innerHTML = `
+    <div class="flex items-start justify-between gap-3 mb-2">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#EF4248]"></span>
+        <h4 class="font-heading font-bold text-sm">Gestion des Cookies & Publicités</h4>
+      </div>
+      <span class="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 font-mono">RGPD / TCF 2.2</span>
+    </div>
+    <p class="text-xs text-zinc-300 leading-relaxed mb-4">
+      ONTARIO utilise des cookies pour assurer le bon fonctionnement du média, mesurer l'audience et diffuser des annonces adaptées via Google AdSense. Respect de la vie privée garanti.
+    </p>
+    <div class="flex items-center gap-2">
+      <button onclick="acceptAllCookies()" class="flex-1 py-2 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold transition-all shadow-md cursor-pointer">
+        Tout Accepter
+      </button>
+      <button onclick="refuseNonEssentialCookies()" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-zinc-300 text-xs font-semibold transition-all cursor-pointer">
+        Continuer sans accepter
+      </button>
+    </div>
+  `;
+  document.body.appendChild(cmpEl);
+}
+
+function acceptAllCookies() {
+  localStorage.setItem('ontario_gdpr_consent', 'accepted');
+  const el = document.getElementById('ontario-cmp-banner');
+  if (el) el.remove();
+}
+
+function refuseNonEssentialCookies() {
+  localStorage.setItem('ontario_gdpr_consent', 'essential_only');
+  const el = document.getElementById('ontario-cmp-banner');
+  if (el) el.remove();
+}
+
+// 5. ÉTAT GLOBAL DE L'APPLICATION
 let currentView = 'home';
 let currentSlug = '';
 let currentHeroSlide = 0;
@@ -358,6 +471,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
   }
+  // Charger configuration Carrousel sauvegardée
+  const savedCarousel = localStorage.getItem('ontario_carousel_config_v2');
+  if (savedCarousel) {
+    try {
+      HERO_CAROUSEL_CONFIG = { ...HERO_CAROUSEL_CONFIG, ...JSON.parse(savedCarousel) };
+    } catch (e) {}
+  }
+  // Charger configuration AdSense sauvegardée
+  const savedAdSense = localStorage.getItem('ontario_adsense_config_v2');
+  if (savedAdSense) {
+    try {
+      ADMIN_ADSENSE = { ...ADMIN_ADSENSE, ...JSON.parse(savedAdSense) };
+    } catch (e) {}
+  }
   // Charger base de données articles modifiée
   const savedDb = localStorage.getItem('ontario_cms_database_v2');
   if (savedDb) {
@@ -371,6 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initRouting();
   initShortcuts();
+  checkAndRenderCMP();
 });
 
 // GESTION DU THÈME BLEU NUIT / CLAIR
@@ -405,6 +533,11 @@ function toggleDarkMode() {
 // ROUTAGE ET NAVIGATION SANS RECHARGEMENT
 function initRouting() {
   window.addEventListener('hashchange', handleHash);
+  if (window.location.pathname.startsWith('/admin') && !window.location.hash) {
+    const sub = window.location.pathname.replace(/^\/admin\/?/, '');
+    window.location.hash = sub ? `admin/${sub}` : 'admin';
+    return;
+  }
   handleHash();
 }
 
@@ -432,11 +565,12 @@ function handleHash() {
     if (footerEl) footerEl.style.display = 'none';
 
     const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'administrator' || currentUser.role === 'editor');
-    if (param === 'login') {
+    if (!isAdmin || param === 'login') {
       renderAdminLogin(container);
-    } else if (!isAdmin) {
-      window.location.hash = 'admin/login';
     } else {
+      if (param && param !== 'login') {
+        adminCurrentTab = param;
+      }
       renderAdmin(container);
     }
   } else {
@@ -704,43 +838,171 @@ function handleNewsletter(e) {
 }
 
 // ==========================================================================
-// 5. RENDERER DE LA PAGE D'ACCUEIL — 100% FIDÈLE À ONTARIO (IMAGE A & CAPTURES 1-5)
+// 5. RENDERER DE LA PAGE D'ACCUEIL — CARROUSEL ÉDITORIAL DYNAMIQUE & AD SENSE
 // ==========================================================================
 let heroSliderIndex = 0;
+let HERO_CAROUSEL_CONFIG = {
+  mode: 'recent', // 'recent' | 'popular' | 'manual'
+  autoplay: true,
+  autoplayInterval: 6000,
+  maxSlides: 5
+};
+let heroAutoplayTimer = null;
+let heroAutoplayPaused = false;
+let heroAutoplayPausedByUser = false;
+let heroTouchStartX = 0;
+let heroTouchEndX = 0;
 
 function getHeroSliderArticles() {
-  const heroes = ARTICLES.filter(a => a.isHero || a.isFeatured);
-  return heroes.length > 0 ? heroes : [ARTICLES[0]];
+  const now = new Date();
+  const published = ARTICLES.filter(a => {
+    if (a.status && a.status !== 'published') return false;
+    if (a.scheduledAt && new Date(a.scheduledAt) > now) return false;
+    return true;
+  });
+
+  let list = [];
+  if (HERO_CAROUSEL_CONFIG.mode === 'popular') {
+    list = [...published].sort((a, b) => (b.views || 0) - (a.views || 0));
+  } else if (HERO_CAROUSEL_CONFIG.mode === 'manual') {
+    const manual = published.filter(a => a.isHero || a.isFeatured);
+    list = manual.length > 0 ? manual : published;
+  } else {
+    // Mode récent : trié par date
+    list = [...published];
+  }
+
+  // Déduplication stricte
+  const seen = new Set();
+  const unique = [];
+  for (const art of list) {
+    if (!seen.has(art.id)) {
+      seen.add(art.id);
+      unique.push(art);
+    }
+  }
+
+  const res = unique.slice(0, HERO_CAROUSEL_CONFIG.maxSlides || 5);
+  return res.length > 0 ? res : [ARTICLES[0]];
+}
+
+function startHeroAutoplay() {
+  stopHeroAutoplay();
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
+  if (!HERO_CAROUSEL_CONFIG.autoplay || heroAutoplayPausedByUser) return;
+  const interval = HERO_CAROUSEL_CONFIG.autoplayInterval || 6000;
+  heroAutoplayTimer = setInterval(() => {
+    if (!heroAutoplayPaused && !heroAutoplayPausedByUser && document.visibilityState === 'visible') {
+      stepHeroSlide(1, false);
+    }
+  }, interval);
+}
+
+function stopHeroAutoplay() {
+  if (heroAutoplayTimer) {
+    clearInterval(heroAutoplayTimer);
+    heroAutoplayTimer = null;
+  }
+}
+
+function toggleHeroPlayPause(e) {
+  if (e) e.stopPropagation();
+  heroAutoplayPausedByUser = !heroAutoplayPausedByUser;
+  if (!heroAutoplayPausedByUser) {
+    heroAutoplayPaused = false;
+    startHeroAutoplay();
+  } else {
+    stopHeroAutoplay();
+  }
+  const container = document.getElementById('app-container');
+  if (container && currentView === 'home') renderHome(container);
+}
+
+function stepHeroSlide(dir, isKeyboard = false) {
+  const heroes = getHeroSliderArticles();
+  if (heroes.length <= 1) return;
+  
+  if (dir > 0) {
+    heroSliderIndex = (heroSliderIndex + 1) % heroes.length;
+  } else {
+    heroSliderIndex = (heroSliderIndex - 1 + heroes.length) % heroes.length;
+  }
+
+  if (isKeyboard) {
+    heroAutoplayPausedByUser = true;
+    stopHeroAutoplay();
+  }
+
+  const container = document.getElementById('app-container');
+  if (container && currentView === 'home') renderHome(container);
 }
 
 window.prevHeroSlide = function(e) {
   if (e) e.stopPropagation();
-  const heroes = getHeroSliderArticles();
-  heroSliderIndex = (heroSliderIndex === 0) ? heroes.length - 1 : heroSliderIndex - 1;
-  const container = document.getElementById('main-content');
-  if (container) renderHome(container);
+  stepHeroSlide(-1, false);
 };
 
 window.nextHeroSlide = function(e) {
   if (e) e.stopPropagation();
-  const heroes = getHeroSliderArticles();
-  heroSliderIndex = (heroSliderIndex === heroes.length - 1) ? 0 : heroSliderIndex + 1;
-  const container = document.getElementById('main-content');
-  if (container) renderHome(container);
+  stepHeroSlide(1, false);
+};
+
+window.goToHeroSlide = function(idx, e) {
+  if (e) e.stopPropagation();
+  heroSliderIndex = idx;
+  const container = document.getElementById('app-container');
+  if (container && currentView === 'home') renderHome(container);
+};
+
+window.handleHeroTouchStart = function(e) {
+  heroTouchStartX = e.changedTouches[0].screenX;
+};
+
+window.handleHeroTouchEnd = function(e) {
+  heroTouchEndX = e.changedTouches[0].screenX;
+  if (heroTouchEndX < heroTouchStartX - 45) {
+    stepHeroSlide(1, false);
+  } else if (heroTouchEndX > heroTouchStartX + 45) {
+    stepHeroSlide(-1, false);
+  }
 };
 
 function renderHome(container) {
   const heroArticles = getHeroSliderArticles();
+  if (heroSliderIndex >= heroArticles.length) heroSliderIndex = 0;
   const heroArticle = heroArticles[heroSliderIndex] || heroArticles[0];
   const authorHero = AUTHORS.find(a => a.slug === heroArticle.authorSlug) || AUTHORS[0];
   const freshArticles = ARTICLES.filter(a => a.id !== heroArticle.id).slice(0, 6);
   const recentArticles = ARTICLES.filter(a => a.id !== heroArticle.id).slice(6, 12);
   const sidebarFeatured = ARTICLES.find(a => a.id === 'art-sidebar-featured') || ARTICLES[1];
 
+  // Préchargement fluide du slide suivant sans surcharger le réseau
+  if (heroArticles.length > 1) {
+    const nextIdx = (heroSliderIndex + 1) % heroArticles.length;
+    if (heroArticles[nextIdx] && heroArticles[nextIdx].coverImage) {
+      const preloadImg = new Image();
+      preloadImg.src = heroArticles[nextIdx].coverImage;
+    }
+  }
+
+  // Démarrer l'autoplay si non actif
+  startHeroAutoplay();
+
   container.innerHTML = `
     <div class="w-full">
       <!-- 1. HERO ÉDITORIAL 2-COLONNES ONTARIO — TEXTE MAJEUR À GAUCHE & VRAIE IMAGE ÉDITORIALE DANS FRAME 4:3 À DROITE -->
-      <section class="relative w-full bg-[#071426] text-white pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 overflow-hidden">
+      <section 
+        id="hero-carousel-section"
+        class="relative w-full bg-[#071426] text-white pt-24 sm:pt-28 lg:pt-32 pb-12 sm:pb-16 overflow-hidden select-none"
+        onmouseenter="heroAutoplayPaused = true;"
+        onmouseleave="heroAutoplayPaused = false;"
+        onfocusin="heroAutoplayPaused = true;"
+        onfocusout="heroAutoplayPaused = false;"
+        ontouchstart="handleHeroTouchStart(event)"
+        ontouchend="handleHeroTouchEnd(event)"
+      >
         <!-- Fond décoratif subtil et atténué bleu nuit (ne parasite pas la lecture) -->
         <div class="absolute inset-0 pointer-events-none opacity-40">
           <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-blue-900/20 blur-3xl"></div>
@@ -787,11 +1049,35 @@ function renderHome(container) {
                   <span>Lire l'article complet</span>
                   <span class="transition-transform group-hover:translate-x-1">→</span>
                 </button>
-                <div class="flex items-center gap-2">
-                  <button onclick="prevHeroSlide(event)" aria-label="Article précédent" class="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">‹</button>
-                  <button onclick="nextHeroSlide(event)" aria-label="Article suivant" class="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">›</button>
-                  <span class="text-xs font-mono font-medium text-zinc-400 ml-1.5">0${heroSliderIndex + 1} / 0${heroArticles.length}</span>
-                </div>
+                
+                ${heroArticles.length > 1 ? `
+                  <div class="flex items-center gap-2">
+                    <button onclick="prevHeroSlide(event)" aria-label="Article précédent" class="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">‹</button>
+                    <button onclick="nextHeroSlide(event)" aria-label="Article suivant" class="w-10 h-10 rounded-full border border-white/20 bg-white/5 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all cursor-pointer">›</button>
+                    <span class="text-xs font-mono font-medium text-zinc-400 ml-1">0${heroSliderIndex + 1} / 0${heroArticles.length}</span>
+                    
+                    <!-- Bouton Pause / Reprise Autoplay -->
+                    <button 
+                      onclick="toggleHeroPlayPause(event)" 
+                      aria-label="${heroAutoplayPausedByUser ? 'Reprendre la rotation' : 'Mettre en pause'}" 
+                      class="w-8 h-8 rounded-full border border-white/20 bg-white/5 hover:bg-white/20 text-white flex items-center justify-center text-[10px] ml-1 transition-all cursor-pointer"
+                      title="${heroAutoplayPausedByUser ? 'Reprendre la rotation automatique' : 'Pause rotation'}"
+                    >
+                      ${heroAutoplayPausedByUser ? '▶' : '⏸'}
+                    </button>
+
+                    <!-- Indicateurs de position par points -->
+                    <div class="hidden sm:flex items-center gap-1.5 ml-2">
+                      ${heroArticles.map((_, idx) => `
+                        <button 
+                          onclick="goToHeroSlide(${idx}, event)" 
+                          aria-label="Slide ${idx + 1}" 
+                          class="h-1.5 rounded-full transition-all cursor-pointer ${idx === heroSliderIndex ? 'w-5 bg-[#EF4248]' : 'w-1.5 bg-white/30 hover:bg-white/60'}"
+                        ></button>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
               </div>
             </div>
 
@@ -811,15 +1097,15 @@ function renderHome(container) {
                   loading="eager" 
                   fetchpriority="high"
                   style="object-position: ${heroArticle.focalPoint || 'center center'};"
-                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=85'; this.parentElement.classList.add('img-loaded');"
+                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=85'; this.parentElement.classList.add('img-loaded');"
                   onload="this.parentElement.classList.add('img-loaded');"
                   class="relative z-10 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 >
 
-                <!-- Légende d'image optionnelle au bas du cadre -->
-                ${(heroArticle.imageCaption || heroArticle.coverCaption || heroArticle.excerpt) ? `
+                <!-- Légende d'image UNIQUE intégrée en bas du cadre (zéro doublon sous le cadre) -->
+                ${(heroArticle.imageCaption || heroArticle.coverCaption) ? `
                   <div class="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 pt-6 text-[11px] text-zinc-300">
-                    <p class="line-clamp-1 italic">${heroArticle.imageCaption || heroArticle.coverCaption || 'Photographie éditoriale — ONTARIO Magazine'}</p>
+                    <p class="line-clamp-1 italic">${heroArticle.imageCaption || heroArticle.coverCaption}</p>
                   </div>
                 ` : ''}
 
@@ -828,16 +1114,14 @@ function renderHome(container) {
                   À la Une
                 </div>
               </div>
-
-              <!-- Mention / Légende éditoriale discrète sous le cadre -->
-              ${(heroArticle.imageCaption || heroArticle.coverCaption) ? `
-                <span class="text-[11px] text-zinc-400 mt-2 px-1 text-right italic hidden sm:block">${heroArticle.imageCaption || heroArticle.coverCaption}</span>
-              ` : ''}
             </div>
 
           </div>
         </div>
       </section>
+
+      <!-- EMPLACEMENT PUBLICITAIRE 1 : HOME_AFTER_FEATURED -->
+      ${renderAdBanner('home_after_featured', 'container-ontario')}
 
       <!-- 2. BANDEAU HORIZONTAL TICKER BAR CONFORME ONTARIO -->
       <section class="w-full border-b py-3" style="background-color: var(--surface-soft); border-color: var(--border-color);">
@@ -913,6 +1197,9 @@ function renderHome(container) {
           `).join('')}
         </div>
       </section>
+
+      <!-- EMPLACEMENT PUBLICITAIRE 2 : HOME_IN_FEED -->
+      ${renderAdBanner('home_in_feed', 'container-ontario')}
 
       <!-- 5. SECTION "RECENT ARTICLES" (2/3) + SIDEBAR ÉDITORIALE (1/3) CONFORME IMAGE A -->
       <section class="container-ontario mt-16 sm:mt-24">
@@ -1105,29 +1392,25 @@ function renderArticle(container, slug) {
               ${article.excerpt}
             </p>
 
-            ${(article.contentBlocks || []).map(b => {
+            ${(article.contentBlocks || []).map((b, idx) => {
+              let blockHtml = '';
               if (b.type === 'paragraph') {
-                return `<p>${b.text}</p>`;
-              }
-              if (b.type === 'heading') {
-                return b.level === 'h3' ? `<h3>${b.text}</h3>` : `<h2>${b.text}</h2>`;
-              }
-              if (b.type === 'quote') {
-                return `<blockquote><p>${b.text}</p>${b.author ? `<cite class="block text-xs not-italic mt-2 text-zinc-400">— ${b.author}</cite>` : ''}</blockquote>`;
-              }
-              if (b.type === 'list') {
-                return `<ul class="list-disc pl-6 space-y-2 my-4 text-base">${(b.items || []).map(i => `<li>${i}</li>`).join('')}</ul>`;
-              }
-              if (b.type === 'image') {
-                return `
+                blockHtml = `<p>${b.text}</p>`;
+              } else if (b.type === 'heading') {
+                blockHtml = b.level === 'h3' ? `<h3>${b.text}</h3>` : `<h2>${b.text}</h2>`;
+              } else if (b.type === 'quote') {
+                blockHtml = `<blockquote><p>${b.text}</p>${b.author ? `<cite class="block text-xs not-italic mt-2 text-zinc-400">— ${b.author}</cite>` : ''}</blockquote>`;
+              } else if (b.type === 'list') {
+                blockHtml = `<ul class="list-disc pl-6 space-y-2 my-4 text-base">${(b.items || []).map(i => `<li>${i}</li>`).join('')}</ul>`;
+              } else if (b.type === 'image') {
+                blockHtml = `
                   <figure class="my-8">
                     <img src="${b.url}" alt="${b.alt || ''}" onerror="onImgError(this)" class="w-full rounded-2xl shadow-md">
                     ${b.caption ? `<figcaption class="text-xs text-center mt-2.5 italic text-zinc-400">${b.caption}</figcaption>` : ''}
                   </figure>
                 `;
-              }
-              if (b.type === 'gallery') {
-                return `
+              } else if (b.type === 'gallery') {
+                blockHtml = `
                   <div class="my-8">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       ${(b.images || []).map(img => `<img src="${img}" onerror="onImgError(this)" class="rounded-2xl w-full h-56 object-cover shadow-sm">`).join('')}
@@ -1135,9 +1418,8 @@ function renderArticle(container, slug) {
                     ${b.caption ? `<p class="text-xs text-center mt-2 italic text-zinc-400">${b.caption}</p>` : ''}
                   </div>
                 `;
-              }
-              if (b.type === 'video') {
-                return `
+              } else if (b.type === 'video') {
+                blockHtml = `
                   <div class="my-8">
                     <div class="aspect-video w-full rounded-2xl overflow-hidden shadow-lg border border-[#1E3752]">
                       <iframe class="w-full h-full" src="${b.url.includes('youtube.com') ? b.url.replace('watch?v=', 'embed/') : b.url}" title="Vidéo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -1145,20 +1427,17 @@ function renderArticle(container, slug) {
                     ${b.caption ? `<p class="text-xs text-center mt-2 italic text-zinc-400">${b.caption}</p>` : ''}
                   </div>
                 `;
-              }
-              if (b.type === 'callout') {
-                return `
+              } else if (b.type === 'callout') {
+                blockHtml = `
                   <div class="p-6 rounded-2xl my-6 border-l-4 border-[#EF4248] bg-black/5 dark:bg-white/5">
                     <h4 class="font-bold text-sm mb-1 text-[#EF4248]">${b.title || 'À Retenir'}</h4>
                     <p class="text-sm leading-relaxed">${b.text}</p>
                   </div>
                 `;
-              }
-              if (b.type === 'separator') {
-                return `<hr class="my-8 border-t border-zinc-200 dark:border-zinc-800">`;
-              }
-              if (b.type === 'button') {
-                return `
+              } else if (b.type === 'separator') {
+                blockHtml = `<hr class="my-8 border-t border-zinc-200 dark:border-zinc-800">`;
+              } else if (b.type === 'button') {
+                blockHtml = `
                   <div class="my-6">
                     <a href="${b.url}" class="px-6 py-3 rounded-full bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition-all">
                       <span>${b.text}</span>
@@ -1166,9 +1445,8 @@ function renderArticle(container, slug) {
                     </a>
                   </div>
                 `;
-              }
-              if (b.type === 'affiliate') {
-                return `
+              } else if (b.type === 'affiliate') {
+                blockHtml = `
                   <div class="affiliate-card p-6 sm:p-8 my-8">
                     <div class="flex items-center gap-2 mb-3">
                       <span class="w-2.5 h-2.5 rounded-full bg-[#EF4248]"></span>
@@ -1194,7 +1472,11 @@ function renderArticle(container, slug) {
                   </div>
                 `;
               }
-              return '';
+              // Insertion de l'emplacement article_in_content après le 2ème bloc
+              if (idx === 1) {
+                blockHtml += renderAdBanner('article_in_content');
+              }
+              return blockHtml;
             }).join('')}
 
             <!-- Tags fin d'article -->
@@ -1250,8 +1532,10 @@ function renderArticle(container, slug) {
             </div>
           </div>
 
-          <!-- Sidebar Single Post -->
+          <!-- Sidebar Single Post avec AdSense article_sidebar -->
           <div class="lg:col-span-4 flex flex-col gap-8">
+            ${renderAdBanner('article_sidebar')}
+
             <div class="p-6 rounded-3xl border" style="background-color: var(--surface-soft); border-color: var(--border-color);">
               <h4 class="font-heading font-bold text-xs uppercase tracking-widest mb-4" style="color: var(--text-muted);">DANS LA MÊME RUBRIQUE</h4>
               <div class="flex flex-col gap-4">
@@ -1270,6 +1554,9 @@ function renderArticle(container, slug) {
 
         </div>
       </div>
+
+      <!-- EMPLACEMENT PUBLICITAIRE 5 : ARTICLE_END -->
+      ${renderAdBanner('article_end', 'container-ontario my-8')}
 
       <!-- READ NEXT (3 ARTICLES CONFORME ONTARIO) -->
       <div class="container-ontario mt-16 sm:mt-24 pt-12 border-t" style="border-color: var(--border-color);">
@@ -1530,28 +1817,6 @@ let ADMIN_NOTIFICATIONS = [
   { id: 'n-4', title: 'Sauvegarde automatique du store synchronisée', time: 'Hier à 23h30', unread: false, icon: '💾' },
 ];
 
-// Configuration AdSense
-let ADMIN_ADSENSE = {
-  enabled: true,
-  publisherId: 'ca-pub-9842103487129034',
-  testMode: false,
-  estimatedToday: '42,80 €',
-  estimatedMonth: '1 480,50 €',
-  rpm: '4,25 €',
-  impressions: '84 500',
-  clicks: '2 120',
-  slots: {
-    home_after_hero: { name: 'Accueil — Après le Hero', enabled: true, format: 'Leaderboard (728x90)' },
-    home_between_categories: { name: 'Accueil — Entre Catégories', enabled: true, format: 'Bannière Fluide Responsive' },
-    home_between_articles: { name: 'Accueil — Flux Articles Fresh', enabled: true, format: 'Grand Rectangle (336x280)' },
-    home_sidebar: { name: 'Accueil — Sidebar Latérale', enabled: true, format: 'Demi-page Skyscraper (300x600)' },
-    article_after_intro: { name: 'Article — Après le Chapeau', enabled: true, format: 'Bannière Fluide Responsive' },
-    article_in_content: { name: 'Article — Cœur du Texte', enabled: true, format: 'Pavé Moyen (300x250)' },
-    article_footer: { name: 'Article — Avant Read Next', enabled: true, format: 'Leaderboard (728x90)' },
-    article_sidebar: { name: 'Article — Sidebar Droite', enabled: true, format: 'Pavé Moyen (300x250)' },
-    mobile_sticky: { name: 'Mobile — Encart Flottant Défilant', enabled: true, format: 'Bannière Mobile (320x50)' },
-  }
-};
 
 // Données Analytics par Période
 const ANALYTICS_DATA = {
@@ -2216,8 +2481,16 @@ function saveCustomizationSubmit(e) {
     if (img) ARTICLES[0].coverImage = img;
   }
 
+  const mode = document.getElementById('cust-carousel-mode')?.value;
+  const duration = parseInt(document.getElementById('cust-carousel-duration')?.value || '6', 10);
+  const maxSlides = parseInt(document.getElementById('cust-carousel-max')?.value || '5', 10);
+  if (mode) HERO_CAROUSEL_CONFIG.mode = mode;
+  if (duration) HERO_CAROUSEL_CONFIG.autoplayInterval = duration * 1000;
+  if (maxSlides) HERO_CAROUSEL_CONFIG.maxSlides = maxSlides;
+  localStorage.setItem('ontario_carousel_config_v2', JSON.stringify(HERO_CAROUSEL_CONFIG));
+
   localStorage.setItem('ontario_cms_database_v2', JSON.stringify({ articles: ARTICLES }));
-  alert("✓ Personnalisation sauvegardée ! Les modifications sont appliquées sur la page d'accueil.");
+  alert("✓ Configuration du Carrousel Hero enregistrée et synchronisée avec la page d'accueil !");
   setAdminNav('dashboard');
 }
 
@@ -2240,6 +2513,282 @@ function saveAdminProfileSubmit(e) {
   }
   alert("✓ Profil administrateur mis à jour avec succès !");
   setAdminNav('dashboard');
+}
+
+// ==========================================================================
+// ORCHESTRATEUR PRINCIPAL DU DASHBOARD ADMINISTRATEUR ONTARIO
+// ==========================================================================
+
+function renderAdmin(container) {
+  if (!container) container = document.getElementById('app-container');
+  if (!container) return;
+
+  const headerWrapper = document.getElementById('header-wrapper');
+  const newsletterSection = document.getElementById('newsletter-section');
+  const footerEl = document.querySelector('footer');
+  if (headerWrapper) headerWrapper.style.display = 'none';
+  if (newsletterSection) newsletterSection.style.display = 'none';
+  if (footerEl) footerEl.style.display = 'none';
+
+  // Sécurité et contrôle de rôle étanche
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'administrator' || currentUser.role === 'editor');
+  if (!isAdmin) {
+    renderAdminLogin(container);
+    return;
+  }
+
+  // Si l'éditeur Gutenberg est actif, affichage plein écran dédié
+  if (adminCurrentTab === 'editor') {
+    renderGutenbergEditor(container);
+    return;
+  }
+
+  // Rendu dynamique de l'onglet actif
+  let tabContentHtml = '';
+  switch (adminCurrentTab) {
+    case 'dashboard': tabContentHtml = renderTabDashboard(); break;
+    case 'analytics': tabContentHtml = renderTabAnalytics(); break;
+    case 'articles': tabContentHtml = renderTabArticles(); break;
+    case 'pages': tabContentHtml = renderTabPages(); break;
+    case 'media': tabContentHtml = renderTabMedia(); break;
+    case 'categories': tabContentHtml = renderTabCategories(); break;
+    case 'tags': tabContentHtml = renderTabTags(); break;
+    case 'comments': tabContentHtml = renderTabComments(); break;
+    case 'users': tabContentHtml = renderTabUsers(); break;
+    case 'newsletter': tabContentHtml = renderTabNewsletter(); break;
+    case 'seo': tabContentHtml = renderTabSEO(); break;
+    case 'adsense': tabContentHtml = renderTabAdSense(); break;
+    case 'customization':
+    case 'carousel':
+      tabContentHtml = renderTabCustomization(); break;
+    case 'settings': tabContentHtml = renderTabSettings(); break;
+    default: tabContentHtml = renderTabDashboard(); break;
+  }
+
+  const unreadNotifs = ADMIN_NOTIFICATIONS.filter(n => n.unread).length;
+  const pendingCommentsCount = ADMIN_COMMENTS.filter(c => c.status === 'pending').length;
+
+  const navGroups = [
+    {
+      title: 'PRINCIPAL',
+      items: [
+        { id: 'dashboard', label: 'Tableau de Bord', icon: '📊' },
+        { id: 'analytics', label: 'Analytics & Trafic', icon: '📈' },
+      ]
+    },
+    {
+      title: 'ÉDITION & CONTENUS',
+      items: [
+        { id: 'articles', label: 'Publications & Articles', icon: '📰', badge: ARTICLES.length },
+        { id: 'new', label: 'Nouvel Article', icon: '✍️' },
+        { id: 'pages', label: 'Pages Statiques', icon: '📄' },
+        { id: 'media', label: 'Médiathèque', icon: '📁', badge: ADMIN_MEDIA.length },
+      ]
+    },
+    {
+      title: 'TAXONOMIES & INTERACTIONS',
+      items: [
+        { id: 'categories', label: 'Catégories', icon: '🏷️' },
+        { id: 'tags', label: 'Mots-clés / Tags', icon: '🔖' },
+        { id: 'comments', label: 'Commentaires', icon: '💬', badge: pendingCommentsCount > 0 ? pendingCommentsCount : null },
+        { id: 'newsletter', label: 'Abonnés Newsletter', icon: '✉️', badge: ADMIN_SUBSCRIBERS.length },
+      ]
+    },
+    {
+      title: 'MONÉTISATION & CONFIG',
+      items: [
+        { id: 'adsense', label: 'Régie AdSense', icon: '💰' },
+        { id: 'seo', label: 'Référencement SEO', icon: '🔍' },
+        { id: 'customization', label: 'Carrousel & Hero', icon: '🎨' },
+        { id: 'users', label: 'Équipe & Droits', icon: '👥' },
+        { id: 'settings', label: 'Paramètres du Site', icon: '⚙️' },
+      ]
+    }
+  ];
+
+  container.innerHTML = `
+    <div class="min-h-screen bg-[#071426] text-white flex flex-col font-sans selection:bg-[#EF4248] selection:text-white">
+      
+      <!-- TOPBAR ADMINISTRATIVE PROFESSIONNELLE -->
+      <header class="sticky top-0 z-40 h-16 bg-[#0E2137]/95 backdrop-blur-md border-b border-[#1E3752] px-4 sm:px-6 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <!-- Toggle Sidebar Mobile -->
+          <button onclick="toggleAdminMobileSidebar()" class="lg:hidden p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+
+          <!-- Toggle Sidebar Desktop -->
+          <button onclick="toggleAdminSidebar()" class="hidden lg:flex p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors" title="${adminSidebarCollapsed ? 'Déplier la barre latérale' : 'Replier la barre latérale'}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+          </button>
+
+          <!-- Brand Logo Header -->
+          <div onclick="setAdminNav('dashboard')" class="flex items-center gap-2.5 cursor-pointer group">
+            <div class="w-8 h-8 rounded-full bg-[#EF4248] flex items-center justify-center text-white font-extrabold shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
+              <span class="font-heading text-sm">O</span>
+            </div>
+            <div class="hidden sm:flex flex-col">
+              <span class="font-heading font-extrabold text-sm tracking-tight text-white leading-none">ONTARIO</span>
+              <span class="text-[9px] font-mono text-[#EF4248] tracking-widest uppercase">CMS Admin v2.4</span>
+            </div>
+          </div>
+
+          <div class="hidden md:flex items-center gap-2 pl-4 border-l border-[#1E3752]">
+            <span class="text-xs text-zinc-400">Onglet :</span>
+            <span class="text-xs font-bold text-white capitalize">${adminCurrentTab}</span>
+          </div>
+        </div>
+
+        <!-- Actions Droite Topbar -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Bouton Rédiger Nouvel Article -->
+          <button onclick="setAdminNav('new')" class="px-3.5 py-1.5 rounded-xl bg-[#EF4248] hover:bg-[#DA343A] text-white text-xs font-bold shadow-md shadow-red-500/20 transition-all flex items-center gap-1.5 cursor-pointer">
+            <span>✍️</span>
+            <span class="hidden sm:inline">Nouvel Article</span>
+          </button>
+
+          <!-- Bouton Voir le Site Public -->
+          <button onclick="navigate('home')" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-[#1E3752] text-xs font-semibold text-zinc-300 hover:text-white transition-all flex items-center gap-1.5">
+            <span>🌐</span>
+            <span class="hidden md:inline">Voir le site</span>
+          </button>
+
+          <!-- Cloche Notifications avec Badge -->
+          <div class="relative">
+            <button onclick="toggleAdminNotifications()" class="relative p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              ${unreadNotifs > 0 ? `<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4248] animate-ping"></span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4248]"></span>` : ''}
+            </button>
+
+            <!-- Menu déroulant Notifications -->
+            ${adminNotificationsOpen ? `
+              <div class="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-[#0E2137] border border-[#1E3752] shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95">
+                <div class="flex items-center justify-between pb-3 border-b border-[#1E3752] mb-3">
+                  <h4 class="font-heading font-bold text-xs text-white uppercase tracking-wider">Notifications CMS</h4>
+                  <button onclick="markAllNotificationsRead()" class="text-[10px] text-[#EF4248] hover:underline font-semibold">Tout marquer comme lu</button>
+                </div>
+                <div class="space-y-2.5 max-h-72 overflow-y-auto">
+                  ${ADMIN_NOTIFICATIONS.map(n => `
+                    <div class="p-2.5 rounded-xl ${n.unread ? 'bg-[#122B45] border border-[#EF4248]/30' : 'bg-[#0A1A2F]'} text-xs flex items-start gap-2.5">
+                      <span class="text-base">${n.icon}</span>
+                      <div class="flex-1">
+                        <p class="text-zinc-200 leading-snug">${n.title}</p>
+                        <span class="text-[10px] text-zinc-400 mt-1 block">${n.time}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Profil Administrateur & Déconnexion -->
+          <div class="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-[#1E3752]">
+            <img src="${currentUser?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80'}" alt="${currentUser?.name || 'Admin'}" class="w-8 h-8 rounded-full object-cover border border-[#EF4248]">
+            <div class="hidden xl:flex flex-col text-left">
+              <span class="text-xs font-bold text-white leading-tight truncate max-w-[120px]">${currentUser?.name || 'Steve Jones'}</span>
+              <span class="text-[9px] text-[#EF4248] uppercase font-bold tracking-wider">${currentUser?.role || 'Admin'}</span>
+            </div>
+            <button onclick="handleAdminLogout()" title="Se déconnecter" class="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors cursor-pointer ml-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- CORPS AVEC SIDEBAR & ESPACE DE TRAVAIL -->
+      <div class="flex-1 flex overflow-hidden">
+        
+        <!-- SIDEBAR GAUCHE PLIABLE (DESKTOP) -->
+        <aside class="hidden lg:flex flex-col bg-[#0E2137] border-r border-[#1E3752] transition-all duration-300 ${adminSidebarCollapsed ? 'w-20' : 'w-64'} shrink-0 overflow-y-auto p-4 space-y-6">
+          ${navGroups.map(grp => `
+            <div>
+              ${!adminSidebarCollapsed ? `
+                <span class="text-[10px] font-bold tracking-wider text-zinc-500 uppercase px-3 mb-2 block font-heading">${grp.title}</span>
+              ` : `
+                <div class="h-px bg-[#1E3752] my-2"></div>
+              `}
+              <div class="space-y-1">
+                ${grp.items.map(item => `
+                  <button 
+                    onclick="setAdminNav('${item.id}')"
+                    class="w-full flex items-center ${adminSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${adminCurrentTab === item.id ? 'bg-[#EF4248] text-white shadow-md shadow-red-500/25 font-bold' : 'text-zinc-300 hover:bg-[#122B45] hover:text-white'}"
+                    title="${item.label}"
+                  >
+                    <div class="flex items-center gap-3">
+                      <span class="text-base leading-none">${item.icon}</span>
+                      ${!adminSidebarCollapsed ? `<span class="truncate">${item.label}</span>` : ''}
+                    </div>
+                    ${!adminSidebarCollapsed && item.badge ? `
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${adminCurrentTab === item.id ? 'bg-white/20 text-white' : 'bg-[#1E3752] text-zinc-300'}">${item.badge}</span>
+                    ` : ''}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+
+          <div class="mt-auto pt-4 border-t border-[#1E3752] text-center">
+            ${!adminSidebarCollapsed ? `
+              <p class="text-[10px] text-zinc-500 font-mono">ONTARIO Editorial Suite</p>
+              <p class="text-[9px] text-zinc-600">Connecté en mode Administrateur</p>
+            ` : `
+              <span class="text-xs text-zinc-500 font-mono">v2.4</span>
+            `}
+          </div>
+        </aside>
+
+        <!-- DRAWER SIDEBAR MOBILE -->
+        ${adminMobileSidebarOpen ? `
+          <div class="fixed inset-0 z-50 lg:hidden flex" onclick="toggleAdminMobileSidebar()">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-xs"></div>
+            <div class="relative w-72 bg-[#0E2137] border-r border-[#1E3752] p-5 flex flex-col h-full overflow-y-auto text-white z-10" onclick="event.stopPropagation()">
+              <div class="flex items-center justify-between pb-4 border-b border-[#1E3752] mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full bg-[#EF4248] flex items-center justify-center text-white font-extrabold text-sm">O</div>
+                  <span class="font-heading font-extrabold text-base">ONTARIO CMS</span>
+                </div>
+                <button onclick="toggleAdminMobileSidebar()" class="p-2 text-zinc-400 hover:text-white">✕</button>
+              </div>
+              <div class="space-y-5 flex-1">
+                ${navGroups.map(grp => `
+                  <div>
+                    <span class="text-[10px] font-bold tracking-wider text-zinc-500 uppercase px-2 mb-1.5 block">${grp.title}</span>
+                    <div class="space-y-1">
+                      ${grp.items.map(item => `
+                        <button 
+                          onclick="setAdminNav('${item.id}'); toggleAdminMobileSidebar();"
+                          class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold ${adminCurrentTab === item.id ? 'bg-[#EF4248] text-white font-bold' : 'text-zinc-300 hover:bg-[#122B45]'}"
+                        >
+                          <div class="flex items-center gap-2.5">
+                            <span>${item.icon}</span>
+                            <span>${item.label}</span>
+                          </div>
+                          ${item.badge ? `<span class="px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-bold">${item.badge}</span>` : ''}
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- CONTENU PRINCIPAL DE L'ONGLET SÉLECTIONNÉ -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          <div class="max-w-7xl mx-auto">
+            ${tabContentHtml}
+          </div>
+        </main>
+
+      </div>
+
+      <!-- MODALE APERÇU DIRECT D'ARTICLE -->
+      ${renderPreviewArticleModal()}
+
+    </div>
+  `;
 }
 
 // ==========================================================================
@@ -3265,12 +3814,12 @@ function renderTabAdSense() {
     <div class="space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#1E3752]">
         <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">MONÉTISATION MÉDIA</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Gestion des Publicités & Google AdSense</h1>
-          <p class="text-xs text-zinc-400">Contrôle des 9 emplacements publicitaires et suivi des revenus estimés</p>
+          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold uppercase">MONÉTISATION MÉDIA & GOOGLE ADSENSE</span>
+          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Gestion de la Régie Publicitaire</h1>
+          <p class="text-xs text-zinc-400">Contrôle des 5 emplacements stratégiques (Accueil, In-Feed, Sidebar et Article)</p>
         </div>
         <div class="flex items-center gap-3">
-          <button onclick="toggleAdSenseGlobal()" class="px-5 py-2.5 rounded-xl ${ADMIN_ADSENSE.enabled ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-zinc-700 hover:bg-zinc-600'} text-white font-bold text-xs shadow-md transition-all">
+          <button onclick="toggleAdSenseGlobal()" class="px-5 py-2.5 rounded-xl ${ADMIN_ADSENSE.enabled ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-zinc-700 hover:bg-zinc-600'} text-white font-bold text-xs shadow-md transition-all cursor-pointer">
             ${ADMIN_ADSENSE.enabled ? '✓ Publicités Actives sur le Site' : '✕ Publicités Désactivées'}
           </button>
         </div>
@@ -3306,29 +3855,31 @@ function renderTabAdSense() {
           <h3 class="font-heading font-bold text-sm text-white">Identifiant Éditeur Google AdSense</h3>
           <p class="text-xs text-zinc-400">Ce code est automatiquement injecté dans les bannières publicitaires</p>
         </div>
-        <input type="text" onchange="updateAdSensePublisher(this.value)" value="${ADMIN_ADSENSE.publisherId}" class="px-4 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white font-mono w-full sm:w-80">
+        <input type="text" onchange="updateAdSensePublisher(this.value)" value="${ADMIN_ADSENSE.publisherId}" class="px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white font-mono w-full sm:w-80 focus:border-[#EF4248] focus:outline-none">
       </div>
 
-      <!-- Grille des 9 Emplacements Configurables -->
-      <h3 class="font-heading font-bold text-base text-white pt-2">Configuration par Zone d'Affichage</h3>
+      <!-- Grille des 5 Emplacements Requis et Conformes -->
+      <h3 class="font-heading font-bold text-base text-white pt-2">Configuration des 5 Emplacements Stratégiques</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         ${Object.entries(ADMIN_ADSENSE.slots).map(([key, s]) => `
           <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] flex flex-col justify-between space-y-4 hover:border-white/20 transition-all">
             <div>
               <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] uppercase font-bold text-[#EF4248]">${key.replace(/_/g, ' ')}</span>
-                <button onclick="toggleAdSenseSlot('${key}')" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${s.enabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-700 text-zinc-400'}">
+                <button onclick="toggleAdSenseSlot('${key}')" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold cursor-pointer ${s.enabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-700 text-zinc-400'}">
                   ${s.enabled ? '✓ Activé' : '✕ Désactivé'}
                 </button>
               </div>
               <h4 class="font-bold text-sm text-white">${s.name}</h4>
-              <p class="text-xs text-zinc-400 mt-1">Format configuré : <b class="text-zinc-300">${s.format}</b></p>
+              <p class="text-xs text-zinc-400 mt-1">Format : <b class="text-zinc-300">${s.format}</b></p>
+              <p class="text-[10px] text-zinc-500 mt-0.5">Anti-CLS min-height : <b>${s.minHeight || '90px'}</b></p>
             </div>
 
-            <!-- Aperçu réaliste du bloc -->
-            <div class="p-4 rounded-xl border border-dashed border-[#1E3752] bg-[#0A1A2F] text-center text-[10px] text-zinc-500 flex flex-col items-center justify-center h-20">
-              <span class="text-xs font-bold text-zinc-400">Google AdSense</span>
-              <span>${s.format}</span>
+            <!-- Aperçu de Simulation en direct -->
+            <div class="p-4 rounded-xl border border-dashed border-[#1E3752] bg-[#0A1A2F] text-center text-[10px] text-zinc-400 flex flex-col items-center justify-center" style="min-height: 80px;">
+              <span class="text-[10px] uppercase font-bold text-[#EF4248]">Publicités</span>
+              <span class="font-semibold text-white mt-0.5">Google AdSense • ${s.format}</span>
+              <span class="text-zinc-500 text-[9px] mt-0.5">Simulation d'emplacement réel</span>
             </div>
           </div>
         `).join('')}
@@ -3342,32 +3893,67 @@ function renderTabCustomization() {
     <div class="space-y-6">
       <div class="flex items-center justify-between pb-6 border-b border-[#1E3752]">
         <div>
-          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold">CONSTRUCTEUR VISUEL SANS CODE</span>
-          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Personnalisation du Site Public</h1>
-          <p class="text-xs text-zinc-400">Modifiez le Header, le Hero, les Sections et le Footer sans toucher au code</p>
+          <span class="px-2.5 py-0.5 rounded-md bg-[#EF4248] text-white text-[10px] font-bold uppercase">GESTION ÉDITORIALE & CARROUSEL HERO</span>
+          <h1 class="font-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">Pilotage du Carrousel & Personnalisation</h1>
+          <p class="text-xs text-zinc-400">Configurez les modes d'affichage du Hero Slider, l'autoplay et les contenus de une</p>
         </div>
       </div>
 
       <form onsubmit="saveCustomizationSubmit(event)" class="space-y-6 max-w-4xl">
-        <!-- 1. HERO -->
+        <!-- 1. MODES DU CARROUSEL HERO -->
         <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
-          <h3 class="font-heading font-bold text-base text-white">1. Hero Section (Grand Titre & Image)</h3>
+          <h3 class="font-heading font-bold text-base text-white">1. Paramètres Dynamiques du Carrousel Hero</h3>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs text-zinc-300 font-bold mb-1.5">Mode d'Alimentation</label>
+              <select id="cust-carousel-mode" class="w-full px-3 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+                <option value="recent" ${HERO_CAROUSEL_CONFIG.mode === 'recent' ? 'selected' : ''}>📅 Publications Récentes (Ordre chronologique)</option>
+                <option value="popular" ${HERO_CAROUSEL_CONFIG.mode === 'popular' ? 'selected' : ''}>🔥 Publications Populaires (Plus lues)</option>
+                <option value="manual" ${HERO_CAROUSEL_CONFIG.mode === 'manual' ? 'selected' : ''}>⭐ Sélection Manuelle (Articles en vedette)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs text-zinc-300 font-bold mb-1.5">Vitesse de Rotation (Secondes)</label>
+              <select id="cust-carousel-duration" class="w-full px-3 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+                <option value="4" ${HERO_CAROUSEL_CONFIG.autoplayInterval === 4000 ? 'selected' : ''}>4 secondes (Rapide)</option>
+                <option value="6" ${HERO_CAROUSEL_CONFIG.autoplayInterval === 6000 || !HERO_CAROUSEL_CONFIG.autoplayInterval ? 'selected' : ''}>6 secondes (Recommandé Ontario)</option>
+                <option value="8" ${HERO_CAROUSEL_CONFIG.autoplayInterval === 8000 ? 'selected' : ''}>8 secondes (Détendu)</option>
+                <option value="10" ${HERO_CAROUSEL_CONFIG.autoplayInterval === 10000 ? 'selected' : ''}>10 secondes (Long)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs text-zinc-300 font-bold mb-1.5">Nombre de Slides Actifs</label>
+              <select id="cust-carousel-max" class="w-full px-3 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
+                <option value="3" ${HERO_CAROUSEL_CONFIG.maxSlides === 3 ? 'selected' : ''}>3 articles</option>
+                <option value="4" ${HERO_CAROUSEL_CONFIG.maxSlides === 4 ? 'selected' : ''}>4 articles</option>
+                <option value="5" ${HERO_CAROUSEL_CONFIG.maxSlides === 5 || !HERO_CAROUSEL_CONFIG.maxSlides ? 'selected' : ''}>5 articles (Standard)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ARTICLE PRINCIPAL DU HERO -->
+        <div class="p-6 rounded-3xl bg-[#0E2137] border border-[#1E3752] space-y-4">
+          <h3 class="font-heading font-bold text-base text-white">2. Contenu en Vedette #1 (Slide Principal)</h3>
           <div>
             <label class="block text-xs text-zinc-400 mb-1">Grand Titre Principal du Hero</label>
             <input type="text" id="cust-hero-title" value="${ARTICLES[0]?.title || ''}" class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-sm text-white font-bold">
           </div>
           <div>
             <label class="block text-xs text-zinc-400 mb-1">Extrait d'Accroche</label>
-            <textarea id="cust-hero-desc" rows="2" class="w-full px-4 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">${ARTICLES[0]?.excerpt || ''}</textarea>
+            <textarea id="cust-hero-desc" rows="2" class="w-full px-4 py-2 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white leading-relaxed">${ARTICLES[0]?.excerpt || ''}</textarea>
           </div>
           <div>
-            <label class="block text-xs text-zinc-400 mb-1">Image Grand Angle (URL)</label>
+            <label class="block text-xs text-zinc-400 mb-1">Image Grand Angle (URL Haute Définition)</label>
             <input type="text" id="cust-hero-img" value="${ARTICLES[0]?.coverImage || ''}" class="w-full px-4 py-2.5 rounded-xl bg-[#0A1A2F] border border-[#1E3752] text-xs text-white">
           </div>
         </div>
 
-        <button type="submit" class="w-full py-3.5 rounded-2xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-sm shadow-xl shadow-red-500/25 transition-all">
-          ✓ Enregistrer et Appliquer Immédiatement sur la Page d'Accueil
+        <button type="submit" class="w-full py-3.5 rounded-2xl bg-[#EF4248] hover:bg-[#DA343A] text-white font-bold text-sm shadow-xl shadow-red-500/25 transition-all cursor-pointer">
+          ✓ Enregistrer et Synchroniser Immédiatement avec la Page d'Accueil
         </button>
       </form>
     </div>

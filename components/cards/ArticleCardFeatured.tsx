@@ -146,12 +146,7 @@ export function ArticleCardFeatured({ articles }: { articles: Article[] }) {
               </div>
             </Link>
 
-            {/* Mention / Légende éditoriale discrète sous le cadre */}
-            {current.coverCaption && (
-              <span className="text-[11px] text-zinc-400 mt-2 px-1 text-right italic hidden sm:block">
-                {current.coverCaption}
-              </span>
-            )}
+
           </div>
 
         </div>
